@@ -1,0 +1,170 @@
+[
+  {
+    "name": "core",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "behavior-registry.ts"
+      },
+      {
+        "path": "event-methods.ts"
+      },
+      {
+        "path": "behavior-utils.ts"
+      },
+      {
+        "path": "command-test-harness.ts"
+      }
+    ]
+  },
+  {
+    "name": "clearable",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "clearable/_behavior-definition.ts"
+      },
+      {
+        "path": "clearable/behavior.ts"
+      },
+      {
+        "path": "clearable/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "compute",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "compute/_behavior-definition.ts"
+      },
+      {
+        "path": "compute/behavior.ts"
+      },
+      {
+        "path": "compute/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "element-counter",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "element-counter/_behavior-definition.ts"
+      },
+      {
+        "path": "element-counter/behavior.ts"
+      },
+      {
+        "path": "element-counter/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "input-watcher",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "input-watcher/_behavior-definition.ts"
+      },
+      {
+        "path": "input-watcher/behavior.ts"
+      },
+      {
+        "path": "input-watcher/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "logger",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "logger/_behavior-definition.ts"
+      },
+      {
+        "path": "logger/behavior.ts"
+      },
+      {
+        "path": "logger/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "request",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "request/_behavior-definition.ts"
+      },
+      {
+        "path": "request/behavior.ts"
+      },
+      {
+        "path": "request/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "reveal",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "reveal/_behavior-definition.ts"
+      },
+      {
+        "path": "reveal/behavior.ts"
+      },
+      {
+        "path": "reveal/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "set-value",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "set-value/_behavior-definition.ts"
+      },
+      {
+        "path": "set-value/behavior.ts"
+      },
+      {
+        "path": "set-value/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "sign-out",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "sign-out/_behavior-definition.ts"
+      },
+      {
+        "path": "sign-out/behavior.ts"
+      },
+      {
+        "path": "sign-out/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "social-auth",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "social-auth/_behavior-definition.ts"
+      },
+      {
+        "path": "social-auth/behavior.ts"
+      },
+      {
+        "path": "social-auth/behavior.test.ts"
+      }
+    ]
+  }
+]

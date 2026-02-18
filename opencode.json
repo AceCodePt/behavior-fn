@@ -1,0 +1,30 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"agent": {
+    "plan": {
+      "disable": true
+    },
+    "build": {
+      "disable": true
+    },
+		"architect": {
+      "model": "opencode/gemini-3-pro",
+			"prompt": "docs/contributing/agent-prompts/architect.md"
+		},
+		"infrastructure": {
+      "model": "opencode/gemini-3-pro",
+			"prompt": "docs/contributing/agent-prompts/infrastructure.md"
+		},
+		"frontend": {
+      "model": "opencode/gemini-3-flash",
+			"prompt": "docs/contributing/agent-prompts/frontend.md"
+		}
+	},
+	"mcp": {
+		"Jina": {
+			"type": "remote",
+			"url": "https://mcp.jina.ai/v1",
+			"enabled": true
+		}
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"name": "behavior-fn",
+	"version": "0.0.1",
+	"description": "Copy-paste behavior mixins for Web Components",
+	"bin": {
+		"behavior-cn": "./dist/index.js"
+	},
+	"scripts": {
+		"build": "tsup index.ts --format esm --clean --onSuccess \"cp -r registry dist/registry && chmod +x dist/index.js\"",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"web-components",
+		"mixin",
+		"behavior",
+		"typescript"
+	],
+	"author": "Sagi Carmel (https://github.com/AceCodePt)",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^25.2.3",
+		"@types/prompts": "^2.4.9",
+		"ts-node": "^10.9.2",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18",
+		"zod": "^4.3.6"
+	},
+	"main": "index.js",
+	"type": "module",
+	"dependencies": {
+		"auto-wc": "^0.1.3",
+		"prompts": "^2.4.2"
+	}
+}

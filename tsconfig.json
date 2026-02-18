@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./registry/*"],
+      "~registry": ["./registry/behaviors/behavior-registry.ts"],
+      "~utils": ["./registry/behaviors/behavior-utils.ts"],
+      "~test-utils": ["./registry/behaviors/command-test-harness.ts"]
+    }
+  },
+  "include": ["types.d.ts", "index.ts", "registry/**/*"]
+}
