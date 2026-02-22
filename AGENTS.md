@@ -32,6 +32,7 @@ All code changes must follow the **PDSRTDD** flow:
 ### 3. Coding Standards
 
 - **TypeScript:** Strict mode enabled. No `any`. Use `unknown` and narrow types.
+- **Behavior Naming:** Behaviors must be named in kebab-case (e.g., `my-behavior`).
 - **Zod/TypeBox:** Use for all runtime validation.
 - **No External Dependencies:** Behaviors should be dependency-free whenever possible.
 - **Testing:** Use `vitest` and `jsdom`. Every behavior **MUST** have tests.

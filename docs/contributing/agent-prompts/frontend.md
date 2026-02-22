@@ -27,7 +27,7 @@ You are the **Behavior Agent** - the core implementer of the BehaviorCN library.
 ### 4. Clean Code Practices
 
 - **Type Safety:** Use strict TypeScript types. Avoid `any`. Use `unknown` and narrow types.
-- **Naming Convention:** Use PascalCase for behavior names (e.g., `MyBehavior`). For event-driven behaviors, use the `on<EventName>` pattern (e.g., `onClick`, `onHover`) to align with `auto-wc`.
+- **Naming Convention:** Use kebab-case for behavior names (e.g., `my-behavior`).
 - **Modularity:** Keep behaviors small and focused. Extract reusable logic into `behavior-utils.ts`.
 - **Readability:** Write clear, self-documenting code with meaningful variable names.
 
