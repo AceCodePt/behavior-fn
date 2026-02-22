@@ -1,101 +1,112 @@
-import { getFormatter } from "@/lib/utils/formatter-registry";
-import { registerBehavior, type BehaviorFactory } from "~registry";
-import INPUT_WATCHER_DEFINITION from "./_behavior-definition";
+import { type BehaviorFactory } from "~registry";
 
-interface InputWatcherProps {
-  "watcher-for": string;
-  "watcher-format"?: string;
-}
+export const inputWatcherBehavior: BehaviorFactory = (host) => {
+  let targets: Element[] = [];
+  let cleanupFns: Array<() => void> = [];
 
-export const inputWatcherBehaviorFactory: BehaviorFactory = (host) => {
-  let targetElements: HTMLElement[] = [];
+  const getTargets = () => {
+    const selector = host.getAttribute("input-watcher-target");
+    if (!selector) return [];
+
+    const result: Element[] = [];
+    const parts = selector.split(",").map((s) => s.trim()).filter(Boolean);
+
+    for (const part of parts) {
+      try {
+        const els = document.querySelectorAll(part);
+        els.forEach((el) => {
+          result.push(el);
+        });
+      } catch (e) {
+        console.warn(`[Input Watcher] Invalid selector: ${part}`);
+      }
+    }
+    return result;
+  };
+
+  const readValue = (el: Element) => {
+    const attr = host.getAttribute("input-watcher-attr");
+    if (attr) {
+      return el.getAttribute(attr) ?? "";
+    }
+    // Try value property
+    if ("value" in el) {
+      return (el as any).value;
+    }
+    return el.textContent ?? "";
+  };
 
   const update = () => {
-    const props: InputWatcherProps = {
-      "watcher-for": host.getAttribute("watcher-for") ?? "",
-      "watcher-format": host.getAttribute("watcher-format") ?? undefined,
-    };
+    if (targets.length === 0) return;
 
-    const values: any[] = [];
-    // ... (rest of the function)
-    for (const target of targetElements) {
-      let value: any;
-      if (target.getAttribute("is") === "range-slider") {
-        value = {
-          min: parseFloat(target.getAttribute("min-value") || "0"),
-          max: parseFloat(target.getAttribute("max-value") || "0"),
+    const values = targets.map(readValue);
+    const format = host.getAttribute("input-watcher-format");
+
+    let output = "";
+
+    if (format) {
+      output = format;
+      // Replace {value} with first value (common case)
+      output = output.replace(/{value}/g, String(values[0]));
+      // Replace {0}, {1}... for indexed access
+      values.forEach((val, idx) => {
+        output = output.replace(new RegExp(`\\{${idx}\\}`, "g"), String(val));
+      });
+    } else {
+      // Default: join with space
+      output = values.join(" ");
+    }
+
+    host.textContent = output;
+  };
+
+  const setup = () => {
+    // Cleanup old listeners
+      cleanupFns.forEach((fn) => {
+        fn();
+      });
+
+    cleanupFns = [];
+    targets = [];
+
+    targets = getTargets();
+
+    const eventsStr = host.getAttribute("input-watcher-events");
+    const events = eventsStr
+      ? eventsStr.split(",").map((e) => e.trim())
+      : ["input", "change"];
+
+    targets.forEach((target) => {
+      events.forEach((eventName) => {
+        const handler = () => {
+          update();
         };
-      } else if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLSelectElement ||
-        target instanceof HTMLTextAreaElement
-      ) {
-        value = target.value;
-      } else {
-        value = (target as any).value ?? "";
-      }
-      values.push(value);
-    }
+        target.addEventListener(eventName, handler);
+        cleanupFns.push(() => {
+          target.removeEventListener(eventName, handler);
+        });
+      });
+    });
 
-    if (values.length === 0) return;
-
-    const input = values.length === 1 ? values[0] : values;
-
-    if (props["watcher-format"]) {
-      const formatter = getFormatter(props["watcher-format"]);
-      if (formatter) {
-        host.textContent = formatter(input);
-        return;
-      }
-    }
-
-    host.textContent =
-      typeof input === "object" ? JSON.stringify(input) : String(input);
-  };
-
-  const connect = () => {
-    const targetIds = (host.getAttribute("watcher-for") || "")
-      .split(",")
-      .map((id) => id.trim())
-      .filter(Boolean);
-
-    targetElements = targetIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
-
-    for (const target of targetElements) {
-      target.addEventListener("input", update);
-      target.addEventListener("change", update);
-    }
-
-    // Initial sync
+    // Initial update
     update();
-  };
-
-  const disconnect = () => {
-    for (const target of targetElements) {
-      target.removeEventListener("input", update);
-      target.removeEventListener("change", update);
-    }
-    targetElements = [];
   };
 
   return {
     connectedCallback: () => {
-      connect();
+      setup();
     },
     disconnectedCallback: () => {
-      disconnect();
+    cleanupFns.forEach((fn) => {
+      fn();
+    });
+
+      cleanupFns = [];
     },
     attributeChangedCallback: (name) => {
-      if (name === "watcher-for") {
-        disconnect();
-        connect();
-      } else if (name === "watcher-format") {
-        update();
+      if (name.startsWith("input-watcher-")) {
+        setup();
       }
     },
   };
 };
-
-registerBehavior(INPUT_WATCHER_DEFINITION.name, inputWatcherBehaviorFactory);
