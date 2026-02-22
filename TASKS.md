@@ -26,8 +26,9 @@ This file is managed via **Optimistic Concurrency**.
 
 ### Adding New Tasks
 
-1.  **Classify**: Determine if the task is a **Progression** (new feature/capability) or a **Regression** (alignment/refactoring due to core changes).
-2.  **Create Task Folder**: Create a directory in `tasks/` named after the task (kebab-case).
+1.  **Atomicity**: Ensure the task represents a single, independent unit of work. **Each behavior implementation or refactor must be a separate task.** Do not group multiple behaviors into one task.
+2.  **Classify**: Determine if the task is a **Progression** (new feature/capability) or a **Regression** (alignment/refactoring due to core changes).
+3.  **Create Task Folder**: Create a directory in `tasks/` named after the task (kebab-case).
 3.  **Document Task**: Create a detailed `.md` file inside that folder using the template in `docs/templates/task.md`. Ensure it includes the Protocol Checklist and Prohibited Patterns.
 4.  **Register Task**: Add a new `[ ]` entry **at the top** of the `Backlog` section in this file, linking to the `.md` file created in step 3.
     - **Define Dependencies**: If the new task depends on another task being completed first, append `🔒 Blocked by: [Task Name]` to the line.
@@ -42,6 +43,8 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Reimplement Input Watcher Behavior](docs/tasks/reimplement-input-watcher/task.md)
+- [ ] [Reimplement Request Behavior](docs/tasks/reimplement-request/task.md)
 - [ ] [Standardize Schema Interface & Move Observed Attributes](docs/tasks/standardize-schema-attributes/task.md)
 - [ ] [Sync Reveal Hidden/Open Attributes](docs/tasks/sync-reveal-hidden-open/task.md)
 - [x] [Fix Broken Tests](docs/tasks/fix-broken-tests/task.md)
