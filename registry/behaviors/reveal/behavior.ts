@@ -186,32 +186,13 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     });
   };
 
-  const observer = new MutationObserver((mutations) => {
-    let shouldSyncAria = false;
-    let shouldSyncPopover = false;
-
-    for (const mutation of mutations) {
-      if (mutation.type === "attributes") {
-        if (
-          mutation.attributeName === "hidden" ||
-          mutation.attributeName === "open"
-        ) {
-          shouldSyncAria = true;
-        }
-      } else {
-        shouldSyncPopover = true;
-      }
-    }
-
-    if (shouldSyncAria) syncAria();
-    if (shouldSyncPopover) syncPopover();
+  const observer = new MutationObserver(() => {
+    syncPopover();
   });
 
   return {
     connectedCallback() {
       observer.observe(el, {
-        attributes: true,
-        attributeFilter: ["hidden", "open"],
         childList: true,
         characterData: true,
         subtree: true,
@@ -235,12 +216,35 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
         el.removeEventListener("close", onToggle);
       }
     },
-    attributeChangedCallback() {
-      applyStyles();
-      syncPopover();
-      // Re-setup attribute watcher if config changed
-      attributeObserver?.disconnect();
-      setupAttributeWatcher();
+    attributeChangedCallback(
+      name: string,
+      _oldValue: string | null,
+      _newValue: string | null,
+    ) {
+      if (
+        name === "reveal-delay" ||
+        name === "reveal-duration" ||
+        name === "reveal-anchor"
+      ) {
+        applyStyles();
+      }
+
+      if (name === "reveal-auto") {
+        syncPopover();
+      }
+
+      if (name === "hidden" || name === "open" || name === "popover") {
+        syncAria();
+      }
+
+      if (
+        name === "reveal-when-target" ||
+        name === "reveal-when-attribute" ||
+        name === "reveal-when-value"
+      ) {
+        attributeObserver?.disconnect();
+        setupAttributeWatcher();
+      }
     },
     onCommand(e: CommandEvent<keyof typeof REVEAL_COMMANDS>) {
       const cmd = REVEAL_COMMANDS;
