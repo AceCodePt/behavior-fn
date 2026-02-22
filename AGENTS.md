@@ -58,3 +58,8 @@ The CLI tool is responsible for:
 
 - **`registry/behaviors/behavior-utils.ts`**: The shared infrastructure (like shadcn's `lib/utils.ts`). This is installed by `init`.
 - **`registry/behaviors/behavior-registry.ts`**: The runtime loader that auto-wires behavior logic using `import.meta.glob`. This is installed by `init`.
+
+## Task Management
+
+We manage tasks in [TASKS.md](./TASKS.md). Please refer to that file for the current backlog and completed tasks.
+
