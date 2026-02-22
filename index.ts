@@ -4,9 +4,16 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import prompts from "prompts";
+import { createJiti } from "jiti";
+import { toZod } from "./src/transformers/toZod";
+import { toValibot } from "./src/transformers/toValibot";
+import { toArkType } from "./src/transformers/toArkType";
+import { toTypeBox } from "./src/transformers/toTypeBox";
+import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const jiti = createJiti(__filename);
 
 // Load registry
 const registryPath = path.join(__dirname, "registry/behaviors-registry.json");
@@ -56,7 +63,7 @@ function rewriteImports(content: string, config: Config): string {
     .replace(/~test-utils/g, config.aliases.testUtils);
 }
 
-async function installBehavior(name: string, config: Config) {
+async function installBehavior(name: string, config: Config, validatorType: number = 0) {
   const behavior = registry.find((b: any) => b.name === name);
   if (!behavior) {
     console.error(`Behavior "${name}" not found in registry.`);
@@ -97,6 +104,28 @@ async function installBehavior(name: string, config: Config) {
     const sourcePath = path.join(__dirname, "registry/behaviors", file.path);
     let content = fs.readFileSync(sourcePath, "utf-8");
 
+    // Transform schema files if needed
+    if (file.path.endsWith("schema.ts")) {
+      try {
+        const mod = await jiti.import<{ schema?: unknown }>(sourcePath);
+        if (mod.schema) {
+          if (validatorType === 0) {
+            content = toZod(mod.schema);
+          } else if (validatorType === 1) {
+            content = toValibot(mod.schema);
+          } else if (validatorType === 2) {
+            content = toArkType(mod.schema);
+          } else if (validatorType === 3) {
+            // Check if toTypeBox function signature matches
+            // toTypeBox(content, schema)
+            content = toTypeBox(content, mod.schema);
+          }
+        }
+      } catch (e) {
+        console.warn(`Failed to transform schema for ${file.path}:`, e);
+      }
+    }
+
     // Rewrite imports
     content = rewriteImports(content, config);
 
@@ -136,7 +165,27 @@ const args = process.argv.slice(2);
 const command = args[0];
 const behaviorName = args[1];
 
-async function main() {
+async function getValidatorType(name: string): Promise<number> {
+  const detectedValidators = detectValidatorFromPackageJson(process.cwd());
+
+  if (detectedValidators.length > 1) {
+    const response = await prompts({
+      type: 'select',
+      name: 'validator',
+      message: `Multiple validators detected for behavior "${name}". Which one should be used for schemas?`,
+      choices: [
+        { title: 'Zod', value: 0 },
+        { title: 'Valibot', value: 1 },
+        { title: 'ArkType', value: 2 },
+        { title: 'TypeBox', value: 3 }
+      ].filter(c => detectedValidators.includes(c.value))
+    });
+    return response.validator;
+  }
+  return detectedValidators[0];
+}
+
+export async function main() {
   if (command === "init") {
     const response = await prompts([
       {
@@ -230,7 +279,7 @@ async function main() {
       }
     }
 
-    await installBehavior(behaviorName, config);
+    await installBehavior(behaviorName, config, await getValidatorType(behaviorName));
     process.exit(0);
   }
 
@@ -240,7 +289,11 @@ async function main() {
     "  init                Initialize the behavior registry (installs core files)",
   );
   console.error("  add <behavior-name> Add a specific behavior");
-  process.exit(1);
+  if (process.env.NODE_ENV !== "test") {
+    process.exit(1);
+  }
 }
 
-main();
+if (process.env.NODE_ENV !== "test") {
+  main();
+}
