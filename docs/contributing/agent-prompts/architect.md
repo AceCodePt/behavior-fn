@@ -18,7 +18,8 @@ You are the **Architect Agent** - the technical lead and system designer for the
 - **Enforce DRY:** Identify duplicated logic across behaviors and extract it into `behavior-utils.ts`.
 - **Enforce SOLID:** Ensure behaviors have a single responsibility and are open for extension but closed for modification.
 - **Type Safety:** Reject any code that uses `any` or bypasses type checking.
-- **Enforce Naming:** Ensure general behaviors use kebab-case (e.g. `reveal`). Event-driven behaviors MUST use the `on<EventName>` camelCase pattern (e.g. `onClick`, `onMouseEnter`) to align with `auto-wc`.
+- **Enforce Naming:** Ensure all behavior names are kebab-case (e.g., `reveal`).
+- **Event Handling:** Ensure behaviors implement event handlers (e.g., `onCommand`, `onClick`) as camelCase methods on the returned object to be picked up by `auto-wc`.
 - **Testing Strategy:** Define the testing strategy (unit vs. integration) and ensure adequate coverage.
 
 ### 3. CLI Architecture
