@@ -2,7 +2,7 @@
 
 ## Description
 
-Initialize the `behavior-cn` repository with the necessary configuration and directory structure.
+Initialize the `behavior-fn` repository with the necessary configuration and directory structure.
 
 ## Requirements
 

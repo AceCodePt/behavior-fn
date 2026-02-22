@@ -1,6 +1,6 @@
 # Adding a New Behavior
 
-Contributing a new behavior to `behavior-cn` involves creating the behavior files, registering them in the manifest, and verifying they work.
+Contributing a new behavior to `behavior-fn` involves creating the behavior files, registering them in the manifest, and verifying they work.
 
 ## Step 1: Create the Behavior Directory
 
@@ -184,5 +184,5 @@ Add your behavior to `registry/behaviors-registry.json`. This tells the CLI whic
 3.  **Test Installation:** You can test the installation locally by running the built CLI against a test project.
     ```bash
     # In a separate test project
-    node /path/to/behavior-cn/dist/index.js add my-behavior
+    node /path/to/behavior-fn/dist/index.js add my-behavior
     ```

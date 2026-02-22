@@ -2,7 +2,7 @@
 
 ## Description
 
-Create the `behavior-cn` CLI tool to manage behavior installation and configuration.
+Create the `behavior-fn` CLI tool to manage behavior installation and configuration.
 
 ## Requirements
 

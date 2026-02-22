@@ -2,7 +2,7 @@
 
 ## Description
 
-Extract existing behaviors from the `reeeally` project into the `behavior-cn` registry.
+Extract existing behaviors from the `reeeally` project into the `behavior-fn` registry.
 
 ## Requirements
 

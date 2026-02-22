@@ -2,7 +2,7 @@
 
 ## Description
 
-Create a dedicated documentation site for `behavior-cn` to host the guides, API references, and examples.
+Create a dedicated documentation site for `behavior-fn` to host the guides, API references, and examples.
 
 ## Requirements
 

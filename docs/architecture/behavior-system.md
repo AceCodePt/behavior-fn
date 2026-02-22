@@ -1,10 +1,10 @@
 # Behavior System Architecture
 
-The `behavior-cn` library is a **distribution system** for a behavior-based architecture. It functions similarly to `shadcn-ui`, where instead of installing a monolithic npm package, you copy-paste (via CLI) only the behaviors you need into your project.
+The `behavior-fn` library is a **distribution system** for a behavior-based architecture. It functions similarly to `shadcn-ui`, where instead of installing a monolithic npm package, you copy-paste (via CLI) only the behaviors you need into your project.
 
 ## The Architecture You Install
 
-When you use `behavior-cn`, you are installing a **Registry Pattern** architecture into your application.
+When you use `behavior-fn`, you are installing a **Registry Pattern** architecture into your application.
 
 ### 1. The Runtime Registry (`behavior-registry.ts`)
 
@@ -43,20 +43,20 @@ import { defineBehavioralHost } from "~host";
 defineBehavioralHost("div");
 ```
 
-## The Distribution System (`behavior-cn`)
+## The Distribution System (`behavior-fn`)
 
-The `behavior-cn` tool itself is a CLI that manages this architecture.
+The `behavior-fn` tool itself is a CLI that manages this architecture.
 
 ### Source-as-Registry
 
-The `registry/` directory in the `behavior-cn` repository is the source of truth.
+The `registry/` directory in the `behavior-fn` repository is the source of truth.
 
 - **`registry/behaviors/`**: Contains the source code for all available behaviors.
 - **`registry/behaviors-registry.json`**: A manifest file that maps behavior names to their file paths and dependencies.
 
 ### How it Works
 
-1.  **Init:** `npx behavior-cn init` sets up the `core` files (`behavior-registry.ts`, `behavior-utils.ts`) in your project.
-2.  **Add:** `npx behavior-cn add <name>` looks up the behavior in `behaviors-registry.json`, reads the files from the source registry, rewrites imports to match your project's aliases, and writes them to your disk.
+1.  **Init:** `npx behavior-fn init` sets up the `core` files (`behavior-registry.ts`, `behavior-utils.ts`) in your project.
+2.  **Add:** `npx behavior-fn add <name>` looks up the behavior in `behaviors-registry.json`, reads the files from the source registry, rewrites imports to match your project's aliases, and writes them to your disk.
 
 This approach gives you full ownership of the code. You can modify the installed behaviors to fit your specific needs without fighting a library's abstraction.

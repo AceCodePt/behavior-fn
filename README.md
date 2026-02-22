@@ -1,4 +1,4 @@
-# BehaviorCN
+# BehaviorFN
 
 A collection of copy-pasteable, type-safe behavior modules for modern web applications.
 
@@ -18,7 +18,7 @@ The CLI tool automates the process of fetching behaviors and placing them in you
 Run this command to install the core infrastructure (`behavior-registry.ts`, `_registry-core.ts`).
 
 ```bash
-npx tsx ../behavior-cn/index.ts init
+npx tsx ../behavior-fn/index.ts init
 ```
 
 ### 2. Setting up Behavioral Hosts
@@ -42,7 +42,7 @@ This is required to use behaviors on these elements.
 Run this command to fetch a specific behavior module (e.g., `reveal`).
 
 ```bash
-npx tsx ../behavior-cn/index.ts add reveal
+npx tsx ../behavior-fn/index.ts add reveal
 ```
 
 This will:

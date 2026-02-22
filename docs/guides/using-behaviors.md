@@ -1,14 +1,14 @@
 # Using Behaviors
 
-This guide explains how to use behaviors in your application after installing them via `behavior-cn`.
+This guide explains how to use behaviors in your application after installing them via `behavior-fn`.
 
 ## Prerequisites
 
-Ensure you have initialized `behavior-cn` and installed the desired behavior.
+Ensure you have initialized `behavior-fn` and installed the desired behavior.
 
 ```bash
-npx behavior-cn init
-npx behavior-cn add reveal
+npx behavior-fn init
+npx behavior-fn add reveal
 ```
 
 ## The Basics

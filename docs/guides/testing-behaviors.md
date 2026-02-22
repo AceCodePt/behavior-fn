@@ -1,6 +1,6 @@
 # Testing Behaviors
 
-Testing behaviors is crucial to ensure reliability and prevent regressions. `behavior-cn` encourages a testing strategy that focuses on the **Contract** (Definition) and the **Outcome** (DOM changes).
+Testing behaviors is crucial to ensure reliability and prevent regressions. `behavior-fn` encourages a testing strategy that focuses on the **Contract** (Definition) and the **Outcome** (DOM changes).
 
 ## Testing Philosophy
 
@@ -14,7 +14,7 @@ We use `vitest` and `jsdom`.
 
 ### The Test Harness
 
-`behavior-cn` provides a test harness to simplify setting up the DOM and registering behaviors.
+`behavior-fn` provides a test harness to simplify setting up the DOM and registering behaviors.
 
 ```typescript
 import { dispatchCommand } from "~test-utils";

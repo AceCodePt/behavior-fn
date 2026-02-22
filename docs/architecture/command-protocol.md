@@ -1,12 +1,12 @@
 # The Command Protocol
 
-The Command Protocol is the primary mechanism for interaction in `behavior-cn`. It decouples the **Trigger** (e.g., a button) from the **Action** (e.g., a behavior logic) using a standardized custom event.
+The Command Protocol is the primary mechanism for interaction in `behavior-fn`. It decouples the **Trigger** (e.g., a button) from the **Action** (e.g., a behavior logic) using a standardized custom event.
 
 ## Philosophy
 
 In traditional web development, you might attach an `onclick` handler to a button that calls a specific function. This tightly couples the UI to the logic.
 
-In `behavior-cn`, we use a **Command** pattern:
+In `behavior-fn`, we use a **Command** pattern:
 
 1.  The UI emits a **Command** (a signal of intent).
 2.  The Behavior listens for that Command and executes the logic.

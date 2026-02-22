@@ -60,7 +60,7 @@ describe('CLI (index.ts)', () => {
   });
 
   it('should initialize configuration with "init"', async () => {
-    process.argv = ['node', 'behavior-cn', 'init'];
+    process.argv = ['node', 'behavior-fn', 'init'];
     
     // Mock prompts response
     mocks.prompts.mockResolvedValue({
@@ -113,7 +113,7 @@ describe('CLI (index.ts)', () => {
   });
 
   it('should add a behavior with "add"', async () => {
-    process.argv = ['node', 'behavior-cn', 'add', 'test-behavior'];
+    process.argv = ['node', 'behavior-fn', 'add', 'test-behavior'];
     
     // Mock existing config
     mocks.fs.existsSync.mockImplementation((p: string) => {
@@ -179,7 +179,7 @@ describe('CLI (index.ts)', () => {
   });
 
   it('should prompt when multiple validators are detected', async () => {
-    process.argv = ['node', 'behavior-cn', 'add', 'test-behavior'];
+    process.argv = ['node', 'behavior-fn', 'add', 'test-behavior'];
     
     // Mock package.json with multiple validators
     mocks.fs.existsSync.mockImplementation((p: string) => {
@@ -237,7 +237,7 @@ describe('CLI (index.ts)', () => {
   });
 
   it('should fail if config is missing for "add"', async () => {
-    process.argv = ['node', 'behavior-cn', 'add', 'test-behavior'];
+    process.argv = ['node', 'behavior-fn', 'add', 'test-behavior'];
     
     // Mock missing config
     mocks.fs.existsSync.mockReturnValue(false);

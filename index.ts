@@ -291,7 +291,7 @@ export async function main() {
     process.exit(0);
   }
 
-  console.error("Usage: behavior-cn <command> [args]");
+  console.error("Usage: behavior-fn <command> [args]");
   console.error("Commands:");
   console.error(
     "  init                Initialize the behavior registry (installs core files)",

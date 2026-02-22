@@ -2,7 +2,7 @@
 
 ## Context
 
-Initially, the `behavior-cn` library had a fragmented approach to registering behavioral components:
+Initially, the `behavior-fn` library had a fragmented approach to registering behavioral components:
 
 1.  `behavioral-host.ts`: Contained the `withBehaviors` mixin.
 2.  `define-hosts.ts`: Contained the `defineBehavioralHost` utility.
