@@ -32,7 +32,8 @@ All code changes must follow the **PDSRTDD** flow:
 ### 3. Coding Standards
 
 - **TypeScript:** Strict mode enabled. No `any`. Use `unknown` and narrow types.
-- **Behavior Naming:** Behaviors must be named in kebab-case (e.g., `my-behavior`).
+- **Behavior Naming:** Behaviors must be named in kebab-case (e.g., `reveal`, `input-watcher`).
+- **Event Handling:** Behavior implementations must return an object with camelCase event handlers (e.g., `onCommand`, `onClick`, `onMouseEnter`) which are automatically wired up by the host using standard `addEventListener`.
 - **Zod/TypeBox:** Use for all runtime validation.
 - **No External Dependencies:** Behaviors should be dependency-free whenever possible.
 - **Testing:** Use `vitest` and `jsdom`. Every behavior **MUST** have tests.
@@ -43,6 +44,13 @@ All code changes must follow the **PDSRTDD** flow:
   ├── behavior.ts              # The Logic (Implementation)
   └── behavior.test.ts         # The Verification (Tests)
   ```
+
+## Architectural Insights & Best Practices
+
+1.  **Single Source of Truth (DRY):** Metadata (like `observedAttributes`) should be derived programmatically from the Schema (the Contract). Avoid manual duplication.
+2.  **Standard Web APIs:** Prefer standard DOM mechanisms (Events, `addEventListener`, `MutationObserver`) over custom method delegation or proxies. This ensures better compatibility and standard behavior.
+3.  **Test Harness Abstraction:** Centralize test host creation logic. Use helpers like `getObservedAttributes` to keep tests resilient to changes.
+4.  **Type Safety:** Avoid `as any`. Use `keyof typeof` and proper type narrowing for dynamic property access to catch runtime errors early.
 
 ## Agent Roles
 

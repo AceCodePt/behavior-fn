@@ -107,6 +107,7 @@ Unit tests for the behavior.
 /** @vitest-environment jsdom */
 import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import { dispatchCommand } from "~test-utils";
+import { getObservedAttributes } from "~utils";
 import { defineBehavioralHost } from "~host";
 import MY_BEHAVIOR_DEFINITION from "./_behavior-definition";
 import { myBehaviorFactory } from "./behavior";
@@ -114,7 +115,11 @@ import { registerBehavior } from "~registry";
 
 describe("My Behavior", () => {
   beforeAll(() => {
-    defineBehavioralHost("button");
+    defineBehavioralHost(
+      "button", 
+      "behavioral-button", 
+      getObservedAttributes(MY_BEHAVIOR_DEFINITION.schema)
+    );
   });
 
   beforeEach(() => {
