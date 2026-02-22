@@ -4,9 +4,11 @@ import { elementCounterBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
 import { ELEMENT_COUNTER_ATTRS } from "./schema";
+import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name, observedAttributes } = definition;
+const { name } = definition;
+const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Element Counter Behavior", () => {
   beforeAll(() => {

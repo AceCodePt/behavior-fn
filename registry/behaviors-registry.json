@@ -17,9 +17,6 @@
       },
       {
         "path": "behavioral-host.ts"
-      },
-      {
-        "path": "standard-events.ts"
       }
     ]
   },

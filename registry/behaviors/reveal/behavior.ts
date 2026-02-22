@@ -1,5 +1,4 @@
-import { type BehaviorInstance, type CommandEvent } from "~registry";
-import { type Schema } from "./schema";
+import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
 const { command: REVEAL_COMMANDS } = definition;
@@ -243,10 +242,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
       attributeObserver?.disconnect();
       setupAttributeWatcher();
     },
-    onCommand(
-      this: BehaviorInstance<Schema>,
-      e: CommandEvent<keyof typeof REVEAL_COMMANDS>,
-    ) {
+    onCommand(e: CommandEvent<keyof typeof REVEAL_COMMANDS>) {
       const cmd = REVEAL_COMMANDS;
       const popover = isPopover();
       const dialog = isDialog();

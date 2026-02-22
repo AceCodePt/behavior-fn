@@ -8,12 +8,14 @@ import {
   beforeAll,
 } from "vitest";
 import { dispatchCommand } from "~test-utils";
+import { getObservedAttributes } from "~utils";
 import { requestBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
 import definition from "./_behavior-definition";
 
-const { name, command, observedAttributes } = definition;
+const { name, command } = definition;
+const observedAttributes = getObservedAttributes(definition.schema);
 
 const TEST_TAGS = {
   button: "test-request-btn",
@@ -22,7 +24,7 @@ const TEST_TAGS = {
   input: "test-request-input",
 };
 
-describe.skip("Request Behavior", () => {
+describe("Request Behavior", () => {
   beforeAll(async () => {
     // Register behavior manually using the factory to avoid side-effects/loaders
     registerBehavior(name, requestBehaviorFactory);

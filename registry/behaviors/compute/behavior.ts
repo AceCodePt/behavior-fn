@@ -1,8 +1,4 @@
-import { type BehaviorInstance } from "~registry";
-import { type SchemaType } from "./schema";
-
 // --- Math Parser Implementation ---
-
 type TokenType = "NUMBER" | "ID" | "OPERATOR" | "LPAREN" | "RPAREN";
 
 interface Token {
@@ -265,11 +261,10 @@ export const computeBehaviorFactory = (el: HTMLElement) => {
   };
 
   return {
-    connectedCallback(this: BehaviorInstance<SchemaType>) {
+    connectedCallback() {
       setup();
     },
     attributeChangedCallback(
-      this: BehaviorInstance<SchemaType>,
       name: string,
       oldValue: string | null,
       newValue: string | null,
@@ -278,7 +273,7 @@ export const computeBehaviorFactory = (el: HTMLElement) => {
         setup();
       }
     },
-    disconnectedCallback(this: BehaviorInstance<SchemaType>) {
+    disconnectedCallback() {
       cleanupFns.forEach((fn) => {
         fn();
       });

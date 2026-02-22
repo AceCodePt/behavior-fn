@@ -13,7 +13,7 @@ import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
 import definition from "./_behavior-definition";
 
-const { name, observedAttributes } = definition;
+const { name } = definition;
 
 describe("MathParser", () => {
   it("should parse and evaluate simple addition", () => {
@@ -80,7 +80,11 @@ describe("Compute Behavior Integration", () => {
     // Register the behavior once
     registerBehavior(name, computeBehaviorFactory);
 
-    defineBehavioralHost(tag, webcomponentTag, observedAttributes);
+    defineBehavioralHost(
+      tag,
+      webcomponentTag,
+      Object.keys(definition.schema.properties),
+    );
   });
 
   beforeEach(() => {
@@ -147,7 +151,11 @@ describe("Compute Behavior Integration", () => {
     // We need a computed input as well. Let's register a test input component.
     const inputTag = "test-compute-input";
 
-    defineBehavioralHost("input", inputTag, observedAttributes);
+    defineBehavioralHost(
+      "input",
+      inputTag,
+      Object.keys(definition.schema.properties),
+    );
 
     container.innerHTML = `
       <input id="base" value="100">
@@ -214,7 +222,11 @@ describe("Compute Behavior Integration", () => {
     container.appendChild(inputA);
     container.appendChild(inputB);
 
-    defineBehavioralHost("input", inputTag, observedAttributes);
+    defineBehavioralHost(
+      "input",
+      inputTag,
+      Object.keys(definition.schema.properties),
+    );
 
     // Trigger a change to start the loop if it didn't start automatically
     inputA.dispatchEvent(new Event("input", { bubbles: true }));

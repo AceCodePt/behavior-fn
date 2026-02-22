@@ -1,15 +1,11 @@
-import type { StrictEventMethods } from "./event-methods";
-import { isEventInterceptorMethod } from "./event-methods";
-export { type StrictEventMethods, isEventInterceptorMethod };
+import { type EventInterceptors } from "auto-wc";
 
 export type CommandEvent<C = string> = Event & {
   source: HTMLElement;
   command: C;
 };
 
-export interface BehaviorInstance extends Partial<
-  StrictEventMethods<string, string>
-> {
+export interface BehaviorInstance extends Partial<EventInterceptors> {
   connectedCallback?(): void;
   disconnectedCallback?(): void;
   attributeChangedCallback?(

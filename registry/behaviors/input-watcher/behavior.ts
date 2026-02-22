@@ -7,9 +7,7 @@ interface InputWatcherProps {
   "watcher-format"?: string;
 }
 
-export const inputWatcherBehaviorFactory: BehaviorFactory<InputWatcherProps> = (
-  host,
-) => {
+export const inputWatcherBehaviorFactory: BehaviorFactory = (host) => {
   let targetElements: HTMLElement[] = [];
 
   const update = () => {

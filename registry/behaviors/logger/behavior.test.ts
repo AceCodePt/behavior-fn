@@ -3,9 +3,11 @@ import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import { defineBehavioralHost } from "../behavioral-host";
 import { loggerBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
+import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name, observedAttributes } = definition;
+const { name } = definition;
+const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Logger Behavior", () => {
   beforeAll(() => {

@@ -1,9 +1,7 @@
-import { type BehaviorInstance } from "~registry";
-import { type SchemaType, ELEMENT_COUNTER_ATTRS } from "./schema";
+import { ELEMENT_COUNTER_ATTRS } from "./schema";
 
 export const elementCounterBehaviorFactory = (el: HTMLElement) => {
   let observer: MutationObserver | null = null;
-  let rootObserver: MutationObserver | null = null;
 
   const updateCount = (root: HTMLElement, selector: string) => {
     const count = root.querySelectorAll(selector).length;
@@ -21,7 +19,6 @@ export const elementCounterBehaviorFactory = (el: HTMLElement) => {
 
   const initObserver = () => {
     observer?.disconnect();
-    rootObserver?.disconnect();
 
     const rootId = el.getAttribute(ELEMENT_COUNTER_ATTRS.ROOT);
     const selector = el.getAttribute(ELEMENT_COUNTER_ATTRS.SELECTOR);
@@ -46,11 +43,10 @@ export const elementCounterBehaviorFactory = (el: HTMLElement) => {
   };
 
   return {
-    connectedCallback(this: BehaviorInstance<SchemaType>) {
+    connectedCallback() {
       initObserver();
     },
     attributeChangedCallback(
-      this: BehaviorInstance<SchemaType>,
       name: string,
       oldValue: string | null,
       newValue: string | null,
@@ -63,9 +59,8 @@ export const elementCounterBehaviorFactory = (el: HTMLElement) => {
         initObserver();
       }
     },
-    disconnectedCallback(this: BehaviorInstance<SchemaType>) {
+    disconnectedCallback() {
       observer?.disconnect();
-      rootObserver?.disconnect();
     },
   };
 };

@@ -3,7 +3,6 @@ import {
   type BehaviorInstance,
   type CommandEvent,
 } from "~registry";
-import { type SchemaType } from "./schema";
 import definition from "./_behavior-definition";
 
 const { command, name } = definition;
@@ -485,19 +484,16 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   };
 
   return {
-    connectedCallback(this: BehaviorInstance<SchemaType>) {
+    connectedCallback(this: BehaviorInstance) {
       setupListeners();
     },
     disconnectedCallback() {
       cleanup();
     },
-    attributeChangedCallback(this: BehaviorInstance<SchemaType>) {
+    attributeChangedCallback(this: BehaviorInstance) {
       setupListeners();
     },
-    onCommand(
-      this: BehaviorInstance<SchemaType>,
-      e: CommandEvent<keyof typeof command>,
-    ) {
+    onCommand(this: BehaviorInstance, e: CommandEvent<keyof typeof command>) {
       if (e.command === command["--trigger"]) {
         handleEvent(e);
       }

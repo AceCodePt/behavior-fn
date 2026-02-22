@@ -9,6 +9,7 @@ import {
   afterEach,
 } from "vitest";
 import { dispatchCommand } from "~test-utils";
+import { getObservedAttributes } from "~utils";
 import { defineBehavioralHost } from "../behavioral-host";
 import { registerBehavior } from "../behavior-registry";
 import { revealBehaviorFactory } from "./behavior";
@@ -25,7 +26,7 @@ describe("Reveal Behavior", () => {
     defineBehavioralHost(
       tag,
       webcomponentTagForDiv,
-      REVEAL_DEFINITION.observedAttributes,
+      getObservedAttributes(REVEAL_DEFINITION.schema),
     );
   });
 
@@ -115,7 +116,7 @@ describe("Reveal Behavior", () => {
     defineBehavioralHost(
       tag,
       webcomponentTag,
-      REVEAL_DEFINITION.observedAttributes,
+      getObservedAttributes(REVEAL_DEFINITION.schema),
     );
 
     const el = document.createElement(tag, {
@@ -163,7 +164,7 @@ describe("Reveal Behavior", () => {
     defineBehavioralHost(
       tag,
       webcomponentTag,
-      REVEAL_DEFINITION.observedAttributes,
+      getObservedAttributes(REVEAL_DEFINITION.schema),
     );
 
     // Create trigger
@@ -214,7 +215,7 @@ describe("Reveal Behavior", () => {
     defineBehavioralHost(
       tag,
       webcomponentTag,
-      REVEAL_DEFINITION.observedAttributes,
+      getObservedAttributes(REVEAL_DEFINITION.schema),
     );
 
     const el = document.createElement(tag, {
@@ -260,7 +261,7 @@ describe("Reveal Behavior", () => {
     defineBehavioralHost(
       tag,
       webcomponentTag,
-      REVEAL_DEFINITION.observedAttributes,
+      getObservedAttributes(REVEAL_DEFINITION.schema),
     );
 
     // Create trigger
@@ -307,7 +308,7 @@ describe("Reveal Behavior", () => {
     defineBehavioralHost(
       tag,
       webcomponentTag,
-      REVEAL_DEFINITION.observedAttributes,
+      getObservedAttributes(REVEAL_DEFINITION.schema),
     );
 
     const el = document.createElement(tag, {

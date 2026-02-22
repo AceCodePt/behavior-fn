@@ -1,13 +1,18 @@
+import { type TObject } from "@sinclair/typebox";
+
+export const getObservedAttributes = (schema: TObject) => {
+  return Object.keys(schema.properties);
+};
+
 export interface BehaviorDef<C extends string> {
   name: string;
-  commandfor?: readonly string[];
+  schema: TObject;
   command?: { [K in C]: K };
-  observedAttributes?: string[];
 }
 
 export type ValidateBehaviorDef<Def extends BehaviorDef<string>> = {
   name: Def["name"];
-  observedAttributes?: Def["observedAttributes"];
+  schema: Def["schema"];
   command?: {
     [K in keyof Def["command"]]: Def["command"][K] extends K
       ? K
@@ -30,3 +35,5 @@ export const uniqueBehaviorDef = <const Def extends BehaviorDef<string>>(
 
   return def;
 };
+
+export const isServer = () => typeof window === "undefined";
