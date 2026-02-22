@@ -16,29 +16,46 @@ Every behavior requires three files:
 
 ### 1. Definition (`_behavior-definition.ts`)
 
-Defines the contract (props and commands).
+Defines the contract (schema and commands). Note that `observedAttributes` are automatically derived from the `schema` by the host.
 
 ```typescript
 import { uniqueBehaviorDef } from "~utils";
+import { schema } from "./schema";
 
 const MY_BEHAVIOR_DEFINITION = uniqueBehaviorDef({
   name: "my-behavior",
   command: {
     "--do-something": "--do-something",
   },
-  // Optional: Define props schema if needed
-  // schema: z.object({ ... })
+  schema, // Pass the schema object (from ./schema.ts)
 });
 
 export default MY_BEHAVIOR_DEFINITION;
 ```
 
-### 2. Implementation (`behavior.ts`)
+### 3. Schema (`schema.ts`)
+
+Defines the structure of the data associated with the behavior using TypeBox.
+
+> **Important Rule:** All attributes that play a role in the behavior MUST be defined in the schema. This ensures they are observed by the host and prevents surprises where attribute changes are ignored.
+
+```typescript
+import { Type, type Static } from "@sinclair/typebox";
+
+export const schema = Type.Object({
+  "my-behavior-prop": Type.String(),
+});
+
+export type SchemaType = Static<typeof schema>;
+```
+
+### 4. Implementation (`behavior.ts`)
 
 Implements the logic.
 
 ```typescript
-import { registerBehavior, type CommandEvent } from "~registry";
+import { registerBehavior, type CommandEvent, type BehaviorInstance } from "~registry";
+import { type SchemaType } from "./schema";
 import MY_BEHAVIOR_DEFINITION from "./_behavior-definition";
 
 export const myBehaviorFactory = (el: HTMLElement) => {
@@ -51,7 +68,7 @@ export const myBehaviorFactory = (el: HTMLElement) => {
 
   return {
     // 2. Handle commands
-    onCommand(e: CommandEvent<string>) {
+    onCommand(this: BehaviorInstance<SchemaType>, e: CommandEvent<string>) {
       const cmd = MY_BEHAVIOR_DEFINITION.command;
 
       if (e.command === cmd["--do-something"]) {
@@ -61,11 +78,19 @@ export const myBehaviorFactory = (el: HTMLElement) => {
     },
 
     // 3. Lifecycle methods (optional)
-    connectedCallback() {
+    connectedCallback(this: BehaviorInstance<SchemaType>) {
       console.log("Behavior attached");
     },
-    disconnectedCallback() {
+    disconnectedCallback(this: BehaviorInstance<SchemaType>) {
       console.log("Behavior detached");
+    },
+    attributeChangedCallback(
+      this: BehaviorInstance<SchemaType>,
+      name: string,
+      oldValue: string | null,
+      newValue: string | null,
+    ) {
+      // Only attributes defined in schema will trigger this
     },
   };
 };
@@ -74,7 +99,7 @@ export const myBehaviorFactory = (el: HTMLElement) => {
 registerBehavior(MY_BEHAVIOR_DEFINITION.name, myBehaviorFactory);
 ```
 
-### 3. Tests (`behavior.test.ts`)
+### 5. Tests (`behavior.test.ts`)
 
 Unit tests for the behavior.
 
@@ -112,7 +137,7 @@ describe("My Behavior", () => {
 });
 ```
 
-## Step 3: Register in Manifest
+### 6. Register in Manifest
 
 Add your behavior to `registry/behaviors-registry.json`. This tells the CLI which files to copy.
 
@@ -123,6 +148,9 @@ Add your behavior to `registry/behaviors-registry.json`. This tells the CLI whic
   "files": [
     {
       "path": "my-behavior/_behavior-definition.ts"
+    },
+    {
+      "path": "my-behavior/schema.ts"
     },
     {
       "path": "my-behavior/behavior.ts"
