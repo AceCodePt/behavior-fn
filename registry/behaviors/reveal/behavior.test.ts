@@ -98,14 +98,11 @@ describe("Reveal Behavior", () => {
     dispatchCommand(el, REVEAL_DEFINITION.command["--hide"]);
     expect(el.hidden).toBe(true);
 
-    // Wait for MutationObserver
-    await vi.runAllTimersAsync();
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
 
     // Show via command
     dispatchCommand(el, REVEAL_DEFINITION.command["--show"]);
     expect(el.hidden).toBe(false);
-    await vi.runAllTimersAsync();
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
   });
 
@@ -293,7 +290,6 @@ describe("Reveal Behavior", () => {
 
     // Show via command
     dispatchCommand(el, REVEAL_DEFINITION.command["--show"]);
-    await vi.runAllTimersAsync(); // Wait for MutationObserver
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
 
     // Close via event

@@ -48,7 +48,7 @@ This file is managed via **Optimistic Concurrency**.
 - [-] [Reimplement Input Watcher Behavior](docs/tasks/reimplement-input-watcher/task.md)
 - [-] [Reimplement Request Behavior](docs/tasks/reimplement-request/task.md)
 - [ ] [Standardize Schema Interface & Move Observed Attributes](docs/tasks/standardize-schema-attributes/task.md)
-- [-] [Sync Reveal Hidden/Open Attributes](docs/tasks/sync-reveal-hidden-open/task.md)
+- [x] [Sync Reveal Hidden/Open Attributes](docs/tasks/sync-reveal-hidden-open/task.md)
 - [x] [Fix Broken Tests](docs/tasks/fix-broken-tests/task.md)
 - [x] [Cleanup Stale Behaviors](docs/tasks/cleanup-stale-behaviors/task.md) 🔒 Blocked by: [Fix Broken Tests]
 - [x] [Migrate `logger` to TypeBox Schema](docs/tasks/migrate-behavior-logger/task.md)

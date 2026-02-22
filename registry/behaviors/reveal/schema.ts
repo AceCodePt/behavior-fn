@@ -24,6 +24,9 @@ export const schema = Type.Object({
   "reveal-when-value": Type.Optional(
     Type.String({ description: "Value of the attribute that triggers reveal" }),
   ),
+  hidden: Type.Optional(Type.Boolean({ description: "Whether the element is hidden" })),
+  open: Type.Optional(Type.Boolean({ description: "Whether the dialog/details is open" })),
+  popover: Type.Optional(Type.String({ description: "Popover state (auto/manual)" })),
 });
 
 export type Schema = Static<typeof schema>;
