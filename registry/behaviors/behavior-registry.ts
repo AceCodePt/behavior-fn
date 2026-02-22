@@ -1,15 +1,15 @@
 import type { StrictEventMethods } from "./event-methods";
-export type { StrictEventMethods };
+import { isEventInterceptorMethod } from "./event-methods";
+export { type StrictEventMethods, isEventInterceptorMethod };
 
 export type CommandEvent<C = string> = Event & {
   source: HTMLElement;
   command: C;
 };
 
-export interface BehaviorInstance<P = unknown> extends Partial<
+export interface BehaviorInstance extends Partial<
   StrictEventMethods<string, string>
 > {
-  props?: P;
   connectedCallback?(): void;
   disconnectedCallback?(): void;
   attributeChangedCallback?(
@@ -19,14 +19,14 @@ export interface BehaviorInstance<P = unknown> extends Partial<
   ): void;
 }
 
-export type BehaviorFactory<P> = (el: HTMLElement) => BehaviorInstance<P>;
+export type BehaviorFactory = (el: HTMLElement) => BehaviorInstance;
 export type BehaviorLoader = () => Promise<unknown>;
 
-const factoryRegistry = new Map<string, BehaviorFactory<unknown>>();
+const factoryRegistry = new Map<string, BehaviorFactory>();
 const loaderRegistry = new Map<string, BehaviorLoader>();
 const loadingStates = new Map<string, Promise<void>>();
 
-export function registerBehavior<P>(name: string, factory: BehaviorFactory<P>) {
+export function registerBehavior(name: string, factory: BehaviorFactory) {
   if (factoryRegistry.has(name)) {
     console.warn(`Behavior "${name}" is already registered.`);
     return;
@@ -34,9 +34,7 @@ export function registerBehavior<P>(name: string, factory: BehaviorFactory<P>) {
   factoryRegistry.set(name, factory);
 }
 
-export function getBehavior(
-  name: string,
-): BehaviorFactory<unknown> | undefined {
+export function getBehavior(name: string): BehaviorFactory | undefined {
   return factoryRegistry.get(name);
 }
 
@@ -46,7 +44,7 @@ export function getBehavior(
  * If it's currently loading, returns the existing promise.
  * Otherwise, triggers the loader and returns a new promise.
  */
-export async function ensureBehavior(name: string): Promise<void> {
+export function ensureBehavior(name: string): Promise<void> | void {
   // 1. Check if already registered
   if (factoryRegistry.has(name)) return;
 
