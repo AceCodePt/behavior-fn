@@ -8,11 +8,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
+    "noEmitOnError": true,
+    "noErrorTruncation": true,
     "paths": {
       "@/*": ["./registry/*"],
       "~registry": ["./registry/behaviors/behavior-registry.ts"],
       "~utils": ["./registry/behaviors/behavior-utils.ts"],
-      "~test-utils": ["./registry/behaviors/command-test-harness.ts"]
+      "~test-utils": ["./registry/behaviors/command-test-harness.ts"],
+      "~host": ["./registry/behaviors/behavioral-host.ts"]
     }
   },
   "include": ["types.d.ts", "index.ts", "registry/**/*"]
