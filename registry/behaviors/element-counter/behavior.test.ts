@@ -1,33 +1,26 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { registerTestComponent } from "~test-utils";
-import ELEMENT_COUNTER_DEFINITION, {
-  ELEMENT_COUNTER_ATTRS,
-} from "./_behavior-definition";
+import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import { elementCounterBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
+import { defineBehavioralHost } from "../behavioral-host";
+import { ELEMENT_COUNTER_ATTRS } from "./schema";
+import definition from "./_behavior-definition";
+
+const { name, observedAttributes } = definition;
 
 describe("Element Counter Behavior", () => {
+  beforeAll(() => {
+    registerBehavior(name, elementCounterBehaviorFactory);
+  });
+
   beforeEach(() => {
     document.body.innerHTML = "";
-    registerBehavior(
-      ELEMENT_COUNTER_DEFINITION.name,
-      elementCounterBehaviorFactory,
-    );
   });
 
   it("should count elements in the root and update textContent", async () => {
     const tag = "span";
     const webcomponentTag = "test-element-counter";
-
-    registerTestComponent(
-      tag,
-      { tag: webcomponentTag },
-      (Base) => {
-        return class extends Base {};
-      },
-      { "element-counter": ELEMENT_COUNTER_DEFINITION },
-    );
+    defineBehavioralHost(tag, webcomponentTag, observedAttributes);
 
     // Create root element
     const root = document.createElement("div");
@@ -38,10 +31,10 @@ describe("Element Counter Behavior", () => {
     const el = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLElement;
-    el.setAttribute("behavior", "element-counter");
+    el.setAttribute("behavior", name);
+    document.body.appendChild(el);
     el.setAttribute(ELEMENT_COUNTER_ATTRS.ROOT, "test-root");
     el.setAttribute(ELEMENT_COUNTER_ATTRS.SELECTOR, ".item");
-    document.body.appendChild(el);
 
     // Initial count should be 0
     expect(el.textContent).toBe("0");
@@ -75,15 +68,7 @@ describe("Element Counter Behavior", () => {
   it("should update value if the element is an input", async () => {
     const tag = "input";
     const webcomponentTag = "test-element-counter-input";
-
-    registerTestComponent(
-      tag,
-      { tag: webcomponentTag },
-      (Base) => {
-        return class extends Base {};
-      },
-      { "element-counter": ELEMENT_COUNTER_DEFINITION },
-    );
+    defineBehavioralHost(tag, webcomponentTag, observedAttributes);
 
     const root = document.createElement("div");
     root.id = "test-root-input";

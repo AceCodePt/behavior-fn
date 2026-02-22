@@ -1,23 +1,15 @@
 import { uniqueBehaviorDef } from "~utils";
-
-export const REVEAL_COMMANDS = {
-  "--show": "--show",
-  "--hide": "--hide",
-  "--toggle": "--toggle",
-} as const;
+import { schema } from "./schema";
 
 const REVEAL_DEFINITION = uniqueBehaviorDef({
   name: "reveal",
-  command: REVEAL_COMMANDS,
-  observedAttributes: [
-    "reveal-delay",
-    "reveal-duration",
-    "reveal-anchor",
-    "reveal-auto",
-    "reveal-when-target",
-    "reveal-when-attribute",
-    "reveal-when-value",
-  ],
+  schema,
+  observedAttributes: Object.keys(schema.properties),
+  command: {
+    "--show": "--show",
+    "--hide": "--hide",
+    "--toggle": "--toggle",
+  },
 });
 
 export default REVEAL_DEFINITION;

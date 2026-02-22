@@ -3,7 +3,10 @@ import {
   type BehaviorInstance,
   type CommandEvent,
 } from "~registry";
-import REQUEST_DEFINITION from "./_behavior-definition";
+import { type SchemaType } from "./schema";
+import definition from "./_behavior-definition";
+
+const { command, name } = definition;
 
 interface TriggerConfig {
   event: string;
@@ -17,24 +20,10 @@ interface TriggerConfig {
   consume?: boolean;
 }
 
-interface RequestProps {
-  "request-method"?: string;
-  "request-url"?: string;
-  "request-trigger"?: string;
-  "request-target"?: string;
-  "request-swap"?: string;
-  "request-indicator"?: string;
-  "request-confirm"?: string;
-  "request-push-url"?: string;
-  "request-vals"?: string;
-}
-
 // Global registry for collapsing concurrent GET requests
 const requestRegistry = new Map<string, Promise<string>>();
 
 export const requestBehaviorFactory = (el: HTMLElement) => {
-  let activeProps: RequestProps | undefined;
-
   // Store active listeners for cleanup
   const activeListeners: Array<{
     target: EventTarget;
@@ -221,16 +210,16 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       e.preventDefault();
     }
 
-    if (!activeProps) return;
+    const url = el.getAttribute("request-url");
+    if (!url) return;
 
-    const {
-      "request-url": url,
-      "request-method": rawMethod = "",
-      "request-confirm": confirmMessage,
-      "request-indicator": indicatorSelector,
-      "request-target": rawTargetSelector = "",
-      "request-swap": rawSwap = "",
-    } = activeProps;
+    const rawMethod = el.getAttribute("request-method") || "";
+    const confirmMessage = el.getAttribute("request-confirm");
+    const indicatorSelector = el.getAttribute("request-indicator");
+    const rawTargetSelector = el.getAttribute("request-target") || "";
+    const rawSwap = el.getAttribute("request-swap") || "";
+    const requestVals = el.getAttribute("request-vals");
+    const requestPushUrl = el.getAttribute("request-push-url");
 
     const method = rawMethod || "GET";
     const swap = rawSwap || "innerHTML";
@@ -269,9 +258,9 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         const formData = getFormData();
 
         let vals = {};
-        if (activeProps["request-vals"]) {
+        if (requestVals) {
           try {
-            vals = JSON.parse(activeProps["request-vals"]);
+            vals = JSON.parse(requestVals);
           } catch (e) {
             console.warn("[RequestBehavior] Failed to parse request-vals:", e);
           }
@@ -286,9 +275,9 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         html = await executeRequest(finalUrl, fetchOptions);
         setState("loaded");
 
-        if (activeProps?.["request-push-url"]) {
+        if (requestPushUrl) {
           const urlObj = new URL(finalUrl, window.location.origin);
-          const pushUrlVal = activeProps["request-push-url"];
+          const pushUrlVal = requestPushUrl;
 
           const pushUrl =
             pushUrlVal && pushUrlVal !== "true" && pushUrlVal !== ""
@@ -323,11 +312,10 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
     }
   };
 
-  const setupListeners = (props: RequestProps) => {
+  const setupListeners = () => {
     cleanup();
-    activeProps = props;
 
-    const triggerValue = props["request-trigger"];
+    const triggerValue = el.getAttribute("request-trigger");
     let triggers: TriggerConfig[] = [];
 
     if (triggerValue) {
@@ -414,7 +402,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
       if (event === "load") {
         hasLoadTrigger = true;
-        const url = props["request-url"] as string;
+        const url = el.getAttribute("request-url") as string;
         if (lastLoadedUrl !== url) {
           lastLoadedUrl = url;
 
@@ -433,7 +421,9 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       if (event === "sse") {
         if (!eventSource) {
           setState("loading");
-          eventSource = new EventSource(props["request-url"] as string);
+          eventSource = new EventSource(
+            el.getAttribute("request-url") as string,
+          );
           eventSource.addEventListener("error", () => {
             setState("error");
           });
@@ -495,23 +485,23 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   };
 
   return {
-    connectedCallback(this: BehaviorInstance<RequestProps>) {
-      if (this.props) setupListeners(this.props);
+    connectedCallback(this: BehaviorInstance<SchemaType>) {
+      setupListeners();
     },
     disconnectedCallback() {
       cleanup();
     },
-    attributeChangedCallback(this: BehaviorInstance<RequestProps>) {
-      if (this.props) setupListeners(this.props);
+    attributeChangedCallback(this: BehaviorInstance<SchemaType>) {
+      setupListeners();
     },
     onCommand(
-      this: BehaviorInstance<RequestProps>,
-      e: CommandEvent<keyof typeof REQUEST_DEFINITION.command>,
+      this: BehaviorInstance<SchemaType>,
+      e: CommandEvent<keyof typeof command>,
     ) {
-      if (e.command === REQUEST_DEFINITION.command["--trigger"]) {
+      if (e.command === command["--trigger"]) {
         handleEvent(e);
       }
-      if (e.command === REQUEST_DEFINITION.command["--close-sse"]) {
+      if (e.command === command["--close-sse"]) {
         if (eventSource) {
           eventSource.close();
           eventSource = undefined;
@@ -521,4 +511,4 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   };
 };
 
-registerBehavior(REQUEST_DEFINITION.name, requestBehaviorFactory);
+registerBehavior(name, requestBehaviorFactory);

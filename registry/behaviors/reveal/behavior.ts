@@ -1,25 +1,13 @@
-import {
-  registerBehavior,
-  type BehaviorInstance,
-  type CommandEvent,
-} from "~registry";
-import REVEAL_DEFINITION from "./_behavior-definition";
+import { type BehaviorInstance, type CommandEvent } from "~registry";
+import { type Schema } from "./schema";
+import definition from "./_behavior-definition";
 
-interface RevealProps {
-  "reveal-delay"?: string;
-  "reveal-duration"?: string;
-  "reveal-anchor"?: string;
-  "reveal-auto"?: string;
-  "reveal-when-target"?: string;
-  "reveal-when-attribute"?: string;
-  "reveal-when-value"?: string;
-}
+const { command: REVEAL_COMMANDS } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   const isPopover = () => el.hasAttribute("popover");
   const isDialog = () => el instanceof HTMLDialogElement;
 
-  let currentProps: RevealProps | undefined;
   let openerElement: HTMLElement | null = null;
 
   const isCurrentlyVisible = () => {
@@ -39,16 +27,18 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     openerElement = null;
   };
 
-  const applyStyles = (props: RevealProps) => {
-    currentProps = props;
-    if (props["reveal-delay"]) {
-      el.style.setProperty("--reveal-delay", props["reveal-delay"]);
+  const applyStyles = () => {
+    const revealDelay = el.getAttribute("reveal-delay");
+    const revealDuration = el.getAttribute("reveal-duration");
+    const revealAnchor = el.getAttribute("reveal-anchor");
+    if (revealDelay) {
+      el.style.setProperty("--reveal-delay", revealDelay);
     }
-    if (props["reveal-duration"]) {
-      el.style.setProperty("--reveal-duration", props["reveal-duration"]);
+    if (revealDuration) {
+      el.style.setProperty("--reveal-duration", revealDuration);
     }
-    if (props["reveal-anchor"]) {
-      setupAnchoring(props["reveal-anchor"]);
+    if (revealAnchor) {
+      setupAnchoring(revealAnchor);
     }
   };
 
@@ -81,7 +71,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   };
 
   const syncPopover = () => {
-    if (!currentProps?.["reveal-auto"]) return;
+    if (!el.hasAttribute("reveal-auto")) return;
     if (!isPopover()) return;
 
     const hasContent = el.innerHTML.trim().length > 0;
@@ -148,10 +138,10 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
 
   let attributeObserver: MutationObserver | null = null;
 
-  const setupAttributeWatcher = (props: RevealProps) => {
-    const targetSelector = props["reveal-when-target"];
-    const attribute = props["reveal-when-attribute"];
-    const value = props["reveal-when-value"];
+  const setupAttributeWatcher = () => {
+    const targetSelector = el.getAttribute("reveal-when-target");
+    const attribute = el.getAttribute("reveal-when-attribute");
+    const value = el.getAttribute("reveal-when-value");
 
     // Only set up if all three are provided
     if (!targetSelector || !attribute || !value) return;
@@ -219,8 +209,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   });
 
   return {
-    connectedCallback(this: BehaviorInstance<RevealProps>) {
-      currentProps = this.props;
+    connectedCallback() {
       observer.observe(el, {
         attributes: true,
         attributeFilter: ["hidden", "open"],
@@ -233,10 +222,8 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
       } else if (isDialog()) {
         el.addEventListener("close", onToggle);
       }
-      if (this.props) {
-        applyStyles(this.props);
-        setupAttributeWatcher(this.props);
-      }
+      applyStyles();
+      setupAttributeWatcher();
       syncAria();
       syncPopover();
     },
@@ -249,20 +236,18 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
         el.removeEventListener("close", onToggle);
       }
     },
-    attributeChangedCallback(this: BehaviorInstance<RevealProps>) {
-      if (this.props) {
-        applyStyles(this.props);
-        syncPopover();
-        // Re-setup attribute watcher if config changed
-        attributeObserver?.disconnect();
-        setupAttributeWatcher(this.props);
-      }
+    attributeChangedCallback() {
+      applyStyles();
+      syncPopover();
+      // Re-setup attribute watcher if config changed
+      attributeObserver?.disconnect();
+      setupAttributeWatcher();
     },
     onCommand(
-      this: BehaviorInstance<RevealProps>,
-      e: CommandEvent<keyof typeof REVEAL_DEFINITION.command>,
+      this: BehaviorInstance<Schema>,
+      e: CommandEvent<keyof typeof REVEAL_COMMANDS>,
     ) {
-      const cmd = REVEAL_DEFINITION.command;
+      const cmd = REVEAL_COMMANDS;
       const popover = isPopover();
       const dialog = isDialog();
 
@@ -319,5 +304,3 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
-
-registerBehavior(REVEAL_DEFINITION.name, revealBehaviorFactory);

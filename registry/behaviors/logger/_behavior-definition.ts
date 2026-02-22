@@ -1,11 +1,11 @@
 import { uniqueBehaviorDef } from "~utils";
-
-export const LOGGER_COMMANDS = {} as const;
+import { schema } from "./schema";
 
 const LOGGER_DEFINITION = uniqueBehaviorDef({
   name: "logger",
-  command: LOGGER_COMMANDS,
-  observedAttributes: ["log-trigger"],
+  schema,
+  observedAttributes: Object.keys(schema.properties),
+  command: {},
 });
 
 export default LOGGER_DEFINITION;

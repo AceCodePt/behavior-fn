@@ -1,14 +1,10 @@
-import { registerBehavior, type BehaviorInstance } from "~registry";
-import LOGGER_DEFINITION from "./_behavior-definition";
-
-interface LoggerProps {
-  "log-trigger"?: string;
-}
+import { type BehaviorInstance } from "~registry";
+import { type SchemaType } from "./schema";
 
 export const loggerBehaviorFactory = (el: HTMLElement) => {
   return {
-    onClick(this: BehaviorInstance<LoggerProps>, e: MouseEvent) {
-      const trigger = this.props?.["log-trigger"] || "click";
+    onClick(this: BehaviorInstance<SchemaType>, e: MouseEvent) {
+      const trigger = el.getAttribute("log-trigger");
       if (trigger === "click") {
         console.log(
           `[Logger] Element <${el.tagName.toLowerCase()}> clicked!`,
@@ -16,8 +12,9 @@ export const loggerBehaviorFactory = (el: HTMLElement) => {
         );
       }
     },
-    onMouseEnter(this: BehaviorInstance<LoggerProps>, e: MouseEvent) {
-      const trigger = this.props?.["log-trigger"];
+    onMouseEnter(this: BehaviorInstance<SchemaType>, e: MouseEvent) {
+      const trigger = el.getAttribute("log-trigger");
+      console.log(trigger, "mouse enter");
       if (trigger === "mouseenter") {
         console.log(
           `[Logger] Element <${el.tagName.toLowerCase()}> mouse entered!`,
@@ -27,5 +24,3 @@ export const loggerBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
-
-registerBehavior(LOGGER_DEFINITION.name, loggerBehaviorFactory);

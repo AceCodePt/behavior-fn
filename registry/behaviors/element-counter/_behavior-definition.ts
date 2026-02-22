@@ -1,16 +1,11 @@
 import { uniqueBehaviorDef } from "~utils";
-
-export const ELEMENT_COUNTER_ATTRS = {
-  ROOT: "data-root",
-  SELECTOR: "data-selector",
-} as const;
+import { schema } from "./schema";
 
 const ELEMENT_COUNTER_DEFINITION = uniqueBehaviorDef({
   name: "element-counter",
-  observedAttributes: [
-    ELEMENT_COUNTER_ATTRS.ROOT,
-    ELEMENT_COUNTER_ATTRS.SELECTOR,
-  ],
+  schema,
+  observedAttributes: Object.keys(schema.properties),
+  command: {},
 });
 
 export default ELEMENT_COUNTER_DEFINITION;

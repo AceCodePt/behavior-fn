@@ -1,5 +1,5 @@
-import { registerBehavior } from "~registry";
-import COMPUTE_DEFINITION from "./_behavior-definition";
+import { type BehaviorInstance } from "~registry";
+import { type SchemaType } from "./schema";
 
 // --- Math Parser Implementation ---
 
@@ -160,106 +160,129 @@ export class MathParser {
 const evaluatingElements = new Set<HTMLElement>();
 
 export const computeBehaviorFactory = (el: HTMLElement) => {
-  const formula = el.getAttribute("formula");
-  if (!formula) return {}; // Return empty object if no formula
+  let cleanupFns: (() => void)[] = [];
 
-  const parser = new MathParser(formula);
-  const dependencies = parser.getDependencies();
+  const setup = () => {
+    // Cleanup previous listeners if any
+    cleanupFns.forEach((fn) => {
+      fn();
+    });
+    cleanupFns = [];
 
-  const calculate = () => {
-    if (evaluatingElements.has(el)) {
-      console.error(`Circular dependency detected in formula: ${formula}`);
-      return;
-    }
+    const formula = el.getAttribute("formula");
+    if (!formula) return; // Return empty object if no formula
 
-    evaluatingElements.add(el);
+    const parser = new MathParser(formula);
+    const dependencies = parser.getDependencies();
 
-    let context: Record<string, number> = {};
-    try {
-      for (const id of dependencies) {
-        const depEl = document.getElementById(id);
-        let val = 0;
-        if (depEl) {
-          if (depEl instanceof HTMLInputElement && depEl.type === "checkbox") {
-            val = depEl.checked ? 1 : 0;
-          } else if (
-            depEl instanceof HTMLInputElement ||
-            depEl instanceof HTMLTextAreaElement ||
-            depEl instanceof HTMLSelectElement
-          ) {
-            const rawVal = depEl.value;
-            val = parseFloat(rawVal || "0");
+    const calculate = () => {
+      if (evaluatingElements.has(el)) {
+        console.error(`Circular dependency detected in formula: ${formula}`);
+        return;
+      }
+
+      evaluatingElements.add(el);
+
+      const context: Record<string, number> = {};
+      try {
+        for (const id of dependencies) {
+          const depEl = document.getElementById(id);
+          let val = 0;
+          if (depEl) {
+            if (
+              depEl instanceof HTMLInputElement &&
+              depEl.type === "checkbox"
+            ) {
+              val = depEl.checked ? 1 : 0;
+            } else if (
+              depEl instanceof HTMLInputElement ||
+              depEl instanceof HTMLTextAreaElement ||
+              depEl instanceof HTMLSelectElement
+            ) {
+              const rawVal = depEl.value;
+              val = parseFloat(rawVal || "0");
+            } else {
+              console.error(
+                `[Compute] Invalid dependency #${id}. Only input, textarea, and select elements can be used in formulas.`,
+              );
+              val = 0;
+            }
           } else {
-            console.error(
-              `[Compute] Invalid dependency #${id}. Only input, textarea, and select elements can be used in formulas.`,
-            );
-            val = 0;
+            console.warn(`[Compute] Dependency #${id} NOT FOUND in DOM`);
           }
-        } else {
-          console.warn(`[Compute] Dependency #${id} NOT FOUND in DOM`);
+          if (isNaN(val)) val = 0;
+          context[id] = val;
         }
-        if (isNaN(val)) val = 0;
-        context[id] = val;
+
+        const result = parser.evaluate(context);
+
+        if (
+          el instanceof HTMLInputElement ||
+          el instanceof HTMLTextAreaElement ||
+          el instanceof HTMLSelectElement
+        ) {
+          el.value = String(result);
+          // Dispatch input event so other listeners know it changed
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+        } else {
+          el.textContent = String(result);
+          // Dispatch change event so dependent outputs know it changed
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      } catch (err) {
+        console.error(
+          `[Compute] Error evaluating formula "${formula}" for element`,
+          el,
+        );
+        console.error(`[Compute] Dependencies:`, dependencies);
+        console.error(`[Compute] Context:`, context);
+        console.error(`[Compute] Error details:`, err);
+        el.textContent = "Error";
+      } finally {
+        evaluatingElements.delete(el);
       }
+    };
 
-      const result = parser.evaluate(context);
-
-      if (
-        el instanceof HTMLInputElement ||
-        el instanceof HTMLTextAreaElement ||
-        el instanceof HTMLSelectElement
-      ) {
-        el.value = String(result);
-        // Dispatch input event so other listeners know it changed
-        el.dispatchEvent(new Event("input", { bubbles: true }));
+    // Attach listeners
+    dependencies.forEach((id) => {
+      const depEl = document.getElementById(id);
+      if (depEl) {
+        const handler = () => calculate();
+        depEl.addEventListener("input", handler);
+        // Also listen for change just in case
+        depEl.addEventListener("change", handler);
+        cleanupFns.push(() => {
+          depEl.removeEventListener("input", handler);
+          depEl.removeEventListener("change", handler);
+        });
       } else {
-        el.textContent = String(result);
-        // Dispatch change event so dependent outputs know it changed
-        el.dispatchEvent(new Event("change", { bubbles: true }));
+        console.warn(`Dependency #${id} not found for formula in`, el);
       }
-    } catch (err) {
-      console.error(
-        `[Compute] Error evaluating formula "${formula}" for element`,
-        el,
-      );
-      console.error(`[Compute] Dependencies:`, dependencies);
-      console.error(`[Compute] Context:`, context);
-      console.error(`[Compute] Error details:`, err);
-      el.textContent = "Error";
-    } finally {
-      evaluatingElements.delete(el);
-    }
+    });
+
+    // Initial calculation
+    calculate();
   };
 
-  // Attach listeners
-  const cleanupFns: (() => void)[] = [];
-
-  dependencies.forEach((id) => {
-    const depEl = document.getElementById(id);
-    if (depEl) {
-      const handler = () => calculate();
-      depEl.addEventListener("input", handler);
-      // Also listen for change just in case
-      depEl.addEventListener("change", handler);
-      cleanupFns.push(() => {
-        depEl.removeEventListener("input", handler);
-        depEl.removeEventListener("change", handler);
-      });
-    } else {
-      console.warn(`Dependency #${id} not found for formula in`, el);
-    }
-  });
-
-  // Initial calculation
-  calculate();
-
   return {
-    disconnectedCallback() {
+    connectedCallback(this: BehaviorInstance<SchemaType>) {
+      setup();
+    },
+    attributeChangedCallback(
+      this: BehaviorInstance<SchemaType>,
+      name: string,
+      oldValue: string | null,
+      newValue: string | null,
+    ) {
+      if (name === "formula" && oldValue !== newValue) {
+        setup();
+      }
+    },
+    disconnectedCallback(this: BehaviorInstance<SchemaType>) {
       cleanupFns.forEach((fn) => {
         fn();
       });
+      cleanupFns = [];
     },
   };
 };
-
-registerBehavior(COMPUTE_DEFINITION.name, computeBehaviorFactory);
