@@ -42,22 +42,35 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Refactor Behavior Attachment](docs/tasks/refactor-behavior-attachment.md)
-- [ ] [Create Documentation Site](docs/tasks/docs-site.md)
-- [x] [Make reveal hidden/open sync](docs/tasks/sync-reveal-hidden-open.md)
+- [ ] [Standardize Schema Interface & Move Observed Attributes](docs/tasks/standardize-schema-attributes/task.md)
+- [ ] [Sync Reveal Hidden/Open Attributes](docs/tasks/sync-reveal-hidden-open/task.md)
+- [x] [Fix Broken Tests](docs/tasks/fix-broken-tests/task.md)
+- [x] [Cleanup Stale Behaviors](docs/tasks/cleanup-stale-behaviors/task.md) 🔒 Blocked by: [Fix Broken Tests]
+- [x] [Migrate `logger` to TypeBox Schema](docs/tasks/migrate-behavior-logger/task.md)
+- [x] [Migrate `element-counter` to TypeBox Schema](docs/tasks/migrate-behavior-element-counter/task.md)
+- [x] [Migrate `clearable` to TypeBox Schema](docs/tasks/migrate-behavior-clearable/task.md)
+- [x] [Migrate `compute` to TypeBox Schema](docs/tasks/migrate-behavior-compute/task.md)
+- [x] [Migrate `set-value` to TypeBox Schema](docs/tasks/migrate-behavior-set-value/task.md)
+- [x] [Migrate `request` to TypeBox Schema](docs/tasks/migrate-behavior-request/task.md)
+- [ ] [Create Documentation Site](docs/tasks/docs-site/task.md)
 
 ## Completed
 
-- [x] [Initial Setup](docs/tasks/initial-setup.md)
-- [x] [Extract Behaviors](docs/tasks/extract-behaviors.md)
-- [x] [Create CLI Tool](docs/tasks/create-cli.md)
+- [x] [Test Transformers and CLI Logic](docs/tasks/test-transformers-cli/task.md)
+- [x] [Separate Standard Events](docs/tasks/separate-standard-events/task.md)
+
+- [x] [Smart Validator Detection in Init](docs/tasks/smart-validator-detection/task.md)
+- [x] [Refactor Behavior Attachment](docs/tasks/refactor-behavior-attachment/task.md)
+- [x] [Initial Setup](docs/tasks/initial-setup/task.md)
+- [x] [Extract Behaviors](docs/tasks/extract-behaviors/task.md)
+- [x] [Create CLI Tool](docs/tasks/create-cli/task.md)
 - [x] [Document Command Protocol](docs/architecture/command-protocol.md)
 - [x] [Document Reactive Protocol](docs/architecture/reactive-protocol.md)
 - [x] [Create Testing Guide](docs/guides/testing-behaviors.md)
 - [x] [Create Usage Guide](docs/guides/using-behaviors.md)
-- [x] [Create Behavioral Host Web Component](docs/tasks/behavioral-host.md)
-- [x] [Add Platform Detection to Init](docs/tasks/platform-detection.md)
-- [x] [Implement Import Rewriting](docs/tasks/import-rewriting.md)
-- [x] [Add Test Harness to Core](docs/tasks/test-harness.md)
+- [x] [Create Behavioral Host Web Component](docs/tasks/behavioral-host/task.md)
+- [x] [Add Platform Detection to Init](docs/tasks/platform-detection/task.md)
+- [x] [Implement Import Rewriting](docs/tasks/import-rewriting/task.md)
+- [x] [Add Test Harness to Core](docs/tasks/test-harness/task.md)
 
 Goal: Track future work for the project.
