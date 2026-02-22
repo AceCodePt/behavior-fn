@@ -29,6 +29,20 @@ This is the actual logic. It exports a factory function that takes an `HTMLEleme
 - **Scoped:** It validates that it is attached to the correct type of element.
 - **Reactive:** It responds to prop changes and commands.
 
+### 4. The Behavioral Host (`behavioral-host.ts`)
+
+To use behaviors, an element must be upgraded to a **Behavioral Host**. This is handled by the `withBehaviors` mixin and the `defineBehavioralHost` utility.
+
+- **`withBehaviors(Base)`**: A mixin that adds lifecycle management (`connectedCallback`, `disconnectedCallback`) and event delegation to any HTMLElement class.
+- **`defineBehavioralHost(tagName, name?)`**: A utility to register a custom element that extends a native HTML tag and applies the mixin.
+
+```typescript
+import { defineBehavioralHost } from "~host";
+
+// Registers <behavioral-div> extending HTMLDivElement
+defineBehavioralHost("div");
+```
+
 ## The Distribution System (`behavior-cn`)
 
 The `behavior-cn` tool itself is a CLI that manages this architecture.

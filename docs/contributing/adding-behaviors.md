@@ -80,32 +80,26 @@ Unit tests for the behavior.
 
 ```typescript
 /** @vitest-environment jsdom */
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { registerTestComponent, dispatchCommand } from "~test-utils";
+import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
+import { dispatchCommand } from "~test-utils";
+import { defineBehavioralHost } from "~host";
 import MY_BEHAVIOR_DEFINITION from "./_behavior-definition";
 import { myBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 
 describe("My Behavior", () => {
+  beforeAll(() => {
+    defineBehavioralHost("button");
+  });
+
   beforeEach(() => {
     document.body.innerHTML = "";
     registerBehavior(MY_BEHAVIOR_DEFINITION.name, myBehaviorFactory);
   });
 
   it("should handle command", async () => {
-    const tag = "button";
-    const webcomponentTag = "test-my-behavior";
-
-    // Register a test component that uses the behavior
-    registerTestComponent(
-      tag,
-      { tag: webcomponentTag },
-      (Base) => class extends Base {},
-      { "my-behavior": MY_BEHAVIOR_DEFINITION },
-    );
-
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
+    const el = document.createElement("button", {
+      is: "behavioral-button",
     }) as HTMLButtonElement;
     el.setAttribute("behavior", "my-behavior");
     document.body.appendChild(el);
