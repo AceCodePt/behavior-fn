@@ -13,6 +13,7 @@ import { requestBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
 import definition from "./_behavior-definition";
+import { REQUEST_ATTRS } from "./schema";
 
 const { name, command } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
@@ -22,7 +23,7 @@ const TEST_TAGS = {
   div: "test-request-div",
   form: "test-request-form",
   input: "test-request-input",
-};
+} as const;
 
 describe("Request Behavior", () => {
   beforeAll(async () => {
@@ -41,8 +42,11 @@ describe("Request Behavior", () => {
         Promise.resolve({
           ok: true,
           status: 200,
+          headers: {
+            get: () => null,
+          },
           text: () => Promise.resolve("<div>Response</div>"),
-        }),
+        } as unknown as Response),
       ),
     );
 
@@ -59,8 +63,8 @@ describe("Request Behavior", () => {
     const el = document.createElement("button", {
       is: TEST_TAGS.button,
     }) as HTMLElement;
-    el.setAttribute("behavior", "request");
-    el.setAttribute("request-url", "http://example.com");
+    el.setAttribute("behavior", name);
+    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -82,9 +86,9 @@ describe("Request Behavior", () => {
     const el = document.createElement("button", {
       is: TEST_TAGS.button,
     }) as HTMLElement;
-    el.setAttribute("behavior", "request");
-    el.setAttribute("request-url", "http://example.com");
-    el.setAttribute("request-method", "POST");
+    el.setAttribute("behavior", name);
+    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+    el.setAttribute(REQUEST_ATTRS.METHOD, "POST");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -104,9 +108,9 @@ describe("Request Behavior", () => {
     const el = document.createElement("div", {
       is: TEST_TAGS.div,
     }) as HTMLElement;
-    el.setAttribute("behavior", "request");
-    el.setAttribute("request-url", "http://example.com/load");
-    el.setAttribute("request-trigger", "load");
+    el.setAttribute("behavior", name);
+    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/load");
+    el.setAttribute(REQUEST_ATTRS.TRIGGER, "load");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -125,9 +129,9 @@ describe("Request Behavior", () => {
     const el = document.createElement("button", {
       is: TEST_TAGS.button,
     }) as HTMLElement;
-    el.setAttribute("behavior", "request");
-    el.setAttribute("request-url", "http://example.com");
-    el.setAttribute("request-target", "my-target");
+    el.setAttribute("behavior", name);
+    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+    el.setAttribute(REQUEST_ATTRS.TARGET, "my-target");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -143,8 +147,8 @@ describe("Request Behavior", () => {
     const el = document.createElement("button", {
       is: TEST_TAGS.button,
     }) as HTMLElement;
-    el.setAttribute("behavior", "request");
-    el.setAttribute("request-url", "http://example.com/cmd");
+    el.setAttribute("behavior", name);
+    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/cmd");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -163,9 +167,9 @@ describe("Request Behavior", () => {
       const form = document.createElement("form", {
         is: TEST_TAGS.form,
       }) as HTMLFormElement;
-      form.setAttribute("behavior", "request");
-      form.setAttribute("request-url", "http://example.com/search");
-      form.setAttribute("request-method", "GET");
+      form.setAttribute("behavior", name);
+      form.setAttribute(REQUEST_ATTRS.URL, "http://example.com/search");
+      form.setAttribute(REQUEST_ATTRS.METHOD, "GET");
 
       const input = document.createElement("input");
       input.name = "q";
@@ -188,9 +192,9 @@ describe("Request Behavior", () => {
       const input = document.createElement("input", {
         is: TEST_TAGS.input,
       }) as HTMLInputElement;
-      input.setAttribute("behavior", "request");
-      input.setAttribute("request-url", "http://example.com/update");
-      input.setAttribute("request-method", "POST");
+      input.setAttribute("behavior", name);
+      input.setAttribute(REQUEST_ATTRS.URL, "http://example.com/update");
+      input.setAttribute(REQUEST_ATTRS.METHOD, "POST");
       input.name = "email";
       input.value = "test@example.com";
 
@@ -273,10 +277,10 @@ describe("Request Behavior", () => {
         const el = document.createElement("button", {
           is: TEST_TAGS.button,
         }) as HTMLElement;
-        el.setAttribute("behavior", "request");
-        el.setAttribute("request-url", "http://example.com");
-        el.setAttribute("request-target", "target");
-        el.setAttribute("request-swap", swap);
+        el.setAttribute("behavior", name);
+        el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+        el.setAttribute(REQUEST_ATTRS.TARGET, "target");
+        el.setAttribute(REQUEST_ATTRS.SWAP, swap);
         document.body.appendChild(el);
 
         await vi.runAllTimersAsync();
@@ -298,9 +302,9 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
-      el.setAttribute("request-indicator", "loading-spinner");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(REQUEST_ATTRS.INDICATOR, "loading-spinner");
       document.body.appendChild(el);
 
       // Mock fetch to delay response so we can check loading state
@@ -320,6 +324,7 @@ describe("Request Behavior", () => {
 
       resolveFetch!({
         ok: true,
+        headers: { get: () => null },
         text: () => Promise.resolve("Done"),
       });
 
@@ -333,9 +338,9 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
-      el.setAttribute("request-confirm", "Are you sure?");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(REQUEST_ATTRS.CONFIRM, "Are you sure?");
       document.body.appendChild(el);
 
       vi.spyOn(window, "confirm").mockReturnValue(false);
@@ -352,9 +357,9 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
-      el.setAttribute("request-confirm", "Are you sure?");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(REQUEST_ATTRS.CONFIRM, "Are you sure?");
       document.body.appendChild(el);
 
       vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -377,16 +382,17 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com/error");
-      el.setAttribute("request-indicator", "error-indicator");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/error");
+      el.setAttribute(REQUEST_ATTRS.INDICATOR, "error-indicator");
       document.body.appendChild(el);
 
       vi.mocked(fetch).mockResolvedValue({
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
-      } as Response);
+        headers: { get: () => null },
+      } as unknown as Response);
 
       const consoleSpy = vi
         .spyOn(console, "error")
@@ -406,10 +412,10 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
       el.setAttribute(
-        "request-trigger",
+        REQUEST_ATTRS.TRIGGER,
         JSON.stringify([{ event: "click", delay: 500 }]),
       );
       document.body.appendChild(el);
@@ -434,10 +440,10 @@ describe("Request Behavior", () => {
       const el = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
       el.setAttribute(
-        "request-trigger",
+        REQUEST_ATTRS.TRIGGER,
         JSON.stringify([{ event: "click", from: "external-trigger" }]),
       );
       document.body.appendChild(el);
@@ -453,10 +459,10 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
       el.setAttribute(
-        "request-trigger",
+        REQUEST_ATTRS.TRIGGER,
         JSON.stringify(["click", "mouseenter"]),
       );
       document.body.appendChild(el);
@@ -486,16 +492,16 @@ describe("Request Behavior", () => {
       const el1 = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el1.setAttribute("behavior", "request");
-      el1.setAttribute("request-url", "http://example.com/collapsed");
-      el1.setAttribute("request-trigger", "load");
+      el1.setAttribute("behavior", name);
+      el1.setAttribute(REQUEST_ATTRS.URL, "http://example.com/collapsed");
+      el1.setAttribute(REQUEST_ATTRS.TRIGGER, "load");
 
       const el2 = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el2.setAttribute("behavior", "request");
-      el2.setAttribute("request-url", "http://example.com/collapsed");
-      el2.setAttribute("request-trigger", "load");
+      el2.setAttribute("behavior", name);
+      el2.setAttribute(REQUEST_ATTRS.URL, "http://example.com/collapsed");
+      el2.setAttribute(REQUEST_ATTRS.TRIGGER, "load");
 
       document.body.appendChild(el1);
       document.body.appendChild(el2);
@@ -507,6 +513,7 @@ describe("Request Behavior", () => {
       // Resolve the fetch
       resolveFetch!({
         ok: true,
+        headers: { get: () => null },
         text: () => Promise.resolve("<div>Collapsed Response</div>"),
       });
 
@@ -527,16 +534,16 @@ describe("Request Behavior", () => {
       const el1 = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el1.setAttribute("behavior", "request");
-      el1.setAttribute("request-url", "http://example.com/post");
-      el1.setAttribute("request-method", "POST");
+      el1.setAttribute("behavior", name);
+      el1.setAttribute(REQUEST_ATTRS.URL, "http://example.com/post");
+      el1.setAttribute(REQUEST_ATTRS.METHOD, "POST");
 
       const el2 = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el2.setAttribute("behavior", "request");
-      el2.setAttribute("request-url", "http://example.com/post");
-      el2.setAttribute("request-method", "POST");
+      el2.setAttribute("behavior", name);
+      el2.setAttribute(REQUEST_ATTRS.URL, "http://example.com/post");
+      el2.setAttribute(REQUEST_ATTRS.METHOD, "POST");
 
       document.body.appendChild(el1);
       document.body.appendChild(el2);
@@ -551,6 +558,7 @@ describe("Request Behavior", () => {
       resolvers.forEach((resolve) => {
         resolve({
           ok: true,
+          headers: { get: () => null },
           text: () => Promise.resolve("Done"),
         });
       });
@@ -582,10 +590,10 @@ describe("Request Behavior", () => {
       const el = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com/sse");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
       el.setAttribute(
-        "request-trigger",
+        REQUEST_ATTRS.TRIGGER,
         JSON.stringify([{ event: "sse", "sse-message": "update" }]),
       );
       document.body.appendChild(el);
@@ -615,10 +623,10 @@ describe("Request Behavior", () => {
       const el = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com/sse");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
       el.setAttribute(
-        "request-trigger",
+        REQUEST_ATTRS.TRIGGER,
         JSON.stringify([{ event: "sse", "sse-close": "end" }]),
       );
       document.body.appendChild(el);
@@ -643,9 +651,9 @@ describe("Request Behavior", () => {
       const el = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com/sse");
-      el.setAttribute("request-trigger", JSON.stringify([{ event: "sse" }]));
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
+      el.setAttribute(REQUEST_ATTRS.TRIGGER, JSON.stringify([{ event: "sse" }]));
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -658,9 +666,9 @@ describe("Request Behavior", () => {
       const el = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com/sse");
-      el.setAttribute("request-trigger", JSON.stringify([{ event: "sse" }]));
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
+      el.setAttribute(REQUEST_ATTRS.TRIGGER, JSON.stringify([{ event: "sse" }]));
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -743,13 +751,13 @@ describe("Request Behavior", () => {
             is: TEST_TAGS.div,
           }) as HTMLElement;
           el.innerHTML = "Original";
-          el.setAttribute("behavior", "request");
-          el.setAttribute("request-url", "http://example.com/sse");
+          el.setAttribute("behavior", name);
+          el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
           el.setAttribute(
-            "request-trigger",
+            REQUEST_ATTRS.TRIGGER,
             JSON.stringify([{ event: "sse" }]),
           );
-          el.setAttribute("request-swap", swap);
+          el.setAttribute(REQUEST_ATTRS.SWAP, swap);
           document.body.appendChild(el);
 
           await vi.runAllTimersAsync();
@@ -773,8 +781,8 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
       document.body.appendChild(el);
 
       // Mock fetch to delay response
@@ -795,6 +803,7 @@ describe("Request Behavior", () => {
 
       resolveFetch!({
         ok: true,
+        headers: { get: () => null },
         text: () => Promise.resolve("Done"),
       });
 
@@ -807,8 +816,8 @@ describe("Request Behavior", () => {
       const el = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
-      el.setAttribute("behavior", "request");
-      el.setAttribute("request-url", "http://example.com/error");
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/error");
       document.body.appendChild(el);
 
       vi.mocked(fetch).mockResolvedValue({
