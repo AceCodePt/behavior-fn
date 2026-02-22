@@ -11,12 +11,12 @@ The `input-watcher` behavior needs to be reimplemented to strictly follow the **
 
 ## PDSRTDD Checklist
 
-- [ ] **Plan**: Analyze requirements and define the capability.
-- [ ] **Data**: Define state shapes and sources of truth.
-- [ ] **Schema**: Define TypeBox schemas in `_behavior-definition.ts`.
-- [ ] **Registry**: Register in `registry/behaviors-registry.json`.
-- [ ] **Test**: Write failing tests in `behavior.test.ts`.
-- [ ] **Develop**: Implement logic in `behavior.ts`.
+- [x] **Plan**: Analyze requirements and define the capability.
+- [x] **Data**: Define state shapes and sources of truth.
+- [x] **Schema**: Define TypeBox schemas in `_behavior-definition.ts`.
+- [x] **Registry**: Register in `registry/behaviors-registry.json`.
+- [x] **Test**: Write failing tests in `behavior.test.ts`.
+- [x] **Develop**: Implement logic in `behavior.ts`.
 
 ## Constraints
 - Follow the **Source-as-Registry** philosophy.
