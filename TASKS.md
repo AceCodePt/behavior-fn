@@ -27,10 +27,11 @@ This file is managed via **Optimistic Concurrency**.
 ### Adding New Tasks
 
 1.  **Atomicity**: Ensure the task represents a single, independent unit of work. **Each behavior implementation or refactor must be a separate task.** Do not group multiple behaviors into one task.
-2.  **Classify**: Determine if the task is a **Progression** (new feature/capability) or a **Regression** (alignment/refactoring due to core changes).
-3.  **Create Task Folder**: Create a directory in `tasks/` named after the task (kebab-case).
-3.  **Document Task**: Create a detailed `.md` file inside that folder using the template in `docs/templates/task.md`. Ensure it includes the Protocol Checklist and Prohibited Patterns.
-4.  **Register Task**: Add a new `[ ]` entry **at the top** of the `Backlog` section in this file, linking to the `.md` file created in step 3.
+2.  **Abstract Requirements**: Define the task by the **Goal** (What) and the **Context** (Why). Do not prescribe the **Implementation** (How). The detailed design and implementation plan is the responsibility of the agent executing the task during the **Plan** phase.
+3.  **Classify**: Determine if the task is a **Progression** (new feature/capability) or a **Regression** (alignment/refactoring due to core changes).
+4.  **Create Task Folder**: Create a directory in `tasks/` named after the task (kebab-case).
+5.  **Document Task**: Create a detailed `.md` file inside that folder using the template in `docs/templates/task.md`. Ensure it includes the Protocol Checklist and Prohibited Patterns.
+6.  **Register Task**: Add a new `[ ]` entry **at the top** of the `Backlog` section in this file, linking to the `.md` file created in step 5.
     - **Define Dependencies**: If the new task depends on another task being completed first, append `🔒 Blocked by: [Task Name]` to the line.
     - **Bottom-Up Ordering**: New tasks are always added at the top. This makes it easier to see the most recent work and maintains a chronological history from newest (top) to oldest (bottom).
 
@@ -43,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Consolidate Create Host Behavior](docs/tasks/consolidate-create-host/task.md)
 - [ ] [Reimplement Input Watcher Behavior](docs/tasks/reimplement-input-watcher/task.md)
 - [ ] [Reimplement Request Behavior](docs/tasks/reimplement-request/task.md)
 - [ ] [Standardize Schema Interface & Move Observed Attributes](docs/tasks/standardize-schema-attributes/task.md)
