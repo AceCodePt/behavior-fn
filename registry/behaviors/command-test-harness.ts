@@ -1,35 +1,4 @@
-import buildCommandClassGenerator from "@/components/extends/_strict-element";
-import type {
-  WebComponentDef,
-  BehaviorDef,
-} from "@/components/html/_registry-core";
-import type { StrictEventMethods } from "~registry";
-
-type TagToClass<T extends keyof HTMLElementTagNameMap> =
-  HTMLElementTagNameMap[T];
-
-type Constructor<T = {}> = new (...args: any[]) => T;
-
-/**
- * Registers a Web Component for testing using the strict element generator.
- * This ensures the component is registered exactly as it would be in the application.
- */
-export function registerTestComponent<
-  T extends keyof HTMLElementTagNameMap,
-  C extends string,
-  N extends string,
->(
-  tag: T,
-  def: WebComponentDef<C>,
-  factory: (
-    base: Constructor<TagToClass<T> & StrictEventMethods<C, N>>,
-  ) => Constructor<TagToClass<T>> &
-    Pick<WebComponentDef<C>, "observedAttributes">,
-  behaviors?: Record<string, BehaviorDef<string>>,
-) {
-  // buildCommandClassGenerator handles the check for existing custom elements
-  buildCommandClassGenerator(def, tag, factory, behaviors);
-}
+import type { CommandEvent } from "~registry";
 
 /**
  * Dispatches a CommandEvent to a target element.
