@@ -63,7 +63,11 @@ function rewriteImports(content: string, config: Config): string {
     .replace(/~test-utils/g, config.aliases.testUtils);
 }
 
-async function installBehavior(name: string, config: Config, validatorType: number = 0) {
+async function installBehavior(
+  name: string,
+  config: Config,
+  validatorType: number = 0,
+) {
   const behavior = registry.find((b: any) => b.name === name);
   if (!behavior) {
     console.error(`Behavior "${name}" not found in registry.`);
@@ -170,15 +174,15 @@ async function getValidatorType(name: string): Promise<number> {
 
   if (detectedValidators.length > 1) {
     const response = await prompts({
-      type: 'select',
-      name: 'validator',
+      type: "select",
+      name: "validator",
       message: `Multiple validators detected for behavior "${name}". Which one should be used for schemas?`,
       choices: [
-        { title: 'Zod', value: 0 },
-        { title: 'Valibot', value: 1 },
-        { title: 'ArkType', value: 2 },
-        { title: 'TypeBox', value: 3 }
-      ].filter(c => detectedValidators.includes(c.value))
+        { title: "Zod", value: 0 },
+        { title: "Valibot", value: 1 },
+        { title: "ArkType", value: 2 },
+        { title: "TypeBox", value: 3 },
+      ].filter((c) => detectedValidators.includes(c.value)),
     });
     return response.validator;
   }
@@ -279,7 +283,11 @@ export async function main() {
       }
     }
 
-    await installBehavior(behaviorName, config, await getValidatorType(behaviorName));
+    await installBehavior(
+      behaviorName,
+      config,
+      await getValidatorType(behaviorName),
+    );
     process.exit(0);
   }
 
