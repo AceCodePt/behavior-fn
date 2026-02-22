@@ -85,8 +85,9 @@ registerBehavior("reveal", RevealBehavior);
 
 To contribute a new behavior to this repository:
 
-1.  Create a folder in `registry/behaviors/<name>/`.
-2.  Add `_behavior-definition.ts` (the contract).
-3.  Add `behavior.ts` (the logic).
-4.  Add `behavior.test.ts` (the tests).
-5.  Add an entry to `registry/behaviors-registry.json`.
+1.  **Naming:** Use kebab-case (e.g., `reveal`).
+2.  Create a folder in `registry/behaviors/<name>/`.
+3.  Add `_behavior-definition.ts` (the contract).
+4.  Add `behavior.ts` (the logic).
+5.  Add `behavior.test.ts` (the tests).
+6.  Add an entry to `registry/behaviors-registry.json`.
