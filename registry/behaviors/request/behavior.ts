@@ -4,371 +4,256 @@ import {
   type CommandEvent,
 } from "~registry";
 import definition from "./_behavior-definition";
+import { REQUEST_ATTRS, type TriggerConfig } from "./schema";
 
 const { command, name } = definition;
-
-interface TriggerConfig {
-  event: string;
-  "sse-message"?: string;
-  "sse-close"?: string;
-  from?: string;
-  delay?: number;
-  throttle?: number;
-  once?: boolean;
-  changed?: boolean;
-  consume?: boolean;
-}
 
 // Global registry for collapsing concurrent GET requests
 const requestRegistry = new Map<string, Promise<string>>();
 
 export const requestBehaviorFactory = (el: HTMLElement) => {
-  // Store active listeners for cleanup
+  // State
   const activeListeners: Array<{
     target: EventTarget;
     type: string;
     listener: EventListener;
   }> = [];
-
-  // Store active timeouts for debouncing
   const debounceTimeouts = new Map<string, number>();
-
-  // Store last values for 'changed' trigger
   const lastValues = new Map<EventTarget, string>();
-
-  // SSE Management
   let eventSource: EventSource | undefined;
-
   let lastLoadedUrl: string | undefined;
 
-  const setState = (state: "loading" | "loaded" | "error") => {
-    // Set state attribute (for reveal behavior to watch)
-    el.setAttribute("request-state", state);
+  // Helpers
+  const getAttr = (name: string) => el.getAttribute(name);
+  const setAttr = (name: string, value: string) => el.setAttribute(name, value);
 
-    // Set aria-busy (for screen readers)
-    if (state === "loading") {
-      el.setAttribute("aria-busy", "true");
-    } else {
-      el.setAttribute("aria-busy", "false");
+  const setState = (state: "loading" | "loaded" | "error") => {
+    // Only set if changed to avoid unnecessary DOM updates
+    if (getAttr("request-state") !== state) {
+      setAttr("request-state", state);
+    }
+    const busy = state === "loading" ? "true" : "false";
+    if (getAttr("aria-busy") !== busy) {
+      setAttr("aria-busy", busy);
     }
   };
 
   const cleanup = () => {
-    // Remove all listeners
     for (const { target, type, listener } of activeListeners) {
       target.removeEventListener(type, listener);
     }
     activeListeners.length = 0;
 
-    // Clear all timeouts
     for (const timeoutId of debounceTimeouts.values()) {
       window.clearTimeout(timeoutId);
     }
     debounceTimeouts.clear();
-
-    // Clear last values
     lastValues.clear();
 
-    // Close SSE
     if (eventSource) {
       eventSource.close();
       eventSource = undefined;
     }
   };
 
-  const getFormData = () => {
-    if (el instanceof HTMLFormElement) {
-      return new FormData(el);
-    }
+  const getFormData = (): FormData => {
+    if (el instanceof HTMLFormElement) return new FormData(el);
     if (
       el instanceof HTMLInputElement ||
       el instanceof HTMLSelectElement ||
       el instanceof HTMLTextAreaElement
     ) {
-      if (el.form) {
-        return new FormData(el.form);
-      }
-      const formData = new FormData();
-      if (el.name) {
-        formData.append(el.name, el.value);
-      }
-      return formData;
+      if (el.form) return new FormData(el.form);
+      const fd = new FormData();
+      if (el.name) fd.append(el.name, el.value);
+      return fd;
     }
     return new FormData();
   };
 
-  const prepareRequest = (
-    url: string,
-    method: string,
-    formData: FormData,
-    vals: Record<string, any> = {},
-  ): { finalUrl: string; fetchOptions: RequestInit } => {
-    const fetchOptions: RequestInit = {
-      method,
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    };
-
-    // Merge vals into formData
-    for (const [key, value] of Object.entries(vals)) {
-      formData.append(key, String(value));
-    }
-
-    let finalUrl = url;
-    if (method === "GET") {
-      const params = new URLSearchParams();
-      for (const [key, value] of formData.entries()) {
-        if (typeof value === "string") params.append(key, value);
-      }
-      const queryString = params.toString();
-      if (queryString) {
-        finalUrl = `${finalUrl}${finalUrl.includes("?") ? "&" : "?"}${queryString}`;
-      }
-    } else {
-      fetchOptions.body = formData;
-    }
-
-    return { finalUrl, fetchOptions };
-  };
-
   const executeRequest = async (
-    finalUrl: string,
-    fetchOptions: RequestInit,
+    url: string,
+    options: RequestInit,
   ): Promise<string> => {
-    const method = fetchOptions.method?.toUpperCase() || "GET";
+    const method = options.method?.toUpperCase() || "GET";
 
     if (method === "GET") {
-      let promise = requestRegistry.get(finalUrl);
+      let promise = requestRegistry.get(url);
       if (!promise) {
         promise = (async () => {
           try {
-            const response = await fetch(finalUrl, fetchOptions);
-            if (!response.ok) {
-              throw new Error(`Request failed with status ${response.status}`);
-            }
-            return await response.text();
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(`Status ${res.status}`);
+            return await res.text();
           } finally {
-            requestRegistry.delete(finalUrl);
+            requestRegistry.delete(url);
           }
         })();
-        requestRegistry.set(finalUrl, promise);
+        requestRegistry.set(url, promise);
       }
       return await promise;
     }
 
-    const response = await fetch(finalUrl, fetchOptions);
+    const res = await fetch(url, options);
 
-    const redirectUrl =
-      response.headers?.get("X-Redirect") ||
-      response.headers?.get("HX-Redirect") ||
-      response.headers?.get("Location");
+    const redirect =
+      res.headers.get("X-Redirect") ||
+      res.headers.get("HX-Redirect") ||
+      res.headers.get("Location");
 
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-      // Return a dummy string to satisfy the return type,
-      // though the page will be navigating away.
+    if (redirect) {
+      window.location.href = redirect;
       return "";
     }
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-    return await response.text();
-  };
-
-  const applySwap = (target: HTMLElement, html: string, swap: string) => {
-    switch (swap) {
-      case "innerHTML":
-        target.innerHTML = html;
-        break;
-      case "outerHTML":
-        target.outerHTML = html;
-        break;
-      case "beforebegin":
-        target.insertAdjacentHTML("beforebegin", html);
-        break;
-      case "afterbegin":
-        target.insertAdjacentHTML("afterbegin", html);
-        break;
-      case "beforeend":
-        target.insertAdjacentHTML("beforeend", html);
-        break;
-      case "afterend":
-        target.insertAdjacentHTML("afterend", html);
-        break;
-      case "delete":
-        target.remove();
-        break;
-      case "none":
-        // Do nothing with the response
-        break;
-    }
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    return await res.text();
   };
 
   const handleEvent = async (e?: Event) => {
-    if (e && e.cancelable) {
-      e.preventDefault();
-    }
+    if (e?.cancelable) e.preventDefault();
 
-    const url = el.getAttribute("request-url");
+    const url = getAttr(REQUEST_ATTRS.URL);
     if (!url) return;
 
-    const rawMethod = el.getAttribute("request-method") || "";
-    const confirmMessage = el.getAttribute("request-confirm");
-    const indicatorSelector = el.getAttribute("request-indicator");
-    const rawTargetSelector = el.getAttribute("request-target") || "";
-    const rawSwap = el.getAttribute("request-swap") || "";
-    const requestVals = el.getAttribute("request-vals");
-    const requestPushUrl = el.getAttribute("request-push-url");
+    const method = getAttr(REQUEST_ATTRS.METHOD) || "GET";
+    const confirmMsg = getAttr(REQUEST_ATTRS.CONFIRM);
 
-    const method = rawMethod || "GET";
-    const swap = rawSwap || "innerHTML";
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
 
-    if (confirmMessage && !window.confirm(confirmMessage)) {
-      return;
-    }
-
-    const indicator = indicatorSelector
-      ? document.getElementById(indicatorSelector)
-      : null;
-    const target = rawTargetSelector
-      ? document.getElementById(rawTargetSelector)
-      : el;
+    const targetId = getAttr(REQUEST_ATTRS.TARGET);
+    const target = targetId ? document.getElementById(targetId) : el;
 
     if (!target) {
-      console.error(`[RequestBehavior] Target not found: ${rawTargetSelector}`);
+      console.error(`[Request] Target not found: ${targetId}`);
       return;
     }
 
-    if (indicator) {
-      indicator.setAttribute("data-request-loading", "");
-    }
+    const indicatorId = getAttr(REQUEST_ATTRS.INDICATOR);
+    const indicator = indicatorId ? document.getElementById(indicatorId) : null;
 
-    // Only set loading if this isn't an SSE message (which means data already arrived)
-    if (!(e instanceof MessageEvent)) {
-      setState("loading");
-    }
+    if (indicator) indicator.setAttribute("data-request-loading", "");
+
+    const isSSE = e instanceof MessageEvent;
+    if (!isSSE) setState("loading");
 
     try {
-      let html: string;
-      if (e instanceof MessageEvent) {
+      let html = "";
+
+      if (isSSE) {
         html = typeof e.data === "string" ? e.data : JSON.stringify(e.data);
         setState("loaded");
       } else {
         const formData = getFormData();
-
-        let vals = {};
-        if (requestVals) {
+        const valsStr = getAttr(REQUEST_ATTRS.VALS);
+        if (valsStr) {
           try {
-            vals = JSON.parse(requestVals);
-          } catch (e) {
-            console.warn("[RequestBehavior] Failed to parse request-vals:", e);
+            const vals = JSON.parse(valsStr);
+            for (const [k, v] of Object.entries(vals)) {
+              formData.append(k, String(v));
+            }
+          } catch (err) {
+            console.warn("[Request] Invalid request-vals JSON", err);
           }
         }
 
-        const { finalUrl, fetchOptions } = prepareRequest(
-          url as string,
+        let finalUrl = url;
+        const options: RequestInit = {
           method,
-          formData,
-          vals,
-        );
-        html = await executeRequest(finalUrl, fetchOptions);
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        };
+
+        if (method === "GET") {
+          const params = new URLSearchParams();
+          for (const [k, v] of formData.entries()) {
+            if (typeof v === "string") params.append(k, v);
+          }
+          const qs = params.toString();
+          if (qs) {
+            finalUrl += (finalUrl.includes("?") ? "&" : "?") + qs;
+          }
+        } else {
+          options.body = formData;
+        }
+
+        html = await executeRequest(finalUrl, options);
         setState("loaded");
 
-        if (requestPushUrl) {
+        const pushUrlVal = getAttr(REQUEST_ATTRS.PUSH_URL);
+        if (pushUrlVal) {
           const urlObj = new URL(finalUrl, window.location.origin);
-          const pushUrlVal = requestPushUrl;
-
           const pushUrl =
-            pushUrlVal && pushUrlVal !== "true" && pushUrlVal !== ""
+            pushUrlVal !== "true" && pushUrlVal !== ""
               ? new URL(pushUrlVal, window.location.origin)
               : new URL(window.location.href);
-
           pushUrl.search = urlObj.search;
           window.history.pushState({}, "", pushUrl.toString());
         }
       }
 
-      // Focus Preservation
+      const swap = getAttr(REQUEST_ATTRS.SWAP) || "innerHTML";
       const activeElement = document.activeElement;
-      const activeElementId = activeElement?.id;
       const hadFocus = el.contains(activeElement) || el === activeElement;
+      const activeId = activeElement?.id;
 
-      applySwap(target, html, swap);
-
-      if (hadFocus && activeElementId) {
-        const newElement = document.getElementById(activeElementId);
-        if (newElement) {
-          newElement.focus();
-        }
+      switch (swap) {
+        case "innerHTML":
+          target.innerHTML = html;
+          break;
+        case "outerHTML":
+          target.outerHTML = html;
+          break;
+        case "beforebegin":
+          target.insertAdjacentHTML("beforebegin", html);
+          break;
+        case "afterbegin":
+          target.insertAdjacentHTML("afterbegin", html);
+          break;
+        case "beforeend":
+          target.insertAdjacentHTML("beforeend", html);
+          break;
+        case "afterend":
+          target.insertAdjacentHTML("afterend", html);
+          break;
+        case "delete":
+          target.remove();
+          break;
+        case "none":
+          break;
       }
-    } catch (error) {
+
+      if (hadFocus && activeId) {
+        const newEl = document.getElementById(activeId);
+        newEl?.focus();
+      }
+    } catch (err) {
       setState("error");
-      console.error("[RequestBehavior] Error executing request:", error);
+      console.error("[Request] Error:", err);
     } finally {
-      if (indicator) {
-        indicator.removeAttribute("data-request-loading");
-      }
+      if (indicator) indicator.removeAttribute("data-request-loading");
     }
   };
 
   const setupListeners = () => {
     cleanup();
 
-    const triggerValue = el.getAttribute("request-trigger");
+    const triggerAttr = getAttr(REQUEST_ATTRS.TRIGGER);
     let triggers: TriggerConfig[] = [];
 
-    if (triggerValue) {
+    if (triggerAttr) {
       try {
-        // Try parsing as JSON array
-        const parsed = JSON.parse(triggerValue);
+        const parsed = JSON.parse(triggerAttr);
         if (Array.isArray(parsed)) {
-          triggers = parsed.map((t) => {
-            if (typeof t === "string") {
-              return {
-                event: t,
-                "sse-message": "",
-                "sse-close": "",
-                from: "",
-                delay: 0,
-                throttle: 0,
-                once: false,
-                changed: false,
-                consume: false,
-              };
-            }
-            return t;
-          });
+          triggers = parsed.map((t) =>
+            typeof t === "string" ? { event: t } : t,
+          );
         } else if (typeof parsed === "string") {
-          // Single string event
-          triggers = [
-            {
-              event: parsed,
-              "sse-message": "",
-              "sse-close": "",
-              from: "",
-              delay: 0,
-              throttle: 0,
-              once: false,
-              changed: false,
-              consume: false,
-            },
-          ];
+          triggers = [{ event: parsed }];
+        } else {
+          triggers = [parsed];
         }
-      } catch (e) {
-        // Not JSON, treat as single event string
-        triggers = [
-          {
-            event: triggerValue,
-            "sse-message": "",
-            "sse-close": "",
-            from: "",
-            delay: 0,
-            throttle: 0,
-            once: false,
-            changed: false,
-            consume: false,
-          },
-        ];
+      } catch {
+        triggers = [{ event: triggerAttr }];
       }
     } else {
       const defaultEvent =
@@ -379,37 +264,21 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
               el instanceof HTMLTextAreaElement
             ? "change"
             : "click";
-      triggers = [
-        {
-          event: defaultEvent,
-          "sse-message": "",
-          "sse-close": "",
-          from: "",
-          delay: 0,
-          throttle: 0,
-          once: false,
-          changed: false,
-          consume: false,
-        },
-      ];
+      triggers = [{ event: defaultEvent }];
     }
 
     let hasLoadTrigger = false;
 
     for (const trigger of triggers) {
-      const { event, from, delay } = trigger;
+      const { event, from, delay, changed } = trigger;
 
       if (event === "load") {
         hasLoadTrigger = true;
-        const url = el.getAttribute("request-url") as string;
-        if (lastLoadedUrl !== url) {
-          lastLoadedUrl = url;
-
-          if (delay && delay > 0) {
-            const timeoutId = window.setTimeout(() => {
-              handleEvent();
-            }, delay);
-            debounceTimeouts.set("load", timeoutId);
+        const currentUrl = getAttr(REQUEST_ATTRS.URL);
+        if (lastLoadedUrl !== currentUrl) {
+          lastLoadedUrl = currentUrl || undefined;
+          if (delay) {
+            debounceTimeouts.set("load", window.setTimeout(handleEvent, delay));
           } else {
             handleEvent();
           }
@@ -418,57 +287,50 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       }
 
       if (event === "sse") {
-        if (!eventSource) {
+        const url = getAttr(REQUEST_ATTRS.URL);
+        if (url && !eventSource) {
           setState("loading");
-          eventSource = new EventSource(
-            el.getAttribute("request-url") as string,
-          );
-          eventSource.addEventListener("error", () => {
-            setState("error");
-          });
+          eventSource = new EventSource(url);
+          eventSource.addEventListener("error", () => setState("error"));
         }
 
-        const messageEvent = trigger["sse-message"] || "message";
-        eventSource.addEventListener(messageEvent, handleEvent);
+        if (eventSource) {
+          const msgEvent = trigger["sse-message"] || "message";
+          eventSource.addEventListener(msgEvent, handleEvent);
 
-        if (trigger["sse-close"]) {
-          eventSource.addEventListener(trigger["sse-close"], () => {
-            eventSource?.close();
-            eventSource = undefined;
-          });
+          if (trigger["sse-close"]) {
+            eventSource.addEventListener(trigger["sse-close"], () => {
+              eventSource?.close();
+              eventSource = undefined;
+            });
+          }
         }
         continue;
       }
 
       const target = from ? document.getElementById(from) : el;
-      if (!target) {
-        console.warn(`[RequestBehavior] Trigger target not found: ${from}`);
-        continue;
-      }
+      if (!target) continue;
 
       const listener = (e: Event) => {
-        const targetEl = e.target;
-        if (trigger.changed && targetEl && "value" in targetEl) {
-          const currentValue = String((targetEl as any).value);
-          if (lastValues.get(targetEl) === currentValue) {
-            return;
-          }
-          lastValues.set(targetEl, currentValue);
+        const targetEl = e.target as any;
+        if (changed && targetEl && "value" in targetEl) {
+          const val = String(targetEl.value);
+          if (lastValues.get(targetEl) === val) return;
+          lastValues.set(targetEl, val);
         }
 
-        if (delay && delay > 0) {
+        if (delay) {
           const key = `${from || "self"}:${event}`;
-          const existingTimeout = debounceTimeouts.get(key);
-          if (existingTimeout) {
-            window.clearTimeout(existingTimeout);
+          if (debounceTimeouts.has(key)) {
+            window.clearTimeout(debounceTimeouts.get(key));
           }
-
-          const timeoutId = window.setTimeout(() => {
-            debounceTimeouts.delete(key);
-            handleEvent(e);
-          }, delay);
-
-          debounceTimeouts.set(key, timeoutId);
+          debounceTimeouts.set(
+            key,
+            window.setTimeout(() => {
+              debounceTimeouts.delete(key);
+              handleEvent(e);
+            }, delay),
+          );
         } else {
           handleEvent(e);
         }
@@ -478,9 +340,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       activeListeners.push({ target, type: event, listener });
     }
 
-    if (!hasLoadTrigger) {
-      lastLoadedUrl = undefined;
-    }
+    if (!hasLoadTrigger) lastLoadedUrl = undefined;
   };
 
   return {
@@ -494,14 +354,10 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       setupListeners();
     },
     onCommand(this: BehaviorInstance, e: CommandEvent<keyof typeof command>) {
-      if (e.command === command["--trigger"]) {
-        handleEvent(e);
-      }
+      if (e.command === command["--trigger"]) handleEvent(e);
       if (e.command === command["--close-sse"]) {
-        if (eventSource) {
-          eventSource.close();
-          eventSource = undefined;
-        }
+        eventSource?.close();
+        eventSource = undefined;
       }
     },
   };

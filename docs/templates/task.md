@@ -20,5 +20,6 @@
 -   [ ] [Condition 2]
 -   [ ] All tests pass.
 -   [ ] Documentation updated.
+-   [ ] **User Review**: Changes verified and commit authorized.
 
 > **Note:** Do not include implementation details, code snippets, or technical designs here. The detailed execution plan belongs in the `LOG.md` file created during the **Plan** phase of the PDSRTDD workflow.

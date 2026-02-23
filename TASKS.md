@@ -19,7 +19,7 @@ This file is managed via **Optimistic Concurrency**.
     - **Architectural Choice**: Explicitly state why you chose a **Behavior** vs. a **Web Component** based on the "Identity vs. Capability" heuristic.
     - **Implementation Details**: Decisions made, and any relevant technical notes.
     - **State Manifest**: List the attributes that represent the component's state.
-6.  **Verify & Commit**: Run `pnpm check` to ensure project-wide type safety. Verify that all tests pass within the feature worktree. Commit all changes to the feature branch. **DO NOT** merge to `main` and **DO NOT** delete the worktree. The user will handle merging and cleanup.
+6.  **Verify & Review**: Run `pnpm check` to ensure project-wide type safety. Verify that all tests pass within the feature worktree. **STOP**. Present the changes to the user (e.g., via `git status`). **DO NOT** commit until the user explicitly requests it.
 7.  **Verify Alignment (Regression)**: If a core component or protocol was changed, identify all existing implementations that rely on it. Create new tasks to "regress" and align those implementations with the new core.
 8.  **Standardize Usage (Progression)**: For new features, ensure the usage standards are documented in the relevant guide (e.g., `AGENTS.md`). Create follow-up tasks to propagate this standard to other relevant areas.
 9.  **Complete**: Update the status to `[x]` (Done).
