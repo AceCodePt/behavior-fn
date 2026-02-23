@@ -8,12 +8,10 @@ import { type BehaviorSchema } from "./types";
  */
 export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
-
-  // TypeBox schemas are JSON Schema objects, so they have a `properties` object.
-  if ("properties" in schema && typeof (schema as any).properties === "object") {
-    return Object.keys((schema as any).properties);
+  // TypeBox TObject guarantees 'properties'
+  if ("properties" in schema) {
+    return Object.keys(schema.properties);
   }
-
   return [];
 };
 
