@@ -1,7 +1,9 @@
 [
   {
     "name": "core",
-    "dependencies": ["@standard-schema/spec"],
+    "dependencies": [
+      "@standard-schema/spec"
+    ],
     "files": [
       {
         "path": "behavior-registry.ts"
@@ -110,6 +112,24 @@
       },
       {
         "path": "reveal/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "test-remove-behavior",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "test-remove-behavior/_behavior-definition.ts"
+      },
+      {
+        "path": "test-remove-behavior/schema.ts"
+      },
+      {
+        "path": "test-remove-behavior/behavior.ts"
+      },
+      {
+        "path": "test-remove-behavior/behavior.test.ts"
       }
     ]
   }
