@@ -20,9 +20,9 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 
 ### 2. The PDSRTDD Workflow
 
-All code changes must follow the **PDSRTDD** flow:
+All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** owns both the **Plan** phase (Task Creation) and the **Execution** oversight, but a **separate instance** of the Architect picks up the execution to properly delegate work to the **Executor** (Frontend/Infrastructure Agent).
 
-1.  **P - Plan:** Analyze the requirements. Decide if it's a **Behavior** (capability) or a **Web Component** (identity).
+1.  **P - Plan (Architect):** Analyze the requirements, define the Goal/Context, and create the task.
 2.  **D - Data:** Define the data shapes and state requirements.
 3.  **S - Schema:** Create the Zod/TypeBox schema in `_behavior-definition.ts`. This is the **Contract**.
 4.  **R - Registry:** Register the behavior in `registry/behaviors-registry.json`.
@@ -47,7 +47,7 @@ All code changes must follow the **PDSRTDD** flow:
 
 ### 4. Git Protocol
 
-- **HALT before Commit:** You **MUST** stop and ask for user review before creating a commit.
+- **HALT before Commit:** You **MUST** stop and report the branch name where the task was completed.
 - **Explicit Push Only:** You **MUST NOT** push to remote unless the user explicitly requests it.
 - **Review Changes:** Always present the changes (e.g., via `git status` or a summary) and wait for confirmation.
 
@@ -62,26 +62,28 @@ All code changes must follow the **PDSRTDD** flow:
 
 ### 1. Architect Agent
 
-- **Role:** Orchestrator, System Designer, Registry Guardian.
-- **Focus:** High-level design, cross-cutting concerns, CLI architecture.
+- **Role:** Orchestrator, System Designer, Registry Guardian, **Task Planner**.
+- **Focus:** High-level design, cross-cutting concerns, CLI architecture, **Task Creation (Plan)**.
 - **Prompt:** [docs/contributing/agent-prompts/architect.md](./docs/contributing/agent-prompts/architect.md)
 
 ### 2. Frontend Agent (Behavior Developer)
 
-- **Role:** Behavior Implementer, DOM Specialist.
-- **Focus:** Writing `behavior.ts`, `_behavior-definition.ts`, and tests.
+- **Role:** Behavior Implementer, DOM Specialist, **Task Executor**.
+- **Focus:** Executing tasks (SRTDD), writing `behavior.ts`, `_behavior-definition.ts`, and tests.
 - **Prompt:** [docs/contributing/agent-prompts/frontend.md](./docs/contributing/agent-prompts/frontend.md)
 
 ### 3. Infrastructure Agent
 
-- **Role:** Tooling Engineer, CLI Maintainer.
-- **Focus:** `index.ts`, `package.json`, build scripts, release workflow.
+- **Role:** Tooling Engineer, CLI Maintainer, **Task Executor**.
+- **Focus:** Executing tasks (SRTDD), `index.ts`, `package.json`, build scripts, release workflow.
 - **Prompt:** [docs/contributing/agent-prompts/infrastructure.md](./docs/contributing/agent-prompts/infrastructure.md)
 
 ## Task Management
 
 - **Source of Truth:** `TASKS.md`.
-- **Protocol:** Read -> Lock (`[-]`) -> Execute -> Log -> Verify -> Complete (`[x]`).
+- **Protocol:**
+  1.  **Plan (Architect):** Create Task -> Add to Backlog (`[ ]`).
+  2.  **Execute (Executor):** Read -> Lock (`[-]`) -> Execute -> Log -> Verify -> Complete (`[x]`).
 
 ## Documentation
 
