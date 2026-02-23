@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [-] [Add Zod Mini Support](docs/tasks/add-zod-mini-support/task.md)
 - [x] [Reimplement Input Watcher Behavior](docs/tasks/reimplement-input-watcher/task.md)
 - [x] [Reimplement Request Behavior](docs/tasks/reimplement-request/task.md)
 - [x] [Sync Reveal Hidden/Open Attributes](docs/tasks/sync-reveal-hidden-open/task.md)
