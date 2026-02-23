@@ -152,22 +152,30 @@ async function installBehavior(
       // Optimize getObservedAttributes for the selected validator
       if (validatorType === 0 || validatorType === 4) {
         // Zod or Zod Mini
+        // Inject import
+        content = `import { z } from "zod";\n` + content;
+        
+        // Replace function with strict instance check
         content = content.replace(
           /export const getObservedAttributes = [\s\S]*?^};/m,
           `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
-  if ("shape" in schema && typeof (schema as any).shape === "object") {
-    return Object.keys((schema as any).shape);
+  if (schema instanceof z.ZodObject) {
+    return Object.keys(schema.shape);
   }
   return [];
 };`,
         );
       } else if (validatorType === 1) {
         // Valibot
+        // Valibot schemas are plain objects, so structural check is correct.
+        // But we can make it cleaner by avoiding 'any' if we imported strict types,
+        // though duck typing 'entries' is the standard way to inspect Valibot Object schemas without strict guards.
         content = content.replace(
           /export const getObservedAttributes = [\s\S]*?^};/m,
           `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
+  // Valibot ObjectSchema has 'entries' property
   if ("entries" in schema && typeof (schema as any).entries === "object") {
     return Object.keys((schema as any).entries);
   }
@@ -180,6 +188,7 @@ async function installBehavior(
           /export const getObservedAttributes = [\s\S]*?^};/m,
           `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
+  // TypeBox / JSON Schema has 'properties'
   if ("properties" in schema && typeof (schema as any).properties === "object") {
     return Object.keys((schema as any).properties);
   }
