@@ -1,4 +1,5 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
+import { type InferSchema } from "../types";
 
 export const schema = Type.Object({
   "input-watcher-target": Type.Optional(
@@ -20,5 +21,5 @@ export const schema = Type.Object({
   ),
 });
 
-export type Schema = Static<typeof schema>;
+export type Schema = InferSchema<typeof schema>;
 export type SchemaType = Schema;

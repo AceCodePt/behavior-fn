@@ -1,4 +1,5 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
+import { type InferSchema } from "../types";
 
 export const REQUEST_ATTRS = {
   URL: "request-url",
@@ -63,5 +64,5 @@ export const schema = Type.Object({
   [REQUEST_ATTRS.VALS]: Type.Optional(Type.String()),
 });
 
-export type TriggerConfig = Static<typeof TriggerSchema>;
-export type RequestConfig = Static<typeof schema>;
+export type TriggerConfig = InferSchema<typeof TriggerSchema>;
+export type RequestConfig = InferSchema<typeof schema>;
