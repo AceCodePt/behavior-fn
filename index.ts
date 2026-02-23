@@ -248,6 +248,22 @@ export type InferSchema<T> = T extends StandardSchemaV1
 
 export type BehaviorSchema = StandardSchemaV1 | Type | object;
 `;
+      } else if (validatorType === 3) {
+        // TypeBox
+        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { type Static, type TSchema } from "@sinclair/typebox";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends TSchema
+    ? Static<T>
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | TSchema | object;
+`;
       }
     }
 

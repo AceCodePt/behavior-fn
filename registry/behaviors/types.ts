@@ -1,24 +1,18 @@
-import { type StandardSchemaV1 } from "@standard-schema/spec";
 import { type Static, type TSchema } from "@sinclair/typebox";
+import { type StandardSchemaV1 } from "@standard-schema/spec";
 
 /**
- * Universal schema inference helper.
- * Prioritizes Standard Schema, then falls back to library-specific inference.
+ * Helper to infer the output type of a schema.
+ * In the registry (TypeBox), this defaults to TypeBox's Static inference
+ * or Standard Schema if available.
  */
 export type InferSchema<T> = T extends StandardSchemaV1
   ? StandardSchemaV1.InferOutput<T>
   : T extends TSchema
     ? Static<T>
-    : T extends { _output: infer O } // Zod
-      ? O
-      : T extends { infer: infer O } // ArkType
-        ? O
-        : T extends { _types: { output: infer O } } // Valibot
-          ? O
-          : unknown;
+    : unknown;
 
 /**
- * Supported schema types for behaviors.
- * This can be expanded as needed, but Standard Schema is the preferred interface.
+ * The canonical schema type for the registry is TypeBox or Standard Schema.
  */
 export type BehaviorSchema = StandardSchemaV1 | TSchema | object;

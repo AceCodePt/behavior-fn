@@ -4,8 +4,9 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 
 ## Core Philosophy
 
-1.  **Source-as-Registry:** The code lives in `registry/behaviors/` as real TypeScript files. There is no separate "build" step that transforms them into a different format for consumption. The source _is_ the distribution.
-2.  **Decoupled Logic:** Behaviors are standalone modules. They do not know about the consuming app's registry until wired up. They must be **headless** (no styles) and **framework-agnostic** (vanilla DOM/Web Components).
+1.  **Source-as-Registry:** The code lives in `registry/behaviors/` as real TypeScript files using **TypeBox** as the canonical schema definition. There is no separate "build" step for the registry itself.
+2.  **Transformation-on-Install:** The CLI (`behavior-fn add`) is responsible for transforming the canonical TypeBox code into the user's preferred validator (Zod, Valibot, etc.) at installation time. This includes rewriting schema definitions and utility functions like `getObservedAttributes`.
+3.  **Decoupled Logic:** Behaviors are standalone modules. They do not know about the consuming app's registry until wired up. They must be **headless** (no styles) and **framework-agnostic** (vanilla DOM/Web Components).
 3.  **Type Safety:** Every behavior exports a Zod/TypeBox schema (`_behavior-definition.ts`) that drives runtime validation and TypeScript intellisense. **No `any`**.
 4.  **Clean Code:** We adhere to strict coding standards. Code must be readable, maintainable, and testable.
 5.  **Optimistic Concurrency:** We use a file-based locking mechanism in `TASKS.md` to manage work.

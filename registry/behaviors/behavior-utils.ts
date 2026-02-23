@@ -1,47 +1,18 @@
-import { type StandardSchemaV1 } from "@standard-schema/spec";
 import { type BehaviorSchema } from "./types";
-
-// --- Introspection Adapters ---
 
 /**
  * Extracts the keys (observed attributes) from a schema object.
  *
- * NOTE: The Standard Schema spec (v1) focuses on validation and type inference,
- * not introspection (getting the list of keys). Therefore, we must use "duck typing"
- * to detect the underlying library and extract the keys using its specific API.
- *
- * @param schema - The schema object (TypeBox, Zod, Valibot, or Standard Schema)
- * @returns Array of property keys
+ * This is the **Canonical Implementation** for TypeBox.
+ * When installing for other validators (Zod, Valibot), the CLI transforms this function.
  */
 export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
 
-  // 1. TypeBox / JSON Schema
   // TypeBox schemas are JSON Schema objects, so they have a `properties` object.
   if ("properties" in schema && typeof (schema as any).properties === "object") {
     return Object.keys((schema as any).properties);
   }
-
-  // 2. Zod
-  // Zod objects store their shape in the `shape` property.
-  if ("shape" in schema && typeof (schema as any).shape === "object") {
-    return Object.keys((schema as any).shape);
-  }
-
-  // 3. Valibot
-  // Valibot objects store their shape in the `entries` property.
-  if ("entries" in schema && typeof (schema as any).entries === "object") {
-    return Object.keys((schema as any).entries);
-  }
-
-  // 4. ArkType
-  // ArkType schemas are functions but may expose metadata.
-  // (Specific introspection logic for ArkType would go here if needed)
-
-  // 5. Fallback for Standard Schema wrappers
-  // If a library uses a wrapper that hides the internal structure but exposes `~standard`,
-  // we currently cannot introspect it without a standardized introspection API.
-  // For now, we return an empty array and rely on the user to provide keys if needed.
 
   return [];
 };

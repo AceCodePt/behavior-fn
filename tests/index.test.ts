@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -10,32 +10,32 @@ const mocks = vi.hoisted(() => {
       writeFileSync: vi.fn(),
       readdirSync: vi.fn(),
       mkdirSync: vi.fn(),
-    }
+    },
   };
 });
 
 // Mock dependencies
-vi.mock('node:fs', () => {
+vi.mock("node:fs", () => {
   return {
     default: mocks.fs,
     ...mocks.fs,
   };
 });
 
-vi.mock('node:child_process', () => {
+vi.mock("node:child_process", () => {
   return {
     default: { execSync: mocks.execSync },
     execSync: mocks.execSync,
   };
 });
 
-vi.mock('prompts', () => {
+vi.mock("prompts", () => {
   return {
     default: mocks.prompts,
   };
 });
 
-describe('CLI (index.ts)', () => {
+describe("CLI (index.ts)", () => {
   let originalArgv: string[];
   let mockExit: any;
   let mockConsoleLog: any;
@@ -46,12 +46,12 @@ describe('CLI (index.ts)', () => {
     vi.clearAllMocks(); // This clears mocks
 
     originalArgv = process.argv;
-    mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: any) => {
+    mockExit = vi.spyOn(process, "exit").mockImplementation((code?: any) => {
       throw new Error(`Process.exit called with ${code}`);
     });
-    
-    mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
-    mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+    mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -60,196 +60,297 @@ describe('CLI (index.ts)', () => {
   });
 
   it('should initialize configuration with "init"', async () => {
-    process.argv = ['node', 'behavior-fn', 'init'];
-    
+    process.argv = ["node", "behavior-fn", "init"];
+
     // Mock prompts response
     mocks.prompts.mockResolvedValue({
-      behaviors: 'src/behaviors',
-      utils: 'src/utils.ts',
-      registry: 'src/registry.ts',
-      testUtils: 'src/test-utils.ts',
-      aliasUtils: '@/utils',
-      aliasRegistry: '@/registry',
-      aliasTestUtils: '@/test-utils',
+      behaviors: "src/behaviors",
+      utils: "src/utils.ts",
+      registry: "src/registry.ts",
+      testUtils: "src/test-utils.ts",
+      aliasUtils: "@/utils",
+      aliasRegistry: "@/registry",
+      aliasTestUtils: "@/test-utils",
     });
 
     // Setup FS mocks
     mocks.fs.existsSync.mockReturnValue(false);
     mocks.fs.readFileSync.mockImplementation((p: string) => {
-        if (p.includes('behaviors-registry.json')) {
-            return JSON.stringify([
-                {
-                    name: 'core',
-                    dependencies: [],
-                    files: [{ path: 'behavior-registry.ts' }]
-                },
-                {
-                    name: 'test-behavior',
-                    dependencies: ['dep-1'],
-                    files: [{ path: 'test-behavior/behavior.ts' }]
-                }
-            ]);
-        }
-        return '';
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [{ path: "behavior-registry.ts" }],
+          },
+          {
+            name: "test-behavior",
+            dependencies: ["dep-1"],
+            files: [{ path: "test-behavior/behavior.ts" }],
+          },
+        ]);
+      }
+      return "";
     });
     mocks.fs.readdirSync.mockReturnValue([]);
 
     // Import and run main
-    const { main } = await import('../index');
+    const { main } = await import("../index");
     try {
       await main();
     } catch (e: any) {
-        if (!e.message.includes('Process.exit')) throw e;
+      if (!e.message.includes("Process.exit")) throw e;
     }
 
     // Verify config was written
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
-      expect.stringContaining('behavior.json'),
-      expect.stringContaining('"behaviors": "src/behaviors"')
+      expect.stringContaining("behavior.json"),
+      expect.stringContaining('"behaviors": "src/behaviors"'),
     );
 
     // Verify core was installed
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Installing behavior: core'));
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Installing behavior: core"),
+    );
   });
 
   it('should add a behavior with "add"', async () => {
-    process.argv = ['node', 'behavior-fn', 'add', 'test-behavior'];
-    
+    process.argv = ["node", "behavior-fn", "add", "test-behavior"];
+
     // Mock existing config
     mocks.fs.existsSync.mockImplementation((p: string) => {
-        if (p.endsWith('behavior.json')) return true;
-        if (p.endsWith('behaviors-registry.json')) return true;
-        // Pretend core is installed (registry file exists)
-        if (p.includes('src/registry.ts')) return true; 
-        return false;
+      if (p.endsWith("behavior.json")) return true;
+      if (p.endsWith("behaviors-registry.json")) return true;
+      // Pretend core is installed (registry file exists)
+      if (p.includes("src/registry.ts")) return true;
+      return false;
     });
 
     mocks.fs.readFileSync.mockImplementation((p: string) => {
-        if (p.endsWith('behavior.json')) {
-            return JSON.stringify({
-                paths: {
-                    behaviors: 'src/behaviors',
-                    utils: 'src/utils.ts',
-                    registry: 'src/registry.ts',
-                    testUtils: 'src/test-utils.ts'
-                },
-                aliases: {
-                    utils: '@/utils',
-                    registry: '@/registry',
-                    testUtils: '@/test-utils'
-                }
-            });
-        }
-        if (p.includes('behaviors-registry.json')) {
-             return JSON.stringify([
-                {
-                    name: 'core',
-                    dependencies: [],
-                    files: []
-                },
-                {
-                    name: 'test-behavior',
-                    dependencies: ['dep-1'],
-                    files: [{ path: 'test-behavior/behavior.ts' }]
-                }
-            ]);
-        }
-        return 'original content';
+      if (p.endsWith("behavior.json")) {
+        return JSON.stringify({
+          paths: {
+            behaviors: "src/behaviors",
+            utils: "src/utils.ts",
+            registry: "src/registry.ts",
+            testUtils: "src/test-utils.ts",
+          },
+          aliases: {
+            utils: "@/utils",
+            registry: "@/registry",
+            testUtils: "@/test-utils",
+          },
+        });
+      }
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [],
+          },
+          {
+            name: "test-behavior",
+            dependencies: ["dep-1"],
+            files: [{ path: "test-behavior/behavior.ts" }],
+          },
+        ]);
+      }
+      return "original content";
     });
     mocks.fs.readdirSync.mockReturnValue([]);
 
-    const { main } = await import('../index');
+    const { main } = await import("../index");
     try {
-        await main();
+      await main();
     } catch (e: any) {
-        if (!e.message.includes('Process.exit')) throw e;
+      if (!e.message.includes("Process.exit")) throw e;
     }
 
     // Verify behavior file was written
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('behavior.ts'),
-        expect.any(String)
+      expect.stringContaining("behavior.ts"),
+      expect.any(String),
     );
 
     // Verify dependencies were installed
     expect(mocks.execSync).toHaveBeenCalledWith(
-        expect.stringContaining('pnpm add dep-1'),
-        expect.anything()
+      expect.stringContaining("pnpm add dep-1"),
+      expect.anything(),
     );
   });
 
-  it('should prompt when multiple validators are detected', async () => {
-    process.argv = ['node', 'behavior-fn', 'add', 'test-behavior'];
-    
+  it("should prompt when multiple validators are detected", async () => {
+    process.argv = ["node", "behavior-fn", "add", "test-behavior"];
+
     // Mock package.json with multiple validators
     mocks.fs.existsSync.mockImplementation((p: string) => {
-        if (p.endsWith('behavior.json')) return true;
-        if (p.endsWith('behaviors-registry.json')) return true;
-        if (p.endsWith('package.json')) return true;
-        if (p.includes('src/registry.ts')) return true; 
-        return false;
+      if (p.endsWith("behavior.json")) return true;
+      if (p.endsWith("behaviors-registry.json")) return true;
+      if (p.endsWith("package.json")) return true;
+      if (p.includes("src/registry.ts")) return true;
+      return false;
     });
 
     mocks.fs.readFileSync.mockImplementation((p: string) => {
-        if (p.endsWith('package.json')) {
-            return JSON.stringify({
-                dependencies: {
-                    zod: 'latest',
-                    valibot: 'latest'
-                }
-            });
-        }
-        if (p.endsWith('behavior.json')) {
-             return JSON.stringify({
-                paths: { behaviors: 'src/behaviors', utils: 'src/utils', registry: 'src/registry', testUtils: 'src/testUtils' },
-                aliases: { utils: '@utils', registry: '@registry', testUtils: '@testUtils' }
-            });
-        }
-        if (p.includes('behaviors-registry.json')) {
-             return JSON.stringify([
-                { name: 'core', dependencies: [], files: [] },
-                { name: 'test-behavior', dependencies: [], files: [] }
-            ]);
-        }
-        return '';
+      if (p.endsWith("package.json")) {
+        return JSON.stringify({
+          dependencies: {
+            zod: "latest",
+            valibot: "latest",
+          },
+        });
+      }
+      if (p.endsWith("behavior.json")) {
+        return JSON.stringify({
+          paths: {
+            behaviors: "src/behaviors",
+            utils: "src/utils",
+            registry: "src/registry",
+            testUtils: "src/testUtils",
+          },
+          aliases: {
+            utils: "@utils",
+            registry: "@registry",
+            testUtils: "@testUtils",
+          },
+        });
+      }
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          { name: "core", dependencies: [], files: [] },
+          { name: "test-behavior", dependencies: [], files: [] },
+        ]);
+      }
+      return "";
     });
     mocks.fs.readdirSync.mockReturnValue([]);
 
     // Mock prompt response to choose Valibot (1)
     mocks.prompts.mockResolvedValue({ validator: 1 });
 
-    const { main } = await import('../index');
+    const { main } = await import("../index");
     try {
-        await main();
+      await main();
     } catch (e: any) {
-        if (!e.message.includes('Process.exit')) throw e;
+      if (!e.message.includes("Process.exit")) throw e;
     }
 
     // Verify prompts was called
-    expect(mocks.prompts).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'select',
-        message: expect.stringContaining('Multiple validators detected'),
+    expect(mocks.prompts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "select",
+        message: expect.stringContaining("Multiple validators detected"),
         choices: expect.arrayContaining([
-            expect.objectContaining({ title: 'Zod', value: 0 }),
-            expect.objectContaining({ title: 'Valibot', value: 1 })
-        ])
-    }));
+          expect.objectContaining({ title: "Zod", value: 0 }),
+          expect.objectContaining({ title: "Valibot", value: 1 }),
+        ]),
+      }),
+    );
   });
 
   it('should fail if config is missing for "add"', async () => {
-    process.argv = ['node', 'behavior-fn', 'add', 'test-behavior'];
-    
+    process.argv = ["node", "behavior-fn", "add", "test-behavior"];
+
     // Mock missing config
     mocks.fs.existsSync.mockReturnValue(false);
     mocks.fs.readdirSync.mockReturnValue([]);
 
-    const { main } = await import('../index');
+    const { main } = await import("../index");
     try {
-        await main();
+      await main();
     } catch (e: any) {
-        expect(e.message).toContain('Process.exit called with 1');
+      expect(e.message).toContain("Process.exit called with 1");
     }
 
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Configuration file behavior.json not found'));
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("Configuration file behavior.json not found"),
+    );
+  });
+
+  it("should generate correct TypeBox files when TypeBox is selected", async () => {
+    process.argv = ["node", "behavior-fn", "add", "core"];
+    
+    // Reset mocks for this test
+    mocks.fs.existsSync.mockReset();
+    mocks.fs.readFileSync.mockReset();
+    mocks.execSync.mockReset();
+    mocks.fs.writeFileSync.mockReset();
+
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      // Return true for config files
+      if (p.endsWith("behavior.json") || p.endsWith("behaviors-registry.json")) return true;
+      // Return true for package.json to trigger validator detection
+      if (p.endsWith("package.json")) return true;
+      return false; 
+    });
+
+    mocks.fs.readFileSync.mockImplementation((p: string) => {
+      if (p.endsWith("package.json")) {
+        // Only TypeBox present
+        return JSON.stringify({
+          dependencies: {
+            "@sinclair/typebox": "latest",
+          },
+        });
+      }
+      if (p.endsWith("behavior.json")) {
+        return JSON.stringify({
+          paths: {
+            behaviors: "src/behaviors",
+            utils: "src/utils.ts",
+            registry: "src/registry.ts",
+            testUtils: "src/testUtils.ts",
+          },
+          aliases: {
+            utils: "@/utils",
+            registry: "@/registry",
+            testUtils: "@/testUtils",
+          },
+        });
+      }
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [
+              { path: "types.ts" },
+              { path: "behavior-utils.ts" },
+            ],
+          },
+        ]);
+      }
+      // Return dummy content for source files to be transformed
+      if (p.endsWith("types.ts")) return "original types content";
+      if (p.endsWith("behavior-utils.ts")) {
+        return `
+export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  return [];
+};
+`;
+      }
+      return "";
+    });
+
+    // Run main
+    const { main } = await import("../index");
+    try {
+      await main();
+    } catch (e: any) {
+      if (!e.message.includes("Process.exit")) throw e;
+    }
+
+    // Verify types.ts generation for TypeBox
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("types.ts"),
+      expect.stringContaining("export type BehaviorSchema = StandardSchemaV1 | TSchema | object;"),
+    );
+
+    // Verify behavior-utils.ts generation for TypeBox
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("utils.ts"),
+      expect.stringContaining('if ("properties" in schema'),
+    );
   });
 });
