@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Create Platform Interface](docs/tasks/create-platform-interface/task.md)
 - [-] [Type Safety Review and Refactor](docs/tasks/type-safety-review-refactor/task.md)
 - [x] [Refactor CLI to Validator Strategy](docs/tasks/refactor-cli-validator-strategy/task.md)
 - [ ] [Create CLI 'create' Command](docs/tasks/create-cli-create-command/task.md)
