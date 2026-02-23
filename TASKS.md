@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Refactor Strategies to Validators with Directory Structure](docs/tasks/refactor-strategies-to-validators/task.md)
 - [ ] [Remove Jiti Dependency - Build Registry Instead](docs/tasks/remove-jiti-build-registry/task.md)
 - [-] [Simplify Init Flow](docs/tasks/simplify-init-flow/task.md)
 - [-] [Create Platform Interface](docs/tasks/create-platform-interface/task.md)
