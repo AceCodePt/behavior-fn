@@ -86,6 +86,9 @@ async function installBehavior(
     if (file.path === "behavior-utils.ts") {
       targetDir = path.dirname(config.paths.utils);
       fileName = path.basename(config.paths.utils);
+    } else if (file.path === "types.ts") {
+      targetDir = path.dirname(config.paths.utils);
+      fileName = "types.ts";
     } else if (file.path === "behavior-registry.ts") {
       targetDir = path.dirname(config.paths.registry);
       fileName = path.basename(config.paths.registry);
@@ -144,6 +147,98 @@ async function installBehavior(
           "export const isServer = () => typeof window === 'undefined';",
           "export const isServer = () => import.meta.env.SSR;",
         );
+      }
+
+      // Optimize getObservedAttributes for the selected validator
+      if (validatorType === 0 || validatorType === 4) {
+        // Zod or Zod Mini
+        content = content.replace(
+          /export const getObservedAttributes = [\s\S]*?^};/m,
+          `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  if (!schema) return [];
+  if ("shape" in schema && typeof (schema as any).shape === "object") {
+    return Object.keys((schema as any).shape);
+  }
+  return [];
+};`,
+        );
+      } else if (validatorType === 1) {
+        // Valibot
+        content = content.replace(
+          /export const getObservedAttributes = [\s\S]*?^};/m,
+          `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  if (!schema) return [];
+  if ("entries" in schema && typeof (schema as any).entries === "object") {
+    return Object.keys((schema as any).entries);
+  }
+  return [];
+};`,
+        );
+      } else if (validatorType === 3) {
+        // TypeBox
+        content = content.replace(
+          /export const getObservedAttributes = [\s\S]*?^};/m,
+          `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  if (!schema) return [];
+  if ("properties" in schema && typeof (schema as any).properties === "object") {
+    return Object.keys((schema as any).properties);
+  }
+  return [];
+};`,
+        );
+      }
+    }
+
+    // Transform types.ts based on validator
+    if (file.path === "types.ts") {
+      if (validatorType === 0 || validatorType === 4) {
+        // Zod / Zod Mini
+        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { z } from "zod";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends z.ZodType
+    ? z.infer<T>
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | z.ZodType | object;
+`;
+      } else if (validatorType === 1) {
+        // Valibot
+        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { type BaseSchema, type InferOutput } from "valibot";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends BaseSchema
+    ? InferOutput<T>
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | BaseSchema | object;
+`;
+      } else if (validatorType === 2) {
+        // ArkType (Placeholder - ArkType is complex to type purely statically without the lib)
+        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { type Type } from "arktype";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends Type
+    ? T["infer"]
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | Type | object;
+`;
       }
     }
 
