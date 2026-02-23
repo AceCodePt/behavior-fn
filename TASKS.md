@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Create CLI 'create' Command](docs/tasks/create-cli-create-command/task.md)
 - [x] [Add Zod Mini Support](docs/tasks/add-zod-mini-support/task.md)
 - [x] [Reimplement Input Watcher Behavior](docs/tasks/reimplement-input-watcher/task.md)
 - [x] [Reimplement Request Behavior](docs/tasks/reimplement-request/task.md)
