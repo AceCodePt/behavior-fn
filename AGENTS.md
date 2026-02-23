@@ -25,12 +25,16 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 
 All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** is the sole owner of this workflow. One instance of the Architect handles the **Plan** phase (Task Creation). A **separate instance** of the Architect handles the **Execute** phase, delegating specific coding work to the Frontend or Infrastructure agents as needed.
 
-1.  **P - Plan (Architect):** Analyze the requirements, define the Goal/Context, and create the task.
+1.  **P - Plan (Architect):** Analyze the requirements, define the Goal/Context, and create the task with a detailed `LOG.md` in the task directory. **Since work is done in isolated branches/worktrees (not `main`), no approval is needed after planning—proceed directly to execution.**
 2.  **D - Data:** Define the data shapes and state requirements.
 3.  **S - Schema:** Create the Zod/TypeBox schema in `_behavior-definition.ts`. This is the **Contract**.
 4.  **R - Registry:** Register the behavior in `registry/behaviors-registry.json`.
 5.  **T - Test:** Write tests in `behavior.test.ts`. **Tests must fail first** (Red).
 6.  **DD - Develop:** Implement the logic in `behavior.ts` to make tests pass (Green).
+
+**Approval Protocol:**
+- **In Feature Branch/Worktree:** If you are NOT in `main` (verified via `git branch --show-current`), proceed with implementation immediately after creating the LOG.md. Do NOT stop for approval.
+- **In Main:** Never implement in main (see Environment & Branching rules).
 
 ### 3. Coding Standards
 

@@ -83,11 +83,45 @@ registerBehavior("reveal", RevealBehavior);
 
 ## Creating a New Behavior
 
-To contribute a new behavior to this repository:
+To contribute a new behavior to this repository, use the `create` command:
 
-1.  **Naming:** Use kebab-case (e.g., `reveal`).
+```bash
+pnpm build
+node dist/index.js create my-behavior-name
+```
+
+This will:
+
+1.  Validate the behavior name (must be kebab-case, e.g., `my-behavior`).
 2.  Create a folder in `registry/behaviors/<name>/`.
-3.  Add `_behavior-definition.ts` (the contract).
-4.  Add `behavior.ts` (the logic).
-5.  Add `behavior.test.ts` (the tests).
-6.  Add an entry to `registry/behaviors-registry.json`.
+3.  Generate template files:
+    -   `_behavior-definition.ts` (the contract)
+    -   `schema.ts` (TypeBox schema definition)
+    -   `behavior.ts` (the implementation)
+    -   `behavior.test.ts` (test scaffolding)
+4.  Automatically update `registry/behaviors-registry.json`.
+
+After running the command, follow the next steps printed in the console:
+
+1.  Edit `schema.ts` to define your behavior's attributes.
+2.  Implement the behavior logic in `behavior.ts`.
+3.  Write tests in `behavior.test.ts`.
+4.  Run `pnpm test` to verify your implementation.
+
+## Removing a Behavior
+
+To remove a behavior from the registry:
+
+```bash
+pnpm build
+node dist/index.js remove my-behavior-name
+```
+
+This will:
+
+1.  Validate the behavior name exists in the registry.
+2.  Prevent removal of the `core` behavior (required by the system).
+3.  Delete the behavior directory from `registry/behaviors/<name>/`.
+4.  Automatically update `registry/behaviors-registry.json`.
+
+**Note:** The remove command cannot be undone. Make sure you have committed any work before removing a behavior.

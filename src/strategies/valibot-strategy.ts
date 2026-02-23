@@ -1,12 +1,13 @@
 import { toValibot } from "../transformers/toValibot";
 import { type ValidatorStrategy, type PackageName } from "./validator-strategy";
+import type { AttributeSchema } from "../types/schema";
 
 export class ValibotStrategy implements ValidatorStrategy {
   id = 1;
   label = "Valibot";
   packageName: PackageName = "valibot";
 
-  transformSchema(schemaObject: any, _rawContent: string): string {
+  transformSchema(schemaObject: AttributeSchema, _rawContent: string): string {
     return toValibot(schemaObject);
   }
 
@@ -14,8 +15,8 @@ export class ValibotStrategy implements ValidatorStrategy {
     return `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
   // Valibot ObjectSchema has 'entries' property
-  if ("entries" in schema && typeof (schema as any).entries === "object") {
-    return Object.keys((schema as any).entries);
+  if ("entries" in schema && typeof schema.entries === "object") {
+    return Object.keys(schema.entries);
   }
   return [];
 };`;

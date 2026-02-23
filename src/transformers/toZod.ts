@@ -1,7 +1,15 @@
-export function toZod(schema: any): string {
-  function parse(s: any): string {
+import type { AttributeSchema, JSONSchemaProperty, JSONSchemaObject } from "../types/schema";
+
+/**
+ * Converts a TypeBox schema to Zod code.
+ * 
+ * TypeBox schemas are TObject at the type level, but at runtime they're
+ * plain JSON Schema objects. We work with the runtime structure.
+ */
+export function toZod(schema: AttributeSchema): string {
+  function parse(s: JSONSchemaProperty): string {
     // 1. Strings
-    if (s.type === 'string') {
+    if ('type' in s && s.type === 'string') {
       let code = 'z.string()';
       if (s.minLength !== undefined) code += `.min(${s.minLength})`;
       if (s.maxLength !== undefined) code += `.max(${s.maxLength})`;
@@ -10,7 +18,7 @@ export function toZod(schema: any): string {
     }
     
     // 2. Numbers
-    if (s.type === 'number') {
+    if ('type' in s && s.type === 'number') {
       let code = 'z.number()';
       if (s.minimum !== undefined) code += `.min(${s.minimum})`;
       if (s.maximum !== undefined) code += `.max(${s.maximum})`;
@@ -18,28 +26,20 @@ export function toZod(schema: any): string {
     }
 
     // 3. Booleans
-    if (s.type === 'boolean') return 'z.boolean()';
+    if ('type' in s && s.type === 'boolean') return 'z.boolean()';
 
-    // 4. Enums
-    if (s.enum || (s.anyOf && s.anyOf[0].const)) {
-      const values = s.enum || s.anyOf.map((x: any) => x.const);
-      const strValues = values.map((v: string) => `'${v}'`).join(', ');
-      return `z.enum([${strValues}])`;
-    }
-
-    // 5. Objects (Recursive)
-    if (s.type === 'object') {
-      const props = Object.entries(s.properties || {})
-        .map(([key, value]: [string, any]) => {
+    // 4. Objects (Nested - recursive)
+    if (s.type === 'object' && s.properties) {
+      const props = Object.entries(s.properties)
+        .map(([key, value]) => {
           let code = parse(value);
           const isRequired = s.required?.includes(key);
           
-          // Handle Optional & Defaults
-          // Zod handles defaults differently than Valibot (chainable)
-          if (!isRequired && value.default === undefined) {
+          const hasDefault = 'default' in value && value.default !== undefined;
+          if (!isRequired && !hasDefault) {
             code += '.optional()';
           }
-          if (value.default !== undefined) {
+          if (hasDefault) {
             const def = JSON.stringify(value.default);
             code += `.default(${def})`;
           }
@@ -49,14 +49,46 @@ export function toZod(schema: any): string {
       return `z.object({\n${props}\n})`;
     }
 
-    return 'z.any()';
+    // 5. Enums
+    if (s.enum || (s.anyOf && s.anyOf[0]?.const)) {
+      const values = s.enum || s.anyOf?.map((x) => x.const!);
+      const strValues = (values || []).map((v) => `'${v}'`).join(', ');
+      return `z.enum([${strValues}])`;
+    }
+
+    // Fallback - should not reach here with proper AttributeSchema
+    throw new Error(`Unsupported schema type: ${JSON.stringify(s)}`);
   }
 
-  const keys = Object.keys(schema.properties || {});
+  function parseObject(s: JSONSchemaObject): string {
+    const props = Object.entries(s.properties)
+      .map(([key, value]: [string, JSONSchemaProperty]) => {
+        let code = parse(value);
+        const isRequired = s.required?.includes(key);
+        
+        // Handle Optional & Defaults (skip for nested objects)
+        // Zod handles defaults differently than Valibot (chainable)
+        const hasDefault = 'default' in value && value.default !== undefined;
+        if (!isRequired && !hasDefault) {
+          code += '.optional()';
+        }
+        if (hasDefault) {
+          const def = JSON.stringify(value.default);
+          code += `.default(${def})`;
+        }
+        return `  "${key}": ${code}`;
+      })
+      .join(',\n');
+    return `z.object({\n${props}\n})`;
+  }
+
+  // Cast TObject to runtime JSON Schema structure
+  const runtimeSchema = schema as unknown as JSONSchemaObject;
+  const keys = Object.keys(runtimeSchema.properties);
 
   return `import { z } from "zod";
 
-export const schema = ${parse(schema)};
+export const schema = ${parseObject(runtimeSchema)};
 export type Schema = z.infer<typeof schema>;
 export const validate = (data: unknown) => schema.parse(data);
 export const safeValidate = (data: unknown) => schema.safeParse(data);

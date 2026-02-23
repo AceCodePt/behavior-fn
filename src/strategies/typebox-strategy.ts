@@ -1,12 +1,13 @@
 import { toTypeBox } from "../transformers/toTypeBox";
 import { type ValidatorStrategy, type PackageName } from "./validator-strategy";
+import type { AttributeSchema } from "../types/schema";
 
 export class TypeBoxStrategy implements ValidatorStrategy {
   id = 3;
   label = "TypeBox";
   packageName: PackageName = "@sinclair/typebox";
 
-  transformSchema(schemaObject: any, rawContent: string): string {
+  transformSchema(schemaObject: AttributeSchema, rawContent: string): string {
     return toTypeBox(rawContent, schemaObject);
   }
 
@@ -14,8 +15,8 @@ export class TypeBoxStrategy implements ValidatorStrategy {
     return `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
   // TypeBox / JSON Schema has 'properties'
-  if ("properties" in schema && typeof (schema as any).properties === "object") {
-    return Object.keys((schema as any).properties);
+  if ("properties" in schema && typeof schema.properties === "object") {
+    return Object.keys(schema.properties);
   }
   return [];
 };`;

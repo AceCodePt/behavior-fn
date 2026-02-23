@@ -3,6 +3,7 @@ import {
   type BehaviorInstance,
   type CommandEvent,
 } from "~registry";
+import { hasValue } from "~utils";
 import definition from "./_behavior-definition";
 import { REQUEST_ATTRS, type TriggerConfig } from "./schema";
 
@@ -312,8 +313,8 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       if (!target) continue;
 
       const listener = (e: Event) => {
-        const targetEl = e.target as any;
-        if (changed && targetEl && "value" in targetEl) {
+        const targetEl = e.target;
+        if (changed && targetEl && targetEl instanceof Element && hasValue(targetEl)) {
           const val = String(targetEl.value);
           if (lastValues.get(targetEl) === val) return;
           lastValues.set(targetEl, val);

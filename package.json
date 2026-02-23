@@ -8,7 +8,7 @@
 		"behavior-fn": "./dist/index.js"
 	},
 	"scripts": {
-		"build": "tsup index.ts --format esm --clean --onSuccess \"cp -r registry dist/registry && chmod +x dist/index.js\"",
+		"build": "tsup",
 		"test": "vitest run"
 	},
 	"keywords": [

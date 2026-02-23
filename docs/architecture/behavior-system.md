@@ -60,3 +60,32 @@ The `registry/` directory in the `behavior-fn` repository is the source of truth
 2.  **Add:** `npx behavior-fn add <name>` looks up the behavior in `behaviors-registry.json`, reads the files from the source registry, rewrites imports to match your project's aliases, and writes them to your disk.
 
 This approach gives you full ownership of the code. You can modify the installed behaviors to fit your specific needs without fighting a library's abstraction.
+
+## Platform Integration System
+
+The CLI uses a **Strategy Pattern** for platform-specific code transformations, allowing seamless integration with different frameworks without modifying core logic.
+
+### Platform Detection & Validation
+
+When you run `behavior-fn init` or `behavior-fn add`, the CLI automatically:
+
+1. **Detects** your platform (Astro, Next.js, Remix, etc.) by checking for config files
+2. **Validates** that the platform is properly installed
+3. **Applies** platform-specific transformations during behavior installation
+
+### Validator Strategy System
+
+The CLI also supports multiple schema validators (Zod, Valibot, TypeBox, ArkType, Zod Mini) through a similar strategy pattern:
+
+1. **Detection**: Scans `package.json` for installed validators
+2. **Transformation**: Converts TypeBox schemas (canonical format) to your preferred validator
+3. **Optimization**: Generates validator-specific utility functions
+
+### Extensibility
+
+Both the Platform and Validator systems are designed to be extended without modifying core CLI code:
+
+- **Adding Platforms**: Implement `PlatformStrategy` interface (see `docs/guides/creating-platforms.md`)
+- **Adding Validators**: Implement `ValidatorStrategy` interface (see `src/strategies/`)
+
+This architecture follows the **Open-Closed Principle**: open for extension, closed for modification.
