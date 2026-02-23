@@ -1,3 +1,5 @@
+import type { AttributeSchema } from "../types/schema";
+
 export type PackageName = "zod" | "valibot" | "arktype" | "@sinclair/typebox" | "zod-mini";
 
 export interface ValidatorStrategy {
@@ -21,7 +23,7 @@ export interface ValidatorStrategy {
    * @param schemaObject The actual schema object loaded via jiti
    * @param rawContent The raw file content (sometimes needed for TypeBox)
    */
-  transformSchema(schemaObject: any, rawContent: string): string;
+  transformSchema(schemaObject: AttributeSchema, rawContent: string): string;
 
   /**
    * Generate the `getObservedAttributes` function code for `behavior-utils.ts`.

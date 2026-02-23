@@ -1,8 +1,13 @@
 // src/transformers/toValibot.ts
-export function toValibot(schema: any): string {
-  function parse(s: any): string {
+import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../types/schema";
+
+/**
+ * Converts a TypeBox schema (JSON Schema format at runtime) to Valibot code.
+ */
+export function toValibot(schema: AttributeSchema): string {
+  function parse(s: JSONSchemaProperty): string {
     // 1. Strings
-    if (s.type === 'string') {
+    if ('type' in s && s.type === 'string') {
       const pipe = ['v.string()'];
       if (s.minLength) pipe.push(`v.minLength(${s.minLength})`);
       if (s.pattern) pipe.push(`v.regex(/${s.pattern}/)`);
@@ -10,7 +15,7 @@ export function toValibot(schema: any): string {
     }
     
     // 2. Numbers
-    if (s.type === 'number') {
+    if ('type' in s && s.type === 'number') {
       const pipe = ['v.number()'];
       if (s.minimum !== undefined) pipe.push(`v.minValue(${s.minimum})`);
       if (s.maximum !== undefined) pipe.push(`v.maxValue(${s.maximum})`);
@@ -18,27 +23,19 @@ export function toValibot(schema: any): string {
     }
 
     // 3. Booleans
-    if (s.type === 'boolean') return 'v.boolean()';
+    if ('type' in s && s.type === 'boolean') return 'v.boolean()';
 
-    // 4. Enums
-    if (s.enum || (s.anyOf && s.anyOf[0].const)) {
-      const values = s.enum || s.anyOf.map((x: any) => x.const);
-      const strValues = values.map((v: string) => `'${v}'`).join(', ');
-      return `v.picklist([${strValues}])`;
-    }
-
-    // 5. Objects (Recursive)
-    if (s.type === 'object') {
-      const props = Object.entries(s.properties || {})
-        .map(([key, value]: [string, any]) => {
+    // 4. Objects (Nested - recursive)
+    if (s.type === 'object' && s.properties) {
+      const props = Object.entries(s.properties)
+        .map(([key, value]) => {
           let code = parse(value);
           const isRequired = s.required?.includes(key);
           
-          // Handle Optional & Defaults
-          // In Valibot, default is optional(T, default)
-          if (!isRequired && value.default === undefined) {
+          const hasDefault = 'default' in value && value.default !== undefined;
+          if (!isRequired && !hasDefault) {
             code = `v.optional(${code})`;
-          } else if (value.default !== undefined) {
+          } else if (hasDefault) {
             const def = JSON.stringify(value.default);
             code = `v.optional(${code}, ${def})`;
           }
@@ -48,14 +45,44 @@ export function toValibot(schema: any): string {
       return `v.object({\n${props}\n})`;
     }
 
-    return 'v.any()';
+    // 5. Enums
+    if (s.enum || (s.anyOf && s.anyOf[0]?.const)) {
+      const values = s.enum || s.anyOf?.map((x) => x.const!);
+      const strValues = (values || []).map((v) => `'${v}'`).join(', ');
+      return `v.picklist([${strValues}])`;
+    }
+
+    // Fallback - should not reach here with proper AttributeSchema
+    throw new Error(`Unsupported schema type: ${JSON.stringify(s)}`);
   }
 
-  const keys = Object.keys(schema.properties || {});
+  function parseObject(s: JSONSchemaObject): string {
+    const props = Object.entries(s.properties)
+      .map(([key, value]) => {
+        let code = parse(value);
+        const isRequired = s.required?.includes(key);
+        
+        // Handle Optional & Defaults
+        // In Valibot, default is optional(T, default)
+        const hasDefault = 'default' in value && value.default !== undefined;
+        if (!isRequired && !hasDefault) {
+          code = `v.optional(${code})`;
+        } else if (hasDefault) {
+          const def = JSON.stringify(value.default);
+          code = `v.optional(${code}, ${def})`;
+        }
+        return `  "${key}": ${code}`;
+      })
+      .join(',\n');
+    return `v.object({\n${props}\n})`;
+  }
+
+  const runtimeSchema = schema as unknown as JSONSchemaObject;
+  const keys = Object.keys(runtimeSchema.properties);
 
   return `import * as v from "valibot";
 
-export const schema = ${parse(schema)};
+export const schema = ${parseObject(runtimeSchema)};
 export type Schema = v.InferOutput<typeof schema>;
 export const validate = (data: unknown) => v.parse(schema, data);
 export const safeValidate = (data: unknown) => v.safeParse(schema, data);

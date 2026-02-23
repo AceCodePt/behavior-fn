@@ -1,11 +1,13 @@
 // src/transformers/toTypeBox.ts
+import type { AttributeSchema, JSONSchemaObject } from "../types/schema";
 
-export function toTypeBox(schemaFileContent: string, schema: any): string {
+export function toTypeBox(schemaFileContent: string, schema: AttributeSchema): string {
   // This function assumes schemaFileContent is the raw TypeBox definition 
   // from registry/behaviors/<name>/schema.ts.
   // We append the validation helpers to make it compatible with the behavioral host.
   
-  const keys = Object.keys(schema.properties || {});
+  const runtimeSchema = schema as unknown as JSONSchemaObject;
+  const keys = Object.keys(runtimeSchema.properties);
   
   return `${schemaFileContent}
 

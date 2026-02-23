@@ -1,4 +1,5 @@
 import { type BehaviorFactory } from "~registry";
+import { hasValue } from "~utils";
 
 export const inputWatcherBehavior: BehaviorFactory = (host) => {
   let targets: Element[] = [];
@@ -30,8 +31,8 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
       return el.getAttribute(attr) ?? "";
     }
     // Try value property
-    if ("value" in el) {
-      return (el as any).value;
+    if (hasValue(el)) {
+      return String(el.value);
     }
     return el.textContent ?? "";
   };
