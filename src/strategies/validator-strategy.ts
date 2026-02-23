@@ -1,4 +1,4 @@
-export type PackageName = "zod" | "valibot" | "arktype" | "@sinclair/typebox";
+export type PackageName = "zod" | "valibot" | "arktype" | "@sinclair/typebox" | "zod-mini";
 
 export interface ValidatorStrategy {
   /**

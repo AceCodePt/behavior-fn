@@ -15,9 +15,11 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 
 ### 1. Environment & Branching
 
-- **Working in Main:** Unlike other strict environments, you **ARE ALLOWED** to work directly in the `main` branch for small fixes, documentation, or when explicitly instructed.
-- **Feature Branches:** For complex features or new behaviors, prefer creating a feature branch (e.g., `feature/my-behavior`) to keep the history clean.
-- **Worktrees:** Use `git worktree` if you need to parallelize tasks, but it is not strictly required for every single operation.
+- **Working in Main:** You **MUST NOT** work directly in `main` for any code changes, refactors, or documentation updates. The `main` branch is **Strictly Read-Only** for code.
+  - **Verification:** Always run `git branch --show-current` to confirm your branch. If it returns `main`, you must create a worktree or switch branches immediately.
+  - **Exception:** You may commit directly to `main` ONLY when updating `TASKS.md` (e.g., locking a task `[-]` or marking it complete `[x]`) or creating new task files in `docs/tasks/`.
+- **Task Isolation:** Every task **MUST** be executed in its own isolated environment (e.g., a `git worktree` or a dedicated feature branch).
+- **Worktrees:** Prefer `git worktree` for parallel task execution to keep the environment clean.
 
 ### 2. The PDSRTDD Workflow
 

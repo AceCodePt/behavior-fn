@@ -5,12 +5,8 @@ import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { createJiti } from "jiti";
-import { toZod } from "./src/transformers/toZod";
-import { toZodMini } from "./src/transformers/toZodMini";
-import { toValibot } from "./src/transformers/toValibot";
-import { toArkType } from "./src/transformers/toArkType";
-import { toTypeBox } from "./src/transformers/toTypeBox";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
+import { getStrategy, strategies } from "./src/strategies/index";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,6 +71,13 @@ async function installBehavior(
     process.exit(1);
   }
 
+  // Get validator strategy
+  const strategy = getStrategy(validatorType);
+  if (!strategy) {
+    console.error(`Validator type ${validatorType} not supported.`);
+    process.exit(1);
+  }
+
   console.log(`Installing behavior: ${name}...`);
 
   // Install files
@@ -117,19 +120,7 @@ async function installBehavior(
       try {
         const mod = await jiti.import<{ schema?: unknown }>(sourcePath);
         if (mod.schema) {
-          if (validatorType === 0) {
-            content = toZod(mod.schema);
-          } else if (validatorType === 1) {
-            content = toValibot(mod.schema);
-          } else if (validatorType === 2) {
-            content = toArkType(mod.schema);
-          } else if (validatorType === 3) {
-            // Check if toTypeBox function signature matches
-            // toTypeBox(content, schema)
-            content = toTypeBox(content, mod.schema);
-          } else if (validatorType === 4) {
-            content = toZodMini(mod.schema);
-          }
+          content = strategy.transformSchema(mod.schema, content);
         }
       } catch (e) {
         console.warn(`Failed to transform schema for ${file.path}:`, e);
@@ -150,121 +141,23 @@ async function installBehavior(
       }
 
       // Optimize getObservedAttributes for the selected validator
-      if (validatorType === 0 || validatorType === 4) {
-        // Zod or Zod Mini
-        // Inject import
-        content = `import { z } from "zod";\n` + content;
-        
-        // Replace function with strict instance check
+      const imports = strategy.getUtilsImports();
+      if (imports) {
+        content = `${imports}\n` + content;
+      }
+      
+      const observedAttributesCode = strategy.getObservedAttributesCode();
+      if (observedAttributesCode) {
         content = content.replace(
           /export const getObservedAttributes = [\s\S]*?^};/m,
-          `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
-  if (!schema) return [];
-  if (schema instanceof z.ZodObject) {
-    return Object.keys(schema.shape);
-  }
-  return [];
-};`,
-        );
-      } else if (validatorType === 1) {
-        // Valibot
-        // Valibot schemas are plain objects, so structural check is correct.
-        // But we can make it cleaner by avoiding 'any' if we imported strict types,
-        // though duck typing 'entries' is the standard way to inspect Valibot Object schemas without strict guards.
-        content = content.replace(
-          /export const getObservedAttributes = [\s\S]*?^};/m,
-          `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
-  if (!schema) return [];
-  // Valibot ObjectSchema has 'entries' property
-  if ("entries" in schema && typeof (schema as any).entries === "object") {
-    return Object.keys((schema as any).entries);
-  }
-  return [];
-};`,
-        );
-      } else if (validatorType === 3) {
-        // TypeBox
-        content = content.replace(
-          /export const getObservedAttributes = [\s\S]*?^};/m,
-          `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
-  if (!schema) return [];
-  // TypeBox / JSON Schema has 'properties'
-  if ("properties" in schema && typeof (schema as any).properties === "object") {
-    return Object.keys((schema as any).properties);
-  }
-  return [];
-};`,
+          observedAttributesCode,
         );
       }
     }
 
     // Transform types.ts based on validator
     if (file.path === "types.ts") {
-      if (validatorType === 0 || validatorType === 4) {
-        // Zod / Zod Mini
-        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { z } from "zod";
-
-/**
- * Universal schema inference helper.
- */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends z.ZodType
-    ? z.infer<T>
-    : unknown;
-
-export type BehaviorSchema = StandardSchemaV1 | z.ZodType | object;
-`;
-      } else if (validatorType === 1) {
-        // Valibot
-        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { type BaseSchema, type InferOutput } from "valibot";
-
-/**
- * Universal schema inference helper.
- */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends BaseSchema
-    ? InferOutput<T>
-    : unknown;
-
-export type BehaviorSchema = StandardSchemaV1 | BaseSchema | object;
-`;
-      } else if (validatorType === 2) {
-        // ArkType (Placeholder - ArkType is complex to type purely statically without the lib)
-        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { type Type } from "arktype";
-
-/**
- * Universal schema inference helper.
- */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends Type
-    ? T["infer"]
-    : unknown;
-
-export type BehaviorSchema = StandardSchemaV1 | Type | object;
-`;
-      } else if (validatorType === 3) {
-        // TypeBox
-        content = `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { type Static, type TSchema } from "@sinclair/typebox";
-
-/**
- * Universal schema inference helper.
- */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends TSchema
-    ? Static<T>
-    : unknown;
-
-export type BehaviorSchema = StandardSchemaV1 | TSchema | object;
-`;
-      }
+      content = strategy.getTypesFileContent();
     }
 
     fs.writeFileSync(filePath, content);
@@ -296,17 +189,15 @@ async function getValidatorType(name: string): Promise<number> {
   const detectedValidators = detectValidatorFromPackageJson(process.cwd());
 
   if (detectedValidators.length > 1) {
+    const choices = strategies
+      .filter((s) => detectedValidators.includes(s.id))
+      .map((s) => ({ title: s.label, value: s.id }));
+      
     const response = await prompts({
       type: "select",
       name: "validator",
       message: `Multiple validators detected for behavior "${name}". Which one should be used for schemas?`,
-      choices: [
-        { title: "Zod", value: 0 },
-        { title: "Zod Mini", value: 4 },
-        { title: "Valibot", value: 1 },
-        { title: "ArkType", value: 2 },
-        { title: "TypeBox", value: 3 },
-      ].filter((c) => detectedValidators.includes(c.value)),
+      choices,
     });
     return response.validator;
   }
