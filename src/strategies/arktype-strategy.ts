@@ -1,12 +1,13 @@
 import { toArkType } from "../transformers/toArkType";
 import { type ValidatorStrategy, type PackageName } from "./validator-strategy";
+import type { AttributeSchema } from "../types/schema";
 
 export class ArkTypeStrategy implements ValidatorStrategy {
   id = 2;
   label = "ArkType";
   packageName: PackageName = "arktype";
 
-  transformSchema(schemaObject: any, _rawContent: string): string {
+  transformSchema(schemaObject: AttributeSchema, _rawContent: string): string {
     return toArkType(schemaObject);
   }
 
@@ -19,7 +20,7 @@ export class ArkTypeStrategy implements ValidatorStrategy {
   if (!schema) return [];
   // TypeBox TObject guarantees 'properties'
   if ("properties" in schema) {
-    return Object.keys((schema as any).properties);
+    return Object.keys(schema.properties);
   }
   return [];
 };`;

@@ -7,6 +7,8 @@ import prompts from "prompts";
 import { createJiti } from "jiti";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
 import { getStrategy, strategies } from "./src/strategies/index";
+import type { BehaviorRegistry } from "./src/types/registry";
+import type { AttributeSchema } from "./src/types/schema";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,7 +16,7 @@ const jiti = createJiti(__filename);
 
 // Load registry
 const registryPath = path.join(__dirname, "registry/behaviors-registry.json");
-const registry = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
+const registry: BehaviorRegistry = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
 
 interface Config {
   paths: {
@@ -65,7 +67,7 @@ async function installBehavior(
   config: Config,
   validatorType: number = 0,
 ) {
-  const behavior = registry.find((b: any) => b.name === name);
+  const behavior = registry.find((b) => b.name === name);
   if (!behavior) {
     console.error(`Behavior "${name}" not found in registry.`);
     process.exit(1);
@@ -118,7 +120,10 @@ async function installBehavior(
     // Transform schema files if needed
     if (file.path.endsWith("schema.ts")) {
       try {
-        const mod = await jiti.import<{ schema?: unknown }>(sourcePath);
+        // Use jiti to import TypeScript schema files at runtime
+        // jiti handles both .ts (dev) and .js (built) transparently
+        const schemaPath = path.join(__dirname, "registry/behaviors", file.path);
+        const mod = await jiti.import<{ schema?: AttributeSchema }>(schemaPath);
         if (mod.schema) {
           content = strategy.transformSchema(mod.schema, content);
         }

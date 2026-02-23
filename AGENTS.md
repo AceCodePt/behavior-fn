@@ -32,6 +32,10 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 5.  **T - Test:** Write tests in `behavior.test.ts`. **Tests must fail first** (Red).
 6.  **DD - Develop:** Implement the logic in `behavior.ts` to make tests pass (Green).
 
+**Approval Protocol:**
+- **In Feature Branch/Worktree:** If you are NOT in `main` (verified via `git branch --show-current`), proceed with implementation immediately after creating the LOG.md. Do NOT stop for approval.
+- **In Main:** Never implement in main (see Environment & Branching rules).
+
 ### 3. Coding Standards
 
 - **TypeScript:** Strict mode enabled. No `any`. Use `unknown` and narrow types.

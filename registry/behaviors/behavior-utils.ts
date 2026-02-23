@@ -15,6 +15,17 @@ export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   return [];
 };
 
+/**
+ * Type guard to check if an element has a 'value' property.
+ * Useful for form elements (input, select, textarea).
+ */
+export function hasValue(el: Element): el is Element & { value: string | number } {
+  return 'value' in el && (
+    typeof (el as { value?: unknown }).value === 'string' || 
+    typeof (el as { value?: unknown }).value === 'number'
+  );
+}
+
 // --- Behavior Definition ---
 
 export interface BehaviorDef<

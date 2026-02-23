@@ -1,12 +1,13 @@
 import { toZodMini } from "../transformers/toZodMini";
 import { type ValidatorStrategy, type PackageName } from "./validator-strategy";
+import type { AttributeSchema } from "../types/schema";
 
 export class ZodMiniStrategy implements ValidatorStrategy {
   id = 4;
   label = "Zod Mini";
   packageName: PackageName = "zod-mini";
 
-  transformSchema(schemaObject: any, _rawContent: string): string {
+  transformSchema(schemaObject: AttributeSchema, _rawContent: string): string {
     return toZodMini(schemaObject);
   }
 
