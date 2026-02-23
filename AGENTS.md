@@ -45,6 +45,12 @@ All code changes must follow the **PDSRTDD** flow:
   └── behavior.test.ts         # The Verification (Tests)
   ```
 
+### 4. Git Protocol
+
+- **HALT before Commit:** You **MUST** stop and ask for user review before creating a commit.
+- **Explicit Push Only:** You **MUST NOT** push to remote unless the user explicitly requests it.
+- **Review Changes:** Always present the changes (e.g., via `git status` or a summary) and wait for confirmation.
+
 ## Architectural Insights & Best Practices
 
 1.  **Single Source of Truth (DRY):** Metadata (like `observedAttributes`) should be derived programmatically from the Schema (the Contract). Avoid manual duplication.
