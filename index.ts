@@ -16,6 +16,7 @@ import {
   generateBehavior,
   generateTest,
 } from "./src/templates/behavior-templates";
+import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
 
@@ -57,7 +58,7 @@ function loadConfig(): Config | null {
  */
 function detectAndValidatePlatform(): PlatformStrategy {
   const cwd = process.cwd();
-  const platform = detectPlatformStrategy(cwd);
+  const platform = detectPlatform(cwd);
   
   console.log(`Detected platform: ${platform.label}`);
   
@@ -139,6 +140,11 @@ async function installBehavior(
     // Transform schema files if needed
     if (file.path.endsWith("schema.ts")) {
       try {
+        // Lazy load jiti only when needed
+        if (!jiti) {
+          const { createJiti } = await import("jiti");
+          jiti = createJiti(__filename);
+        }
         // Use jiti to import TypeScript schema files at runtime
         // jiti handles both .ts (dev) and .js (built) transparently
         const schemaPath = path.join(__dirname, "registry/behaviors", file.path);

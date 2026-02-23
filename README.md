@@ -81,32 +81,35 @@ registerBehavior("reveal", RevealBehavior);
 <button is="behavioral-button" behavior="reveal">Click me</button>
 ```
 
-## Creating a New Behavior
+## Contributing Behaviors
 
-To contribute a new behavior to this repository, use the `create` command:
+Want to contribute a new behavior to the registry? We've made it easy!
+
+### Quick Start
 
 ```bash
 pnpm build
 node dist/index.js create my-behavior-name
 ```
 
-This will:
+This scaffolds a complete behavior with:
+- Schema definition (`schema.ts`)
+- Implementation template (`behavior.ts`)
+- Test scaffolding (`behavior.test.ts`)
+- Automatic registry updates
 
-1.  Validate the behavior name (must be kebab-case, e.g., `my-behavior`).
-2.  Create a folder in `registry/behaviors/<name>/`.
-3.  Generate template files:
-    -   `_behavior-definition.ts` (the contract)
-    -   `schema.ts` (TypeBox schema definition)
-    -   `behavior.ts` (the implementation)
-    -   `behavior.test.ts` (test scaffolding)
-4.  Automatically update `registry/behaviors-registry.json`.
+### Full Guide
 
-After running the command, follow the next steps printed in the console:
+For a comprehensive guide on creating, implementing, testing, and managing behaviors, see:
 
-1.  Edit `schema.ts` to define your behavior's attributes.
-2.  Implement the behavior logic in `behavior.ts`.
-3.  Write tests in `behavior.test.ts`.
-4.  Run `pnpm test` to verify your implementation.
+📖 **[Contributing Behaviors Guide](docs/guides/contributing-behaviors.md)**
+
+The guide covers:
+- Schema design patterns
+- Event handler implementation
+- Testing strategies
+- Common behavior patterns
+- Best practices
 
 ## Removing a Behavior
 
