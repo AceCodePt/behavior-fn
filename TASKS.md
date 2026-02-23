@@ -47,7 +47,7 @@ This file is managed via **Optimistic Concurrency**.
 - [-] [Create Platform Interface](docs/tasks/create-platform-interface/task.md)
 - [-] [Type Safety Review and Refactor](docs/tasks/type-safety-review-refactor/task.md)
 - [x] [Refactor CLI to Validator Strategy](docs/tasks/refactor-cli-validator-strategy/task.md)
-- [ ] [Create CLI 'create' Command](docs/tasks/create-cli-create-command/task.md)
+- [-] [Create CLI 'create' Command](docs/tasks/create-cli-create-command/task.md)
 - [x] [Add Zod Mini Support](docs/tasks/add-zod-mini-support/task.md)
 - [x] [Reimplement Input Watcher Behavior](docs/tasks/reimplement-input-watcher/task.md)
 - [x] [Reimplement Request Behavior](docs/tasks/reimplement-request/task.md)
