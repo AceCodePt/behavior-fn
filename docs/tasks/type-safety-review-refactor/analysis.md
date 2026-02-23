@@ -149,51 +149,65 @@ Various comments like "cleanup previous listeners if any", "Split in any fashion
 
 ## Proposed Type System Design
 
-### 1. JSON Schema Type Definition
+### Key Insight: Attribute-Based Schema
+
+**All behavior schemas represent HTML attributes** - always objects with string keys. We don't need complex discriminated unions; we need one clear type representing attribute key-value pairs.
+
+### 1. Attribute Schema Type Definition
 ```typescript
-// Core JSON Schema types matching our transformer expectations
-type JSONSchemaType = 'string' | 'number' | 'boolean' | 'object';
+// src/types/schema.ts
 
-interface JSONSchemaBase {
-  type?: JSONSchemaType;
-  default?: unknown;
-}
-
-interface JSONSchemaString extends JSONSchemaBase {
+export interface StringSchema {
   type: 'string';
   minLength?: number;
   maxLength?: number;
   pattern?: string;
+  default?: string;
 }
 
-interface JSONSchemaNumber extends JSONSchemaBase {
+export interface NumberSchema {
   type: 'number';
   minimum?: number;
   maximum?: number;
+  default?: number;
 }
 
-interface JSONSchemaBoolean extends JSONSchemaBase {
+export interface BooleanSchema {
   type: 'boolean';
+  default?: boolean;
 }
 
-interface JSONSchemaEnum extends JSONSchemaBase {
+export interface EnumSchema {
   enum?: string[];
   anyOf?: Array<{ const: string }>;
+  default?: string;
 }
 
-interface JSONSchemaObject extends JSONSchemaBase {
+export type PropertySchema = 
+  | StringSchema 
+  | NumberSchema 
+  | BooleanSchema 
+  | EnumSchema;
+
+/**
+ * Schema representing HTML element attributes.
+ * Always an object with string keys (attribute names).
+ */
+export interface AttributeSchema {
   type: 'object';
-  properties?: Record<string, JSONSchema>;
+  properties: Record<string, PropertySchema>;
   required?: string[];
 }
 
-type JSONSchema = 
-  | JSONSchemaString 
-  | JSONSchemaNumber 
-  | JSONSchemaBoolean 
-  | JSONSchemaEnum 
-  | JSONSchemaObject;
+export type BehaviorSchema = AttributeSchema;
 ```
+
+### Benefits of This Approach
+✅ **Accurate**: Reflects the actual domain (HTML attributes)  
+✅ **Simple**: One main type, not a complex union  
+✅ **Type-safe**: Can't accidentally pass wrong schema shape  
+✅ **Self-documenting**: Name makes the purpose clear  
+✅ **Easy refactoring**: Straightforward to apply everywhere
 
 ### 2. Registry Types
 ```typescript
@@ -213,42 +227,57 @@ type BehaviorRegistry = BehaviorMetadata[];
 
 ### 3. Type Guards
 ```typescript
+// src/types/type-guards.ts
+
 // Check if element has value property
-function hasValue(el: Element): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
-  return 'value' in el && typeof (el as any).value !== 'undefined';
+export function hasValue(el: Element): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
+  return 'value' in el;
 }
 
-// Check if object is JSON schema with properties
-function hasProperties(schema: JSONSchema): schema is JSONSchemaObject {
-  return 'properties' in schema && typeof schema.properties === 'object';
+// Check if event target is a form element
+export function isFormElement(target: EventTarget | null): target is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
+  return target instanceof HTMLInputElement 
+    || target instanceof HTMLTextAreaElement 
+    || target instanceof HTMLSelectElement;
+}
+
+// Validate schema structure (if needed for dynamic imports)
+export function isAttributeSchema(value: unknown): value is AttributeSchema {
+  return typeof value === 'object' 
+    && value !== null 
+    && 'properties' in value 
+    && typeof (value as any).properties === 'object';
 }
 ```
 
 ## Refactoring Strategy
 
 ### Phase 1: Core Type Definitions (Foundation)
-1. Create `src/types/json-schema.ts` with schema type definitions
+1. Create `src/types/schema.ts` with `AttributeSchema` and `PropertySchema` types
 2. Create `src/types/registry.ts` with registry type definitions
-3. Update `src/strategies/validator-strategy.ts` interface
+3. Create `src/types/type-guards.ts` with DOM element type guards
+4. Update `src/strategies/validator-strategy.ts` interface to use `AttributeSchema`
 
 ### Phase 2: Strategy & Transformer Layer
-1. Update all strategy implementations to use proper types
-2. Refactor transformer functions to accept `JSONSchema` type
-3. Add type guards for schema property access
+1. Update all strategy implementations to use `AttributeSchema` (5 files)
+2. Refactor transformer functions to accept `AttributeSchema` (5 files)
+3. Remove all `as any` assertions - proper types eliminate the need
+4. Type internal parse/iteration functions properly
 
 ### Phase 3: CLI Layer
-1. Type the registry loading and lookup in `index.ts`
+1. Type the registry loading and lookup in `index.ts` with `BehaviorMetadata[]`
 2. Add proper typing to jiti import results
 
 ### Phase 4: Behavior Layer
-1. Add type guards for DOM element property access
-2. Refactor event target handling with proper types
-3. Update behavioral-host constructor typing
+1. Import and use type guards for DOM element property access
+2. Refactor event target handling with `isFormElement()` type guard
+3. Replace all `as any` with type guards
+4. Assess behavioral-host constructor typing (may defer if complex)
 
-### Phase 5: Test Improvements (Optional)
-1. Add proper types to test mocks where practical
-2. Document and justify remaining test-specific `any` uses
-3. Consider creating test utility types
+### Phase 5: Test Code (EXCLUDED)
+- Test files are explicitly out of scope for this refactor
+- Test mocks can maintain flexibility
+- Focus only on production code quality
 
 ## Metrics
 
@@ -259,10 +288,10 @@ function hasProperties(schema: JSONSchema): schema is JSONSchemaObject {
 - Double assertions: **2**
 
 ### Target State
-- Production code `any` usages: **0-2** (only if absolutely necessary with comments)
-- Type assertions: **<5** (with justification)
-- TypeScript suppressions: **0** (or with detailed comments)
-- Test code: Improved but flexible standards
+- Production code `any` usages: **0** (complete elimination)
+- Type assertions (`as any`): **0** (complete elimination from production code)
+- TypeScript suppressions: **0** (none in production code)
+- Test code: **Unchanged** (excluded from this refactor)
 
 ## Risk Assessment
 

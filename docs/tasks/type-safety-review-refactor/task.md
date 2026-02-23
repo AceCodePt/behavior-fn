@@ -2,15 +2,19 @@
 
 ## Goal
 
-Conduct a comprehensive code review to identify and eliminate unsafe type usages (primarily `any` types) and refactor the codebase to maximize type safety while maintaining TypeScript strict mode compliance.
+Eliminate unsafe type usages (primarily `any` types) from production code and establish a proper type system based on the reality that all behavior schemas represent HTML element attributes (always objects with string keys).
 
 ## Context
 
-The codebase currently has TypeScript strict mode enabled (`"strict": true`), but there are multiple instances of `any` types scattered throughout the code. While some uses (like in test files with `expect.any()`) are legitimate, many represent type safety gaps that could lead to runtime errors and make the code harder to maintain. As a library focused on type-safe behavioral mixins, eliminating these unsafe patterns is crucial for code quality and developer experience.
+The codebase currently has TypeScript strict mode enabled (`"strict": true`), but there are multiple instances of `any` types in production code. As a library focused on type-safe behavioral mixins, eliminating these unsafe patterns is crucial for code quality and developer experience.
+
+### Key Insight
+
+**Behavior schemas always represent HTML attributes**, which are key-value pairs. We don't need complex discriminated unions for different schema shapes - we need one clear type: `AttributeSchema`, which is always an object with `properties`.
 
 ### Current Issues Identified
 
-Through automated scanning, the following categories of unsafe types were discovered:
+Through automated scanning, **74 occurrences** of `any`, **16 type assertions** (`as any`), **2 TypeScript suppressions**, and **2 double assertions** were found:
 
 1. **CLI & Strategy Layer** (index.ts, strategies/*.ts):
    - `any` in registry lookup
@@ -25,42 +29,48 @@ Through automated scanning, the following categories of unsafe types were discov
 3. **Behavior Implementation**:
    - Type assertions (`as any`) for DOM element access
    - Event target casting without proper type guards
-   - Untyped element property access
 
-4. **Test Files**:
-   - Legitimate test mocks using `any`
-   - Type suppression with `@ts-ignore` directives
-   - Test harness type assertions
-
-5. **Core Infrastructure** (behavioral-host.ts):
+4. **Core Infrastructure** (behavioral-host.ts):
    - Constructor rest parameters typed as `any[]`
-   - Comments containing "any" word (false positives)
+
+**Note**: Test files will be excluded from this refactor - they can maintain flexibility with proper justification.
 
 ## Requirements
 
-### Phase 1: Discovery & Classification
-- Audit all `any` usages and classify them as:
-  - **Necessary** (e.g., `expect.any()` in tests, legitimate dynamic scenarios)
-  - **Refactorable** (can be replaced with proper types)
-  - **Needs Investigation** (requires deeper analysis)
+### Phase 1: Create Type Definitions
+- Create `src/types/schema.ts` with:
+  - `AttributeSchema` - The main schema type (always an object)
+  - `PropertySchema` - Union of string/number/boolean/enum schemas
+  - Individual schema types (StringSchema, NumberSchema, etc.)
+- Create `src/types/registry.ts` with:
+  - `BehaviorMetadata` interface
+  - `BehaviorFileMetadata` interface
+  - `BehaviorRegistry` type
 
-### Phase 2: Type System Design
-- Design proper type interfaces for:
-  - JSON Schema representations (TypeBox, Zod, Valibot, ArkType)
-  - Transformer input/output contracts
-  - Validator strategy interfaces
-  - DOM element type guards
+### Phase 2: Update Strategy Layer
+- Update `ValidatorStrategy` interface to use `AttributeSchema`
+- Update all strategy implementations (TypeBox, Zod, Valibot, ArkType, ZodMini)
+- Remove all `as any` assertions for property access
+- Use proper types from `AttributeSchema`
 
-### Phase 3: Implementation
-- Replace `any` types with:
-  - Proper generic types where applicable
-  - `unknown` with type narrowing for dynamic content
-  - Discriminated unions for schema types
-  - Type guards for runtime validation
-- Remove unnecessary type assertions
-- Add proper type annotations to function parameters
+### Phase 3: Update Transformer Layer
+- Update all transformer function signatures to accept `AttributeSchema`
+- Type internal parse functions to use `PropertySchema`
+- Remove `any` from map callbacks and iterations
+- Keep transformer implementations simple with proper types
 
-### Phase 4: Verification
+### Phase 4: Update CLI Layer
+- Type the registry array as `BehaviorMetadata[]`
+- Add proper types to jiti import results
+- Remove `any` from registry lookup
+
+### Phase 5: Update Behavior Layer (DOM Interactions)
+- Add type guards for DOM element property access (e.g., `hasValue()`)
+- Add type guards for event targets
+- Replace `as any` assertions with proper type narrowing
+- Update behavioral-host constructor parameters if practical
+
+### Phase 6: Verification
 - Ensure all existing tests pass
 - Run `pnpm check` for project-wide type safety
 - Verify no new type errors introduced
@@ -68,38 +78,106 @@ Through automated scanning, the following categories of unsafe types were discov
 
 ## Specific Areas to Refactor
 
-### High Priority
-1. **index.ts line 68**: Registry behavior lookup
-2. **All transformer functions**: Schema parameter types (toZod, toValibot, toTypeBox, toArkType, toZodMini)
-3. **Strategy interfaces**: `transformSchema` method signature
-4. **input-watcher/behavior.ts line 34**: Element value access
-5. **request/behavior.ts line 315**: Event target casting
+### High Priority (Production Code Only)
+1. **Create type definitions**: `src/types/schema.ts` and `src/types/registry.ts`
+2. **index.ts line 68**: Registry behavior lookup → use `BehaviorMetadata[]`
+3. **All transformer functions**: Schema parameter types → use `AttributeSchema`
+4. **Strategy interfaces**: `transformSchema` method → use `AttributeSchema`
+5. **Strategy implementations**: Remove `as any` for property access
+6. **input-watcher/behavior.ts line 34**: Element value access → add type guard
+7. **request/behavior.ts line 315**: Event target casting → add type guard
 
 ### Medium Priority
-6. **behavioral-host.ts line 21**: Constructor parameters
-7. **Strategy implementations**: Schema property access patterns
-8. **Test harness files**: Reduce test-specific `any` where possible
+8. **behavioral-host.ts line 21**: Constructor parameters (assess if practical)
 
-### Low Priority (Review Only)
-9. Test mock types (likely acceptable)
-10. Third-party library compatibility shims
+### Out of Scope
+- Test files (excluding from this refactor)
+- Test mock types (acceptable with current usage)
+- Generated code strings like `"z.any()"` (these are strings, not types)
+
+## Proposed Type System
+
+```typescript
+// src/types/schema.ts
+
+export interface StringSchema {
+  type: 'string';
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  default?: string;
+}
+
+export interface NumberSchema {
+  type: 'number';
+  minimum?: number;
+  maximum?: number;
+  default?: number;
+}
+
+export interface BooleanSchema {
+  type: 'boolean';
+  default?: boolean;
+}
+
+export interface EnumSchema {
+  enum?: string[];
+  anyOf?: Array<{ const: string }>;
+  default?: string;
+}
+
+export type PropertySchema = 
+  | StringSchema 
+  | NumberSchema 
+  | BooleanSchema 
+  | EnumSchema;
+
+/**
+ * Schema representing HTML element attributes.
+ * Always an object with string keys (attribute names).
+ */
+export interface AttributeSchema {
+  type: 'object';
+  properties: Record<string, PropertySchema>;
+  required?: string[];
+}
+
+export type BehaviorSchema = AttributeSchema;
+```
+
+```typescript
+// src/types/registry.ts
+
+export interface BehaviorFileMetadata {
+  path: string;
+}
+
+export interface BehaviorMetadata {
+  name: string;
+  files: BehaviorFileMetadata[];
+  dependencies?: string[];
+}
+
+export type BehaviorRegistry = BehaviorMetadata[];
+```
 
 ## Definition of Done
 
--   [ ] All `any` usages have been audited and classified
--   [ ] Core type interfaces defined for schema representations
--   [ ] CLI and strategy layer fully typed
--   [ ] Transformer functions use proper generic types
+-   [ ] Type definitions created in `src/types/` directory
+-   [ ] CLI layer fully typed (registry lookup uses `BehaviorMetadata[]`)
+-   [ ] Strategy interface updated to use `AttributeSchema`
+-   [ ] All strategy implementations updated (5 files)
+-   [ ] All transformer functions use `AttributeSchema` (5 files)
 -   [ ] Behavior implementations use type guards instead of `as any`
--   [ ] All `@ts-ignore` directives either removed or justified with comments
+-   [ ] All production code `any` usages eliminated (0 remaining)
+-   [ ] All production code `as any` assertions eliminated
 -   [ ] No regression in functionality - all tests pass
 -   [ ] `pnpm check` passes with no type errors
--   [ ] Documentation comments added for any justified `any` usages
 -   [ ] **User Review**: Changes verified and commit authorized
 
 ## Out of Scope
 
-- Rewriting test utilities to avoid all `any` (test code has different standards)
+- Test files (explicitly excluded - they can maintain flexibility)
 - Adding runtime validation beyond what already exists
 - Changing external library type definitions
 - Refactoring unrelated to type safety
