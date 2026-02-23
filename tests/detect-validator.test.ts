@@ -30,7 +30,7 @@ describe('detectValidatorFromPackageJson', () => {
     readFileSyncSpy.mockReturnValue(JSON.stringify({
       dependencies: { zod: '^3.0.0' }
     }));
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([0]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual([0, 4]);
   });
 
   it('detects Valibot in devDependencies', () => {
@@ -62,7 +62,7 @@ describe('detectValidatorFromPackageJson', () => {
     readFileSyncSpy.mockReturnValue(JSON.stringify({
       dependencies: { zod: 'latest', valibot: 'latest' }
     }));
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([0, 1]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual([0, 4, 1]);
   });
 });
 

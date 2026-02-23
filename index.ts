@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { createJiti } from "jiti";
 import { toZod } from "./src/transformers/toZod";
+import { toZodMini } from "./src/transformers/toZodMini";
 import { toValibot } from "./src/transformers/toValibot";
 import { toArkType } from "./src/transformers/toArkType";
 import { toTypeBox } from "./src/transformers/toTypeBox";
@@ -123,6 +124,8 @@ async function installBehavior(
             // Check if toTypeBox function signature matches
             // toTypeBox(content, schema)
             content = toTypeBox(content, mod.schema);
+          } else if (validatorType === 4) {
+            content = toZodMini(mod.schema);
           }
         }
       } catch (e) {
@@ -179,6 +182,7 @@ async function getValidatorType(name: string): Promise<number> {
       message: `Multiple validators detected for behavior "${name}". Which one should be used for schemas?`,
       choices: [
         { title: "Zod", value: 0 },
+        { title: "Zod Mini", value: 4 },
         { title: "Valibot", value: 1 },
         { title: "ArkType", value: 2 },
         { title: "TypeBox", value: 3 },

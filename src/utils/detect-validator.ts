@@ -11,7 +11,10 @@ export function detectValidatorFromPackageJson(cwd: string = process.cwd()): num
 
     const validators: number[] = [];
 
-    if (allDeps["zod"]) validators.push(0);
+    if (allDeps["zod"]) {
+      validators.push(0);
+      validators.push(4);
+    }
     if (allDeps["valibot"]) validators.push(1);
     if (allDeps["arktype"]) validators.push(2);
     if (allDeps["@sinclair/typebox"]) validators.push(3);
