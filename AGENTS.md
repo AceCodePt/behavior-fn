@@ -25,7 +25,7 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 
 All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** is the sole owner of this workflow. One instance of the Architect handles the **Plan** phase (Task Creation). A **separate instance** of the Architect handles the **Execute** phase, delegating specific coding work to the Frontend or Infrastructure agents as needed.
 
-1.  **P - Plan (Architect):** Analyze the requirements, define the Goal/Context, and create the task.
+1.  **P - Plan (Architect):** Analyze the requirements, define the Goal/Context, and create the task with a detailed `LOG.md` in the task directory. **Since work is done in isolated branches/worktrees (not `main`), no approval is needed after planning—proceed directly to execution.**
 2.  **D - Data:** Define the data shapes and state requirements.
 3.  **S - Schema:** Create the Zod/TypeBox schema in `_behavior-definition.ts`. This is the **Contract**.
 4.  **R - Registry:** Register the behavior in `registry/behaviors-registry.json`.

@@ -7,6 +7,8 @@ import prompts from "prompts";
 import { createJiti } from "jiti";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
 import { getStrategy, strategies } from "./src/strategies/index";
+import { detectPlatform as detectPlatformStrategy } from "./src/platforms/index";
+import type { PlatformStrategy } from "./src/platforms/platform-strategy";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,17 +42,26 @@ function loadConfig(): Config | null {
   return null;
 }
 
-function detectPlatform(): "astro" | "next" | "generic" {
+/**
+ * Detect the current platform and validate it.
+ * Logs warnings if platform validation fails.
+ */
+function detectAndValidatePlatform(): PlatformStrategy {
   const cwd = process.cwd();
-  const files = fs.readdirSync(cwd);
-
-  if (files.some((f) => f.startsWith("astro.config."))) {
-    return "astro";
+  const platform = detectPlatformStrategy(cwd);
+  
+  console.log(`Detected platform: ${platform.label}`);
+  
+  // Validate platform
+  const validation = platform.validate(cwd);
+  if (!validation.valid && validation.errors) {
+    console.warn(`Platform validation warnings:`);
+    for (const error of validation.errors) {
+      console.warn(`  - ${error}`);
+    }
   }
-  if (files.some((f) => f.startsWith("next.config."))) {
-    return "next";
-  }
-  return "generic";
+  
+  return platform;
 }
 
 function rewriteImports(content: string, config: Config): string {
@@ -64,6 +75,7 @@ async function installBehavior(
   name: string,
   config: Config,
   validatorType: number = 0,
+  platform?: PlatformStrategy,
 ) {
   const behavior = registry.find((b: any) => b.name === name);
   if (!behavior) {
@@ -132,12 +144,24 @@ async function installBehavior(
 
     // Platform specific adjustments
     if (file.path === "behavior-utils.ts") {
-      const platform = detectPlatform();
-      if (platform === "astro") {
-        content = content.replace(
-          "export const isServer = () => typeof window === 'undefined';",
-          "export const isServer = () => import.meta.env.SSR;",
-        );
+      // Detect platform if not provided
+      const activePlatform = platform || detectAndValidatePlatform();
+      
+      // Transform isServer check
+      content = content.replace(
+        "export const isServer = () => typeof window === 'undefined';",
+        activePlatform.transformIsServerCheck(),
+      );
+
+      // Apply platform-specific utils transformations if available
+      if (activePlatform.transformBehaviorUtils) {
+        content = activePlatform.transformBehaviorUtils(content);
+      }
+
+      // Add platform-specific imports if available
+      const platformImports = activePlatform.getAdditionalImports?.();
+      if (platformImports) {
+        content = `${platformImports}\n` + content;
       }
 
       // Optimize getObservedAttributes for the selected validator
@@ -152,6 +176,14 @@ async function installBehavior(
           /export const getObservedAttributes = [\s\S]*?^};/m,
           observedAttributesCode,
         );
+      }
+    }
+
+    // Platform specific registry transformations
+    if (file.path === "behavior-registry.ts") {
+      const activePlatform = platform || detectAndValidatePlatform();
+      if (activePlatform.transformRegistry) {
+        content = activePlatform.transformRegistry(content);
       }
     }
 
@@ -271,7 +303,9 @@ export async function main() {
     );
     console.log(`Configuration saved to ${CONFIG_FILE}`);
 
-    await installBehavior("core", config);
+    // Detect platform once
+    const platform = detectAndValidatePlatform();
+    await installBehavior("core", config, 0, platform);
     process.exit(0);
   }
 
@@ -289,12 +323,15 @@ export async function main() {
       process.exit(1);
     }
 
+    // Detect platform once
+    const platform = detectAndValidatePlatform();
+
     // Always ensure core is installed (check registry file existence)
     if (behaviorName !== "core") {
       const registryPath = path.resolve(process.cwd(), config.paths.registry);
       if (!fs.existsSync(registryPath)) {
         console.log("Core files not found. Installing core...");
-        await installBehavior("core", config);
+        await installBehavior("core", config, 0, platform);
       }
     }
 
@@ -302,6 +339,7 @@ export async function main() {
       behaviorName,
       config,
       await getValidatorType(behaviorName),
+      platform,
     );
     process.exit(0);
   }
