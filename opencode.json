@@ -1,22 +1,22 @@
 {
 	"$schema": "https://opencode.ai/config.json",
 	"agent": {
-    "plan": {
-      "disable": true
-    },
-    "build": {
-      "disable": true
-    },
+		"plan": {
+			"disable": true
+		},
+		"build": {
+			"disable": true
+		},
 		"architect": {
-      "model": "opencode/gemini-3-pro",
+			"model": "opencode/claude-sonnet-4-5",
 			"prompt": "docs/contributing/agent-prompts/architect.md"
 		},
 		"infrastructure": {
-      "model": "opencode/gemini-3-pro",
+			"model": "opencode/claude-sonnet-4-5",
 			"prompt": "docs/contributing/agent-prompts/infrastructure.md"
 		},
 		"frontend": {
-      "model": "opencode/gemini-3-flash",
+			"model": "opencode/gemini-3-flash",
 			"prompt": "docs/contributing/agent-prompts/frontend.md"
 		}
 	},
