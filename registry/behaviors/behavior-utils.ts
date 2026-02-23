@@ -1,23 +1,14 @@
-import { type TSchema } from "@sinclair/typebox";
 import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { type BehaviorSchema, type InferSchema } from "./types";
+import { type BehaviorSchema } from "./types";
 
-// Extend with duck-typed properties for introspection
-interface TypeBoxLike {
-  properties: Record<string, unknown>;
-}
-
-interface ZodLike {
-  shape: Record<string, unknown>;
-}
-
-interface ValibotLike {
-  entries: Record<string, unknown>;
-}
+// --- Introspection Adapters ---
 
 /**
  * Extracts the keys (observed attributes) from a schema object.
- * Attempts to detect the schema library (TypeBox, Zod, Valibot) via duck typing.
+ *
+ * NOTE: The Standard Schema spec (v1) focuses on validation and type inference,
+ * not introspection (getting the list of keys). Therefore, we must use "duck typing"
+ * to detect the underlying library and extract the keys using its specific API.
  *
  * @param schema - The schema object (TypeBox, Zod, Valibot, or Standard Schema)
  * @returns Array of property keys
@@ -25,31 +16,50 @@ interface ValibotLike {
 export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
   if (!schema) return [];
 
-  // TypeBox
-  if ("properties" in schema && typeof (schema as TypeBoxLike).properties === "object") {
-    return Object.keys((schema as TypeBoxLike).properties);
+  // 1. TypeBox / JSON Schema
+  // TypeBox schemas are JSON Schema objects, so they have a `properties` object.
+  if ("properties" in schema && typeof (schema as any).properties === "object") {
+    return Object.keys((schema as any).properties);
   }
 
-  // Zod
-  if ("shape" in schema && typeof (schema as ZodLike).shape === "object") {
-    return Object.keys((schema as ZodLike).shape);
+  // 2. Zod
+  // Zod objects store their shape in the `shape` property.
+  if ("shape" in schema && typeof (schema as any).shape === "object") {
+    return Object.keys((schema as any).shape);
   }
 
-  // Valibot
-  if ("entries" in schema && typeof (schema as ValibotLike).entries === "object") {
-    return Object.keys((schema as ValibotLike).entries);
+  // 3. Valibot
+  // Valibot objects store their shape in the `entries` property.
+  if ("entries" in schema && typeof (schema as any).entries === "object") {
+    return Object.keys((schema as any).entries);
   }
+
+  // 4. ArkType
+  // ArkType schemas are functions but may expose metadata.
+  // (Specific introspection logic for ArkType would go here if needed)
+
+  // 5. Fallback for Standard Schema wrappers
+  // If a library uses a wrapper that hides the internal structure but exposes `~standard`,
+  // we currently cannot introspect it without a standardized introspection API.
+  // For now, we return an empty array and rely on the user to provide keys if needed.
 
   return [];
 };
 
-export interface BehaviorDef<S extends BehaviorSchema = BehaviorSchema, C extends string = string> {
+// --- Behavior Definition ---
+
+export interface BehaviorDef<
+  S extends BehaviorSchema = BehaviorSchema,
+  C extends string = string,
+> {
   name: string;
   schema: S;
   command?: { [K in C]: K };
 }
 
-export type ValidateBehaviorDef<Def extends BehaviorDef<BehaviorSchema, string>> = {
+export type ValidateBehaviorDef<
+  Def extends BehaviorDef<BehaviorSchema, string>,
+> = {
   name: Def["name"];
   schema: Def["schema"];
   command?: {
@@ -62,7 +72,7 @@ export type ValidateBehaviorDef<Def extends BehaviorDef<BehaviorSchema, string>>
 export const uniqueBehaviorDef = <
   const S extends BehaviorSchema,
   const C extends string,
-  const Def extends BehaviorDef<S, C>
+  const Def extends BehaviorDef<S, C>,
 >(
   def: Def & ValidateBehaviorDef<Def>,
 ): Def => {
