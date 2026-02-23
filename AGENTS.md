@@ -20,7 +20,7 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 
 ### 2. The PDSRTDD Workflow
 
-All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** owns both the **Plan** phase (Task Creation) and the **Execution** oversight, but a **separate instance** of the Architect picks up the execution to properly delegate work to the **Executor** (Frontend/Infrastructure Agent).
+All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** is the sole owner of this workflow. One instance of the Architect handles the **Plan** phase (Task Creation). A **separate instance** of the Architect handles the **Execute** phase, delegating specific coding work to the Frontend or Infrastructure agents as needed.
 
 1.  **P - Plan (Architect):** Analyze the requirements, define the Goal/Context, and create the task.
 2.  **D - Data:** Define the data shapes and state requirements.
@@ -62,28 +62,28 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** o
 
 ### 1. Architect Agent
 
-- **Role:** Orchestrator, System Designer, Registry Guardian, **Task Planner**.
-- **Focus:** High-level design, cross-cutting concerns, CLI architecture, **Task Creation (Plan)**.
+- **Role:** Orchestrator, System Designer, Registry Guardian, **Task Planner & Task Executor**.
+- **Focus:** High-level design, cross-cutting concerns, CLI architecture, **Task Creation (Plan) & Task Execution (Execute)**.
 - **Prompt:** [docs/contributing/agent-prompts/architect.md](./docs/contributing/agent-prompts/architect.md)
 
 ### 2. Frontend Agent (Behavior Developer)
 
-- **Role:** Behavior Implementer, DOM Specialist, **Task Executor**.
-- **Focus:** Executing tasks (SRTDD), writing `behavior.ts`, `_behavior-definition.ts`, and tests.
+- **Role:** Behavior Implementer, DOM Specialist, **Specialist Sub-agent**.
+- **Focus:** Writing `behavior.ts`, `_behavior-definition.ts`, and tests.
 - **Prompt:** [docs/contributing/agent-prompts/frontend.md](./docs/contributing/agent-prompts/frontend.md)
 
 ### 3. Infrastructure Agent
 
-- **Role:** Tooling Engineer, CLI Maintainer, **Task Executor**.
-- **Focus:** Executing tasks (SRTDD), `index.ts`, `package.json`, build scripts, release workflow.
+- **Role:** Tooling Engineer, CLI Maintainer, **Specialist Sub-agent**.
+- **Focus:** `index.ts`, `package.json`, build scripts, release workflow.
 - **Prompt:** [docs/contributing/agent-prompts/infrastructure.md](./docs/contributing/agent-prompts/infrastructure.md)
 
 ## Task Management
 
 - **Source of Truth:** `TASKS.md`.
 - **Protocol:**
-  1.  **Plan (Architect):** Create Task -> Add to Backlog (`[ ]`).
-  2.  **Execute (Executor):** Read -> Lock (`[-]`) -> Execute -> Log -> Verify -> Complete (`[x]`).
+  1.  **Plan (Architect - Planning Instance):** Create Task -> Add to Backlog (`[ ]`).
+  2.  **Execute (Architect - Execution Instance):** Read -> Lock (`[-]`) -> Execute -> Log -> Verify -> Complete (`[x]`).
 
 ## Documentation
 
