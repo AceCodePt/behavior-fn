@@ -15,11 +15,8 @@
  * - Keeps behavior.ts dependency chain clean for browser builds
  */
 export const JSON_TEMPLATE_ATTRS = {
-  /** ID of the <script type="application/json"> element containing the data */
-  SOURCE: "json-template-source",
-  
-  /** ID of the element where rendered content will be inserted */
-  TARGET: "json-template-target",
+  /** ID of the <script type="application/json"> element containing the data (like "for" in label) */
+  FOR: "json-template-for",
   
   /** JSON path for data binding (on descendant elements in template content) */
   DATA_KEY: "data-key",

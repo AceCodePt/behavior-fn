@@ -1,7 +1,7 @@
 {
 	"name": "behavior-fn",
 	"description": "Copy-paste behavior mixins for Web Components - Own your code, not your dependencies",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"type": "module",
 	"bin": {
 		"behavior-fn": "./dist/index.js"
@@ -15,6 +15,7 @@
 		"build:cdn": "tsx scripts/build-cdn.ts",
 		"build:all": "pnpm build && pnpm build:cdn",
 		"test": "vitest run",
+		"demo": "node serve-demo.cjs",
 		"prepublishOnly": "pnpm build:all && pnpm test"
 	},
 	"keywords": [
