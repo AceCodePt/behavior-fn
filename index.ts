@@ -7,6 +7,7 @@ import prompts from "prompts";
 import { createJiti } from "jiti";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
 import { getStrategy, strategies } from "./src/strategies/index";
+import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
 
@@ -48,7 +49,7 @@ function loadConfig(): Config | null {
  */
 function detectAndValidatePlatform(): PlatformStrategy {
   const cwd = process.cwd();
-  const platform = detectPlatformStrategy(cwd);
+  const platform = detectPlatform(cwd);
   
   console.log(`Detected platform: ${platform.label}`);
   
