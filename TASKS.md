@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Implement Content Setter Behavior](docs/tasks/20260224-182306-content-setter-behavior/LOG.md)
 - [x] [JSON Template Behavior](docs/tasks/json-template-behavior/task.md)
 - [-] [Compound Invoker Commands Support](docs/tasks/compound-invoker-commands/task.md)
 - [x] [Request Behavior JSON Script Update Support](docs/tasks/request-json-script-update/task.md)
