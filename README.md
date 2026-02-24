@@ -140,6 +140,9 @@ Now you can write:
 - ⚠️ Adds ~2KB + MutationObserver overhead
 - ⚠️ Less explicit (harder to debug)
 - ⚠️ May have timing issues with dynamic UIs
+- ⚠️ Cannot change behaviors after initial load (Custom Elements limitation)
+
+**Important Limitation:** Once an element is upgraded with an `is` attribute, it cannot be re-upgraded. This means changing the `behavior` attribute after the element is processed will NOT update its behaviors. This is both a Custom Elements spec limitation and an architectural design principle - **behaviors are static** and define what an element **is**, not what state it's in.
 
 **Recommendation:** Use explicit `is` attributes for production apps. Use auto-loader for prototypes or content-heavy sites where DX > explicitness.
 
@@ -466,6 +469,15 @@ Behaviors **do not load automatically**. To activate behaviors on an element, yo
 - Behaviors are sorted alphabetically to ensure consistency
 
 Without the `is` attribute, the `behavior` attribute will be ignored. This is by design—behavioral hosts must be explicitly activated to ensure predictable behavior loading.
+
+**Behaviors Are Static:**
+
+Behaviors are defined at element creation time and **do not change** during the element's lifetime. This is an architectural principle:
+- Behaviors define what an element **is** (its identity)
+- Attributes define what state an element is **in** (its state)
+- Once set, behaviors cannot be added, removed, or changed at runtime
+
+To control behavior dynamically, use behavior-specific **attributes** instead of trying to change the behaviors themselves.
 
 **Alternative: Auto-Loader**
 

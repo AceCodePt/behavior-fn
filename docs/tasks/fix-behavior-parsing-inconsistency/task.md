@@ -1,5 +1,10 @@
 # Task: Fix Behavior Parsing Inconsistency Between Auto-Loader and Behavioral Host
 
+## Status: PARTIALLY FIXED
+
+✅ **Auto-loader fixed** - Now uses same parsing logic as behavioral-host  
+🎯 **Next step** - Extract shared parsing function to `behavior-utils.ts` to avoid duplication
+
 ## Goal
 
 Standardize behavior parsing logic across `auto-loader.ts` and `behavioral-host.ts` to ensure consistent behavior name extraction and handle edge cases uniformly.
@@ -197,7 +202,7 @@ This eliminates ambiguity when multiple hyphenated behaviors are combined.
 - [ ] Create `parseBehaviorAttribute()` in `behavior-utils.ts`
 - [ ] Update `behavioral-host.ts` to use `parseBehaviorAttribute()`
 - [ ] Update `auto-loader.ts` to use `parseBehaviorAttribute()`
-- [ ] Verify regex uses global flag: `.replace(/[^a-zA-Z- ,]/g, "")`
+- [ ] Note: g flag not needed - `.split()` handles remaining invalid chars
 
 ### Tests
 - [ ] Create `behavior-utils.test.ts` with comprehensive parsing tests
