@@ -187,19 +187,18 @@ Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus m
 ---
 
 ### 📡 **request**
-Declarative HTTP requests with loading states, error handling, and Server-Sent Events (SSE) [HTMX].
+Declarative HTTP requests with loading states, error handling, and Server-Sent Events (SSE) [HTMX-inspired].
 
 **Attributes:**
 - `request-url` — Target URL for the request
-- `request-method` — HTTP method (GET, POST, PUT, DELETE)
-- `request-trigger` — Element/event that triggers the request
-- `request-target` — Where to inject the response HTML
-- `request-loading` — Element to show during loading
-- `request-error` — Element to show on error
-- `request-indicator` — Loading indicator selector
-- `request-debounce` — Debounce delay (ms)
-- `request-swap` — Swap strategy (innerHTML, outerHTML, beforebegin, afterbegin, beforeend, afterend)
-- `request-mode` — Request mode (fetch, sse)
+- `request-method` — HTTP method (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`)
+- `request-trigger` — Event(s) that trigger the request (can be complex trigger configuration)
+- `request-target` — Selector for where to inject the response HTML
+- `request-swap` — Swap strategy (`innerHTML`, `outerHTML`, `beforebegin`, `afterbegin`, `beforeend`, `afterend`, `delete`, `none`)
+- `request-indicator` — Loading indicator selector (element to show during request)
+- `request-confirm` — Confirmation message before sending request
+- `request-push-url` — Push URL to browser history (boolean or URL string)
+- `request-vals` — Additional values to include in request
 
 **Commands:**
 - `--trigger` — Manually trigger the request
@@ -213,22 +212,29 @@ Declarative HTTP requests with loading states, error handling, and Server-Sent E
   request-url="/api/search" 
   request-trigger="input" 
   request-target="#results"
-  request-debounce="300"
+  request-swap="innerHTML"
 >
 
 <div id="results"></div>
 ```
 
+**Features:**
+- Support for complex trigger configurations (delay, throttle, SSE)
+- Multiple swap strategies for DOM manipulation
+- Loading indicators and confirmation dialogs
+- Browser history integration
+- Server-Sent Events (SSE) support
+
 ---
 
 ### 👁️ **input-watcher**
-Watch form inputs and synchronize their values across multiple elements.
+Watch form inputs and update the element's content with their values.
 
 **Attributes:**
-- `watch-selector` — CSS selector for inputs to watch
-- `watch-attr` — Attribute to update with input value
-- `watch-property` — Property to update with input value
-- `watch-event` — Event to listen for (default: `input`)
+- `input-watcher-target` — Selector or comma-separated list of input IDs to watch
+- `input-watcher-format` — Format string (e.g., `"Value: {value}"`)
+- `input-watcher-events` — Comma-separated list of events to listen to (default: `input, change`)
+- `input-watcher-attr` — Attribute to read from target input (default: uses `value` property)
 
 **Example:**
 ```html
@@ -237,49 +243,58 @@ Watch form inputs and synchronize their values across multiple elements.
 <p 
   is="behavioral-input-watcher"
   behavior="input-watcher" 
-  watch-selector="#username" 
-  watch-property="textContent"
+  input-watcher-target="username"
+  input-watcher-format="Hello, {value}!"
 >
-  Hello, <span>Guest</span>
+  Hello, Guest!
 </p>
 ```
+
+**Features:**
+- Watch single or multiple inputs
+- Custom format strings with `{value}` placeholder
+- Configurable event listeners
+- Updates element's `textContent` with formatted value
 
 ---
 
 ### 🧮 **compute**
-Reactive computed values from watched inputs with custom expressions.
+Reactive computed values from watched inputs with mathematical formulas.
 
 **Attributes:**
-- `compute-expr` — JavaScript expression to evaluate
-- `compute-watch` — Comma-separated list of input IDs to watch
-- `compute-target` — Target attribute/property to update
-- `compute-format` — Optional formatting function
+- `compute-formula` — Mathematical expression using `#id` syntax to reference inputs (e.g., `#price * #qty + 10`)
 
 **Example:**
 ```html
 <input type="number" id="price" value="100">
-<input type="number" id="quantity" value="2">
+<input type="number" id="qty" value="2">
 
-<p 
+<output 
   is="behavioral-compute"
   behavior="compute" 
-  compute-expr="price * quantity" 
-  compute-watch="price,quantity"
-  compute-target="textContent"
+  compute-formula="#price * #qty"
 >
-  Total: $0
-</p>
+  200
+</output>
 ```
+
+**Features:**
+- Supports basic arithmetic operators: `+`, `-`, `*`, `/`
+- Uses `#id` syntax to reference input values
+- Automatically detects dependencies and watches for changes
+- Handles checkboxes (checked=1, unchecked=0)
+- Works with input, textarea, select, and output elements
+- Updates on `input` and `change` events
+- Circular dependency detection
 
 ---
 
 ### 📊 **element-counter**
-Count matching elements in the DOM and display the count.
+Count matching elements in the DOM and display the count reactively.
 
 **Attributes:**
-- `counter-selector` — CSS selector for elements to count
-- `counter-target` — Attribute/property to update with count
-- `counter-format` — Optional format string (e.g., "Found {count} items")
+- `element-counter-root` — ID of the root element to watch for changes
+- `element-counter-selector` — CSS selector for elements to count within the root
 
 **Example:**
 ```html
@@ -292,34 +307,43 @@ Count matching elements in the DOM and display the count.
 <span 
   is="behavioral-element-counter"
   behavior="element-counter" 
-  counter-selector="#todo-list li"
-  counter-target="textContent"
-  counter-format="{count} tasks remaining"
+  element-counter-root="todo-list"
+  element-counter-selector="li"
 >
+  3
 </span>
 ```
+
+**Features:**
+- Uses MutationObserver to watch for DOM changes
+- Updates automatically when elements are added or removed
+- Updates `textContent` for regular elements
+- Updates `value` for input/textarea/select/output elements
+- Counts elements within the specified root
 
 ---
 
 ### 🪵 **logger**
-Debug helper that logs events and attribute changes to the console.
+Debug helper that logs interaction events to the console.
 
 **Attributes:**
-- `log-events` — Comma-separated list of events to log
-- `log-attrs` — Comma-separated list of attributes to watch
-- `log-prefix` — Prefix for log messages
+- `logger-trigger` — Event type to log (`click` or `mouseenter`)
 
 **Example:**
 ```html
 <button 
   is="behavioral-logger"
   behavior="logger" 
-  log-events="click,dblclick"
-  log-prefix="[Debug Button]"
+  logger-trigger="click"
 >
   Click Me
 </button>
 ```
+
+**Features:**
+- Simple console logging for debugging
+- Supports `click` and `mouseenter` events
+- Logs element tag name and event object
 
 ---
 

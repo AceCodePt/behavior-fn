@@ -1,5 +1,6 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
+import { REVEAL_ATTRS } from "./schema";
 
 const { command: REVEAL_COMMANDS } = definition;
 
@@ -27,9 +28,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   };
 
   const applyStyles = () => {
-    const revealDelay = el.getAttribute("reveal-delay");
-    const revealDuration = el.getAttribute("reveal-duration");
-    const revealAnchor = el.getAttribute("reveal-anchor");
+    const revealDelay = el.getAttribute(REVEAL_ATTRS.DELAY);
+    const revealDuration = el.getAttribute(REVEAL_ATTRS.DURATION);
+    const revealAnchor = el.getAttribute(REVEAL_ATTRS.ANCHOR);
     if (revealDelay) {
       el.style.setProperty("--reveal-delay", revealDelay);
     }
@@ -138,9 +139,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   let attributeObserver: MutationObserver | null = null;
 
   const setupAttributeWatcher = () => {
-    const targetSelector = el.getAttribute("reveal-when-target");
-    const attribute = el.getAttribute("reveal-when-attribute");
-    const value = el.getAttribute("reveal-when-value");
+    const targetSelector = el.getAttribute(REVEAL_ATTRS.WHEN_TARGET);
+    const attribute = el.getAttribute(REVEAL_ATTRS.WHEN_ATTRIBUTE);
+    const value = el.getAttribute(REVEAL_ATTRS.WHEN_VALUE);
 
     // Only set up if all three are provided
     if (!targetSelector || !attribute || !value) return;
