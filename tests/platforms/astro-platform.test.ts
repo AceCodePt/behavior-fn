@@ -20,9 +20,6 @@ describe("AstroPlatform", () => {
   });
 
   describe("identity", () => {
-    it("should have correct id", () => {
-      expect(platform.id).toBe(0);
-    });
 
     it("should have correct name", () => {
       expect(platform.name).toBe("astro");

@@ -21,12 +21,13 @@ When you have data structures (like validators or platforms), the types should b
 
 ```typescript
 // ❌ BAD: Manual type definition (duplication)
-export type ValidatorId = 0 | 1 | 2 | 3 | 4;
-export const validators = { 0: zodValidator, 1: valibotValidator, ... };
+export type ValidatorName = "zod" | "valibot" | "arktype" | "typebox" | "zod-mini";
+export const validators = { "zod": zodValidator, "valibot": valibotValidator, ... };
 
 // ✅ GOOD: Type derived from data
 export const validators = [zodValidator, valibotValidator, ...] as const;
-export type ValidatorId = (typeof validators)[number]["id"];  // Extracts: 0 | 1 | 2 | 3 | 4
+export type PackageName = (typeof validators)[number]["packageName"];
+// Extracts: "zod" | "valibot" | "arktype" | "@sinclair/typebox" | "zod-mini"
 ```
 
 **Benefits:**
@@ -35,7 +36,7 @@ export type ValidatorId = (typeof validators)[number]["id"];  // Extracts: 0 | 1
 - Impossible for types to drift from implementation
 - TypeScript infers literal types automatically
 
-**Application:** This principle applies to validators, platforms, and any registry-like structure.
+**Application:** This principle applies to validators, platforms, package managers, and any registry-like structure.
 
 ### 2. Readonly Metadata with Literal Types
 
@@ -44,14 +45,14 @@ export type ValidatorId = (typeof validators)[number]["id"];  // Extracts: 0 | 1
 ```typescript
 // ❌ BAD: Mutable fields, widened types
 export class ZodValidator {
-  id: number = 0;              // Type: number (too wide)
   packageName: string = "zod"; // Type: string (too wide)
+  label: string = "Zod";       // Type: string (too wide)
 }
 
 // ✅ GOOD: Readonly fields, literal types
 export class ZodValidator {
-  readonly id = 0;              // Type: 0 (literal)
   readonly packageName = "zod"; // Type: "zod" (literal)
+  readonly label = "Zod";       // Type: "Zod" (literal)
 }
 ```
 
@@ -88,31 +89,42 @@ import { zodValidator } from "../validators/index";
 - No runtime searches needed
 - Clear dependencies
 
-### 4. Avoid Hardcoded Magic Values
+### 4. Use Natural Keys, Not Surrogate Keys
 
-**Never hardcode IDs, names, or other values that exist in the data.**
+**Never use arbitrary numeric IDs when a natural unique identifier exists. Use self-documenting keys.**
 
 ```typescript
-// ❌ BAD: Hardcoded IDs
-if (allDeps["zod"]) {
-  detectedValidators.push(0);  // Magic number!
-  detectedValidators.push(4);  // What is 4?
+// ❌ BAD: Arbitrary numeric IDs (surrogate keys)
+export interface Validator {
+  readonly id: number;  // 0, 1, 2 - what do these mean?
+  readonly packageName: string;
 }
 
-// ✅ GOOD: Use values from the actual instances
+getValidator(0);  // What validator is 0?
+
+// ✅ GOOD: Natural keys (package name is already unique)
+export interface Validator {
+  readonly packageName: string;  // This IS the unique identifier
+  readonly label: string;
+}
+
+getValidator("zod");  // Clear and explicit!
+
+// ✅ GOOD: Use values from actual instances, not magic strings
 import { zodValidator, zodMiniValidator } from "../validators/index";
 
 if (allDeps["zod"]) {
-  detectedValidators.push(zodValidator.id);
-  detectedValidators.push(zodMiniValidator.id);
+  detectedValidators.push(zodValidator.packageName);
+  detectedValidators.push(zodMiniValidator.packageName);
 }
 ```
 
 **Benefits:**
-- Self-documenting code
+- Self-documenting code (no need to look up what `0` means)
 - Single source of truth
-- Refactoring-safe
-- No magic numbers
+- Refactoring-safe (no need to maintain ID sequences)
+- No magic numbers or arbitrary mappings
+- JSON configs are readable: `"validator": "zod"` vs `"validator": 0`
 
 ### 5. Type-Safe Registry Pattern
 
@@ -121,34 +133,41 @@ if (allDeps["zod"]) {
 ```typescript
 // Complete pattern for a registry:
 
-// 1. Define interface with readonly metadata
+// 1. Define interface with readonly metadata using natural keys
 export interface Validator {
-  readonly id: number;
-  readonly packageName: string;
+  readonly packageName: string;  // This is the natural unique identifier
+  readonly label: string;
   // ... methods
 }
 
 // 2. Implement with literal values
 export class ZodValidator implements Validator {
-  readonly id = 0;
   readonly packageName = "zod";
+  readonly label = "Zod";
 }
 
 // 3. Export singleton instances
 export const zodValidator = new ZodValidator();
+export const valibotValidator = new ValibotValidator();
+// ... export all instances
 
 // 4. Create typed array registry
-export const validators = [zodValidator, ...] as const;
+export const validators = [zodValidator, valibotValidator, ...] as const;
 
 // 5. Derive types from the registry
-export type ValidatorId = (typeof validators)[number]["id"];
 export type PackageName = (typeof validators)[number]["packageName"];
+// Extracts: "zod" | "valibot" | "arktype" | "@sinclair/typebox" | "zod-mini"
 
-// 6. Type-safe lookup function
-export function getValidator(id: ValidatorId): Validator {
-  const validator = validators.find(v => v.id === id);
-  if (!validator) throw new Error(`Validator ${id} not found`);
+// 6. Type-safe lookup function using natural key
+export function getValidator(packageName: string): Validator {
+  const validator = validators.find(v => v.packageName === packageName.toLowerCase());
+  if (!validator) throw new Error(`Validator "${packageName}" not found`);
   return validator;
+}
+
+// 7. Type-safe validation helper
+export function isValidValidator(packageName: string): packageName is PackageName {
+  return validators.some(v => v.packageName === packageName.toLowerCase());
 }
 ```
 
@@ -157,6 +176,94 @@ export function getValidator(id: ValidatorId): Validator {
 - No manual type maintenance
 - Easy to extend (just add a new class)
 - Compile-time guarantees
+- Self-documenting code (no arbitrary IDs)
+
+### 6. Data-First Design
+
+**Define data structures first, then derive everything from them.**
+
+```typescript
+// ❌ BAD: Separate type definitions
+export type PackageManager = "pnpm" | "bun" | "npm" | "yarn";
+
+export function detectPackageManager(cwd: string): PackageManager {
+  const lockfiles = [
+    { file: "pnpm-lock.yaml", pm: "pnpm" as const },
+    { file: "bun.lockb", pm: "bun" as const },
+    // ...
+  ];
+  // ...
+}
+
+// ✅ GOOD: Data-first approach
+export const packageManagers = [
+  { lockfile: "pnpm-lock.yaml", name: "pnpm" },
+  { lockfile: "bun.lockb", name: "bun" },
+  { lockfile: "package-lock.json", name: "npm" },
+  { lockfile: "yarn.lock", name: "yarn" },
+] as const;
+
+// Type derived from data
+export type PackageManager = (typeof packageManagers)[number]["name"];
+
+export function detectPackageManager(cwd: string): PackageManager {
+  for (const { lockfile, name } of packageManagers) {
+    if (fs.existsSync(path.join(cwd, lockfile))) {
+      return name;
+    }
+  }
+  return "npm";
+}
+```
+
+**Benefits:**
+- Single source of truth for lockfile mappings
+- Add a package manager → type updates automatically
+- Easy to iterate over data programmatically
+- No duplication between data and types
+
+### 7. Infer Types from Functions
+
+**Derive types from function return types instead of manually defining interfaces.**
+
+```typescript
+// ❌ BAD: Manual interface definition
+export interface DetectionResult {
+  typescript: boolean;
+  packageManager: PackageManager;
+  hasSrc: boolean;
+  hasLib: boolean;
+  suggestedPath: string;
+}
+
+export function detectEnvironment(cwd: string): DetectionResult {
+  return {
+    typescript: detectTypeScript(cwd),
+    packageManager: detectPackageManager(cwd),
+    // ...
+  };
+}
+
+// ✅ GOOD: Type inferred from function
+export function detectEnvironment(cwd: string) {
+  return {
+    typescript: detectTypeScript(cwd),
+    packageManager: detectPackageManager(cwd),
+    hasSrc: fs.existsSync(path.join(cwd, "src")),
+    hasLib: fs.existsSync(path.join(cwd, "lib")),
+    suggestedPath: /* ... */,
+  };
+}
+
+// Type derived from implementation
+export type DetectionResult = ReturnType<typeof detectEnvironment>;
+```
+
+**Benefits:**
+- Implementation IS the source of truth
+- Type automatically stays in sync with code
+- One less thing to maintain manually
+- Refactoring-safe (change return → type updates)
 
 ## Operational Rules
 

@@ -18,9 +18,6 @@ describe("GenericPlatform", () => {
   });
 
   describe("identity", () => {
-    it("should have correct id", () => {
-      expect(platform.id).toBe(99);
-    });
 
     it("should have correct name", () => {
       expect(platform.name).toBe("generic");

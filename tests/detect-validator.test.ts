@@ -20,9 +20,9 @@ describe("detectValidatorFromPackageJson", () => {
     vi.restoreAllMocks();
   });
 
-  it("defaults to Zod (0) if package.json does not exist", () => {
+  it('defaults to Zod ("zod") if package.json does not exist', () => {
     existsSyncSpy.mockReturnValue(false);
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([0]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual(["zod"]);
   });
 
   it("detects Zod in dependencies", () => {
@@ -32,7 +32,7 @@ describe("detectValidatorFromPackageJson", () => {
         dependencies: { zod: "^3.0.0" },
       }),
     );
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([0, 4]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual(["zod", "zod-mini"]);
   });
 
   it("detects Valibot in devDependencies", () => {
@@ -42,7 +42,7 @@ describe("detectValidatorFromPackageJson", () => {
         devDependencies: { valibot: "^1.0.0" },
       }),
     );
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([1]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual(["valibot"]);
   });
 
   it("detects ArkType", () => {
@@ -52,7 +52,7 @@ describe("detectValidatorFromPackageJson", () => {
         dependencies: { arktype: "latest" },
       }),
     );
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([2]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual(["arktype"]);
   });
 
   it("detects TypeBox", () => {
@@ -62,7 +62,7 @@ describe("detectValidatorFromPackageJson", () => {
         dependencies: { "@sinclair/typebox": "latest" },
       }),
     );
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([3]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual(["@sinclair/typebox"]);
   });
 
   it("detects multiple validators", () => {
@@ -72,6 +72,6 @@ describe("detectValidatorFromPackageJson", () => {
         dependencies: { zod: "latest", valibot: "latest" },
       }),
     );
-    expect(detectValidatorFromPackageJson(cwd)).toEqual([0, 4, 1]);
+    expect(detectValidatorFromPackageJson(cwd)).toEqual(["zod", "zod-mini", "valibot"]);
   });
 });

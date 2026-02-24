@@ -4,45 +4,39 @@ import {
   validators, 
   zodValidator, 
   zodMiniValidator,
-  type ValidatorId 
+  type PackageName 
 } from "../validators/index";
 
-// Build a map from package name to validator ID
-const packageToValidatorId = validators.reduce((map, validator) => {
-  map[validator.packageName] = validator.id;
-  return map;
-}, {} as Record<string, ValidatorId>);
-
-export function detectValidatorFromPackageJson(cwd: string = process.cwd()): ValidatorId[] {
+export function detectValidatorFromPackageJson(cwd: string = process.cwd()): PackageName[] {
   try {
     const pkgPath = path.join(cwd, "package.json");
     
-    if (!fs.existsSync(pkgPath)) return [zodValidator.id];
+    if (!fs.existsSync(pkgPath)) return [zodValidator.packageName];
 
     const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
     const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-    const detectedValidators: ValidatorId[] = [];
+    const detectedValidators: PackageName[] = [];
 
     // Special case: Zod and Zod Mini both use "zod" package
     if (allDeps["zod"]) {
-      detectedValidators.push(zodValidator.id);
-      detectedValidators.push(zodMiniValidator.id);
+      detectedValidators.push(zodValidator.packageName);
+      detectedValidators.push(zodMiniValidator.packageName);
     }
 
     // Check other validators' package names
-    for (const [packageName, validatorId] of Object.entries(packageToValidatorId)) {
+    for (const validator of validators) {
       // Skip "zod" since we handled it above
-      if (packageName === "zod") continue;
+      if (validator.packageName === "zod") continue;
       
-      if (allDeps[packageName]) {
-        detectedValidators.push(validatorId);
+      if (allDeps[validator.packageName]) {
+        detectedValidators.push(validator.packageName);
       }
     }
 
-    return detectedValidators.length > 0 ? detectedValidators : [zodValidator.id];
+    return detectedValidators.length > 0 ? detectedValidators : [zodValidator.packageName];
   } catch (e) {
     // Fallback to Zod
-    return [zodValidator.id];
+    return [zodValidator.packageName];
   }
 }

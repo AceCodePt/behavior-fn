@@ -71,7 +71,6 @@ export const observedAttributes = ${JSON.stringify(keys)} as const;
  * ArkType validator implementation.
  */
 export class ArkTypeValidator implements Validator {
-  readonly id = 2;
   readonly label = "ArkType";
   readonly packageName = "arktype";
 

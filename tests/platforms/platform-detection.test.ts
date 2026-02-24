@@ -16,15 +16,14 @@ describe("Platform Detection", () => {
   });
 
   describe("getPlatform", () => {
-    it("should get platform by id", () => {
-      const platform = getPlatform(0);
+    it("should get platform by name", () => {
+      const platform = getPlatform("astro");
       expect(platform).toBeDefined();
-      expect(platform?.name).toBe("astro");
+      expect(platform.name).toBe("astro");
     });
 
-    it("should return undefined for invalid id", () => {
-      const platform = getPlatform(999);
-      expect(platform).toBeUndefined();
+    it("should throw for invalid name", () => {
+      expect(() => getPlatform("invalid")).toThrow('Platform "invalid" not found');
     });
   });
 
@@ -32,19 +31,18 @@ describe("Platform Detection", () => {
     it("should contain Astro platform", () => {
       const astro = platforms.find((p) => p.name === "astro");
       expect(astro).toBeDefined();
-      expect(astro?.id).toBe(0);
+      expect(astro?.name).toBe("astro");
     });
 
     it("should contain Next platform", () => {
       const next = platforms.find((p) => p.name === "next");
       expect(next).toBeDefined();
-      expect(next?.id).toBe(1);
+      expect(next?.name).toBe("next");
     });
 
     it("should contain Generic platform as last entry", () => {
       const generic = platforms[platforms.length - 1];
       expect(generic.name).toBe("generic");
-      expect(generic.id).toBe(99);
     });
 
     it("should have Generic as fallback", () => {

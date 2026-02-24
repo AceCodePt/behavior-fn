@@ -38,7 +38,6 @@ export const observedAttributes = ${JSON.stringify(keys)} as const;
  * TypeBox validator implementation.
  */
 export class TypeBoxValidator implements Validator {
-  readonly id = 3;
   readonly label = "TypeBox";
   readonly packageName = "@sinclair/typebox";
 

@@ -3,7 +3,6 @@ import path from "node:path";
 import type { PlatformStrategy } from "./platform-strategy";
 
 export class NextPlatform implements PlatformStrategy {
-  readonly id = 1;
   readonly name = "next";
   readonly label = "Next.js";
 
