@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { createJiti } from "jiti";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
-import { getStrategy, strategies } from "./src/strategies/index";
+import { getValidator, validators, type ValidatorId } from "./src/validators/index";
+import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
 
@@ -48,7 +49,7 @@ function loadConfig(): Config | null {
  */
 function detectAndValidatePlatform(): PlatformStrategy {
   const cwd = process.cwd();
-  const platform = detectPlatformStrategy(cwd);
+  const platform = detectPlatform(cwd);
   
   console.log(`Detected platform: ${platform.label}`);
   
@@ -74,7 +75,7 @@ function rewriteImports(content: string, config: Config): string {
 async function installBehavior(
   name: string,
   config: Config,
-  validatorType: number = 0,
+  validatorType: ValidatorId = 0,
   platform?: PlatformStrategy,
 ) {
   const behavior = registry.find((b) => b.name === name);
@@ -83,12 +84,8 @@ async function installBehavior(
     process.exit(1);
   }
 
-  // Get validator strategy
-  const strategy = getStrategy(validatorType);
-  if (!strategy) {
-    console.error(`Validator type ${validatorType} not supported.`);
-    process.exit(1);
-  }
+  // Get validator
+  const validator = getValidator(validatorType);
 
   console.log(`Installing behavior: ${name}...`);
 
@@ -135,7 +132,7 @@ async function installBehavior(
         const schemaPath = path.join(__dirname, "registry/behaviors", file.path);
         const mod = await jiti.import<{ schema?: AttributeSchema }>(schemaPath);
         if (mod.schema) {
-          content = strategy.transformSchema(mod.schema, content);
+          content = validator.transformSchema(mod.schema, content);
         }
       } catch (e) {
         console.warn(`Failed to transform schema for ${file.path}:`, e);
@@ -168,12 +165,12 @@ async function installBehavior(
       }
 
       // Optimize getObservedAttributes for the selected validator
-      const imports = strategy.getUtilsImports();
+      const imports = validator.getUtilsImports();
       if (imports) {
         content = `${imports}\n` + content;
       }
       
-      const observedAttributesCode = strategy.getObservedAttributesCode();
+      const observedAttributesCode = validator.getObservedAttributesCode();
       if (observedAttributesCode) {
         content = content.replace(
           /export const getObservedAttributes = [\s\S]*?^};/m,
@@ -192,7 +189,7 @@ async function installBehavior(
 
     // Transform types.ts based on validator
     if (file.path === "types.ts") {
-      content = strategy.getTypesFileContent();
+      content = validator.getTypesFileContent();
     }
 
     fs.writeFileSync(filePath, content);
@@ -220,13 +217,13 @@ const args = process.argv.slice(2);
 const command = args[0];
 const behaviorName = args[1];
 
-async function getValidatorType(name: string): Promise<number> {
+async function getValidatorType(name: string): Promise<ValidatorId> {
   const detectedValidators = detectValidatorFromPackageJson(process.cwd());
 
   if (detectedValidators.length > 1) {
-    const choices = strategies
-      .filter((s) => detectedValidators.includes(s.id))
-      .map((s) => ({ title: s.label, value: s.id }));
+    const choices = validators
+      .filter((v) => detectedValidators.includes(v.id))
+      .map((v) => ({ title: v.label, value: v.id }));
       
     const response = await prompts({
       type: "select",
@@ -308,7 +305,7 @@ export async function main() {
 
     // Detect platform once
     const platform = detectAndValidatePlatform();
-    await installBehavior("core", config, 0, platform);
+    await installBehavior("core", config, 0 as const, platform);
     process.exit(0);
   }
 
@@ -334,7 +331,7 @@ export async function main() {
       const registryPath = path.resolve(process.cwd(), config.paths.registry);
       if (!fs.existsSync(registryPath)) {
         console.log("Core files not found. Installing core...");
-        await installBehavior("core", config, 0, platform);
+        await installBehavior("core", config, 0 as const, platform);
       }
     }
 
