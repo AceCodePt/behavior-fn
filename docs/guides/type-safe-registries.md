@@ -1,6 +1,6 @@
 # Type-Safe Registry Pattern
 
-This guide documents the type-safe registry pattern used throughout BehaviorCN for validators, platforms, and other extensible systems.
+This guide documents the type-safe registry pattern used throughout BehaviorFN for validators, platforms, and other extensible systems.
 
 ## Overview
 
@@ -445,4 +445,4 @@ The type-safe registry pattern provides:
 6. **Compile-Time Safety**: Invalid values caught before runtime
 7. **Easy Maintenance**: Add items, types update automatically
 
-Follow this pattern for all registry-like structures in BehaviorCN.
+Follow this pattern for all registry-like structures in BehaviorFN.

@@ -1,6 +1,6 @@
-# BehaviorCN Agents Guide
+# BehaviorFN Agents Guide
 
-Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "Behavior UI" library—a headless, type-safe, and registry-based collection of behavioral mixins for Web Components.
+Welcome to **BehaviorFN**. This repository is the **Source of Truth** for the "Behavior UI" library—a headless, type-safe, and registry-based collection of behavioral mixins for Web Components.
 
 ## Core Philosophy
 

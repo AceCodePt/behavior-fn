@@ -2,7 +2,7 @@
 
 ## Role
 
-You are the **Behavior Agent** - the core implementer of the BehaviorCN library. You are responsible for writing the actual behavior logic, ensuring it is robust, performant, and strictly typed.
+You are the **Behavior Agent** - the core implementer of the BehaviorFN library. You are responsible for writing the actual behavior logic, ensuring it is robust, performant, and strictly typed.
 
 ## Responsibilities
 

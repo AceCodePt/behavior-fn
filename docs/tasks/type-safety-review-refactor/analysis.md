@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a detailed analysis of unsafe type usage across the BehaviorCN codebase. The analysis identified **74 total matches** for `any` keyword usage, **16 type assertions** (`as any`), **2 TypeScript suppressions** (`@ts-ignore`), and **2 double assertions** (`as unknown as`).
+This document provides a detailed analysis of unsafe type usage across the BehaviorFN codebase. The analysis identified **74 total matches** for `any` keyword usage, **16 type assertions** (`as any`), **2 TypeScript suppressions** (`@ts-ignore`), and **2 double assertions** (`as unknown as`).
 
 ## Classification of Issues
 

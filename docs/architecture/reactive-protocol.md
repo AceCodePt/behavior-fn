@@ -45,7 +45,7 @@ export const myBehaviorFactory = (el: HTMLElement) => {
 
 ### Observed Attributes
 
-The `behavior-cn` runtime automatically sets up `observedAttributes` for the host element based on the registered behaviors.
+The `behavior-fn` runtime automatically sets up `observedAttributes` for the host element based on the registered behaviors.
 
 **Note:** Since behaviors are composed on a host element, the host element must observe _all_ attributes required by _all_ attached behaviors. The `defineBehavioralHost` utility handles this.
 

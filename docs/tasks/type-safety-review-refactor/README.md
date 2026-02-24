@@ -142,7 +142,7 @@ Practical code examples showing:
 
 ## Related
 
-- **AGENTS.md**: BehaviorCN development protocol
+- **AGENTS.md**: BehaviorFN development protocol
 - **TASKS.md**: Project task backlog
 - **Architecture Docs**: `docs/architecture/`
 
