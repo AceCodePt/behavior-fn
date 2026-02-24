@@ -1,9 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { COMPUTE_ATTRS } from "./constants";
 
-export const COMPUTE_ATTRS = {
-  FORMULA: "compute-formula",
-} as const;
+export { COMPUTE_ATTRS };
 
 export const schema = Type.Object({
   [COMPUTE_ATTRS.FORMULA]: Type.String(),

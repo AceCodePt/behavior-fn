@@ -1,6 +1,6 @@
 import { type BehaviorFactory } from "~registry";
 import { hasValue } from "~utils";
-import { INPUT_WATCHER_ATTRS } from "./schema";
+import { INPUT_WATCHER_ATTRS } from "./constants";
 
 export const inputWatcherBehavior: BehaviorFactory = (host) => {
   let targets: Element[] = [];

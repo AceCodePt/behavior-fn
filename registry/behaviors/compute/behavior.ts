@@ -153,7 +153,7 @@ export class MathParser {
 
 // --- Behavior Implementation ---
 
-import { COMPUTE_ATTRS } from "./schema";
+import { COMPUTE_ATTRS } from "./constants";
 
 const evaluatingElements = new Set<HTMLElement>();
 

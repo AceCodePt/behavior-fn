@@ -1,9 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { LOGGER_ATTRS } from "./constants";
 
-export const LOGGER_ATTRS = {
-  TRIGGER: "logger-trigger",
-} as const;
+export { LOGGER_ATTRS };
 
 export const schema = Type.Object({
   [LOGGER_ATTRS.TRIGGER]: Type.Optional(

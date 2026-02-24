@@ -1,6 +1,6 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
-import { REVEAL_ATTRS } from "./schema";
+import { REVEAL_ATTRS } from "./constants";
 
 const { command: REVEAL_COMMANDS } = definition;
 

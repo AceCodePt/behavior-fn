@@ -1,4 +1,4 @@
-import { LOGGER_ATTRS } from "./schema";
+import { LOGGER_ATTRS } from "./constants";
 
 export const loggerBehaviorFactory = (el: HTMLElement) => {
   return {

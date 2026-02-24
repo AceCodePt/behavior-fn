@@ -1,18 +1,9 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { REVEAL_ATTRS } from "./constants";
 
-export const REVEAL_ATTRS = {
-  DELAY: "reveal-delay",
-  DURATION: "reveal-duration",
-  ANCHOR: "reveal-anchor",
-  AUTO: "reveal-auto",
-  WHEN_TARGET: "reveal-when-target",
-  WHEN_ATTRIBUTE: "reveal-when-attribute",
-  WHEN_VALUE: "reveal-when-value",
-  HIDDEN: "hidden",
-  OPEN: "open",
-  POPOVER: "popover",
-} as const;
+// Re-export constants for convenience
+export { REVEAL_ATTRS };
 
 export const schema = Type.Object({
   [REVEAL_ATTRS.DELAY]: Type.Optional(

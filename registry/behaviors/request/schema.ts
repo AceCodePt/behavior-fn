@@ -1,17 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { REQUEST_ATTRS } from "./constants";
 
-export const REQUEST_ATTRS = {
-  URL: "request-url",
-  METHOD: "request-method",
-  TRIGGER: "request-trigger",
-  TARGET: "request-target",
-  SWAP: "request-swap",
-  INDICATOR: "request-indicator",
-  CONFIRM: "request-confirm",
-  PUSH_URL: "request-push-url",
-  VALS: "request-vals",
-} as const;
+export { REQUEST_ATTRS };
 
 export const TriggerSchema = Type.Object({
   event: Type.String(),

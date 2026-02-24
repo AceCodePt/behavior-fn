@@ -5,7 +5,8 @@ import {
 } from "~registry";
 import { hasValue } from "~utils";
 import definition from "./_behavior-definition";
-import { REQUEST_ATTRS, type TriggerConfig } from "./schema";
+import { REQUEST_ATTRS } from "./constants";
+import type { TriggerConfig } from "./schema";
 
 const { command, name } = definition;
 

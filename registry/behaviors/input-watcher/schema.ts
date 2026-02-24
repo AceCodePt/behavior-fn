@@ -1,12 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { INPUT_WATCHER_ATTRS } from "./constants";
 
-export const INPUT_WATCHER_ATTRS = {
-  TARGET: "input-watcher-target",
-  FORMAT: "input-watcher-format",
-  EVENTS: "input-watcher-events",
-  ATTR: "input-watcher-attr",
-} as const;
+export { INPUT_WATCHER_ATTRS };
 
 export const schema = Type.Object({
   [INPUT_WATCHER_ATTRS.TARGET]: Type.Optional(

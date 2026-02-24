@@ -1,10 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { ELEMENT_COUNTER_ATTRS } from "./constants";
 
-export const ELEMENT_COUNTER_ATTRS = {
-  ROOT: "element-counter-root",
-  SELECTOR: "element-counter-selector",
-} as const;
+export { ELEMENT_COUNTER_ATTRS };
 
 export const schema = Type.Object({
   [ELEMENT_COUNTER_ATTRS.ROOT]: Type.Optional(Type.String()),

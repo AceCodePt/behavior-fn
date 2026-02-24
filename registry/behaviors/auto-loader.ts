@@ -75,6 +75,12 @@ export function enableAutoLoader(): () => void {
       return;
     }
 
+    // Explicit check: element MUST have behavior attribute
+    if (!element.hasAttribute("behavior")) {
+      processedElements.add(element);
+      return;
+    }
+
     const behaviorAttr = element.getAttribute("behavior");
 
     // Parse behavior names using the canonical parser

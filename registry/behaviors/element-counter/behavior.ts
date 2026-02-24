@@ -1,4 +1,4 @@
-import { ELEMENT_COUNTER_ATTRS } from "./schema";
+import { ELEMENT_COUNTER_ATTRS } from "./constants";
 
 export const elementCounterBehaviorFactory = (el: HTMLElement) => {
   let observer: MutationObserver | null = null;
