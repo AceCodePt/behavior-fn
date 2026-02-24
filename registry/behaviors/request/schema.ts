@@ -53,6 +53,13 @@ export const schema = Type.Object({
     Type.Union([Type.String(), Type.Boolean()]),
   ),
   [REQUEST_ATTRS.VALS]: Type.Optional(Type.String()),
+  [REQUEST_ATTRS.JSON_STRATEGY]: Type.Optional(
+    Type.Union([
+      Type.Literal("replace"),
+      Type.Literal("appendArray"),
+      Type.Literal("prependArray"),
+    ]),
+  ),
 });
 
 export type TriggerConfig = InferSchema<typeof TriggerSchema>;
