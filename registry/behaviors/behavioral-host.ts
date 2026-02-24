@@ -5,6 +5,7 @@ import {
   defineAutoWebComponent,
   type TagName,
 } from "auto-wc";
+import { parseBehaviorNames } from "./behavior-utils";
 
 /**
  * Mixin that adds behavior support to a base class.
@@ -70,14 +71,9 @@ export function withBehaviors<
 
     private async _registerBehaviors() {
       const behaviorAttr = this.getAttribute("behavior");
-      const behaviorNames = behaviorAttr
-        ? behaviorAttr
-            // Remvoe all none important charachters
-            .replace(/[^a-zA-Z- ,]/, "")
-            // Split in any fashion that groups charachters with -
-            .split(/[^a-zA-z-]+/)
-            .filter(Boolean)
-        : [];
+      // Parse behavior names using the canonical parser
+      // This ensures consistency with auto-loader.ts
+      const behaviorNames = parseBehaviorNames(behaviorAttr);
 
       // This needs explanation.
       // First iteration - if all of the behavior exists (non-promise from ensureBehavior)
