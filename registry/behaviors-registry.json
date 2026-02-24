@@ -2,7 +2,8 @@
   {
     "name": "core",
     "dependencies": [
-      "@standard-schema/spec"
+      "@standard-schema/spec",
+      "auto-wc"
     ],
     "files": [
       {
