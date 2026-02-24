@@ -69,6 +69,27 @@
     ]
   },
   {
+    "name": "json-template",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "json-template/_behavior-definition.ts"
+      },
+      {
+        "path": "json-template/constants.ts"
+      },
+      {
+        "path": "json-template/schema.ts"
+      },
+      {
+        "path": "json-template/behavior.ts"
+      },
+      {
+        "path": "json-template/behavior.test.ts"
+      }
+    ]
+  },
+  {
     "name": "logger",
     "dependencies": [],
     "files": [

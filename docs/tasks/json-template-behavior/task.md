@@ -119,6 +119,13 @@ This is boilerplate-heavy and error-prone. A declarative `json-template` behavio
 <!-- JSON: { items: [{ title: "First" }, { title: "Second" }] } -->
 <span data-key="items[0].title"></span>  <!-- "First" -->
 <span data-key="items[1].title"></span>  <!-- "Second" -->
+
+<!-- JSON: { user: { "first-name": "John", "email.address": "john@example.com" } } -->
+<span data-key="user['first-name']"></span>  <!-- "John" (single quotes) -->
+<span data-key='user["email.address"]'></span>  <!-- "john@example.com" (double quotes, dot preserved) -->
+
+<!-- JSON: { data: { items: [{ "item-title": "First" }] } } -->
+<span data-key="data.items[0]['item-title']"></span>  <!-- "First" (mixed notation) -->
 ```
 
 ## Definition of Done
