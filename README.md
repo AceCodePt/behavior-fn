@@ -23,11 +23,30 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ## 🚀 Quick Start
 
-> **💡 No Build Tools?** Load behaviors directly from CDN with a single `<script>` tag!  
-> ```html
-> <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-> ```
-> See the **[CDN Loading Guide](docs/guides/manual-loading.md)** for details.
+### CDN Usage
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+</head>
+<body>
+  <dialog behavior="reveal" id="modal">
+    <h2>Hello World!</h2>
+    <button commandfor="modal" command="--hide">Close</button>
+  </dialog>
+  
+  <button commandfor="modal" command="--toggle">Open Modal</button>
+</body>
+</html>
+```
+
+See the **[CDN Loading Guide](docs/guides/manual-loading.md)** for more examples.
+
+---
+
+### CLI Installation
 
 ### Installation
 
