@@ -365,6 +365,51 @@ node dist/index.js remove my-behavior-name
 
 ## Best Practices
 
+### ⚠️ Critical: Always Use the Standard 5-File Structure
+
+**IMPORTANT FOR AGENTS:** When creating ANY behavior, you MUST follow the standard 5-file structure. This applies even if the behavior seems like "infrastructure" or a "polyfill".
+
+**The Standard Structure:**
+```
+registry/behaviors/{behavior-name}/
+├── _behavior-definition.ts   # Contract (name + schema)
+├── constants.ts               # Attribute name constants
+├── schema.ts                  # TypeBox schema
+├── behavior.ts                # Implementation (factory function)
+└── behavior.test.ts           # Tests
+```
+
+**Common Mistake:** Creating flat files like `my-feature.ts` + `my-feature.test.ts` in the `registry/behaviors/` root directory.
+
+**Why This Matters:**
+- ✅ Consistency: All behaviors follow the same pattern
+- ✅ CLI Integration: The CLI expects this structure for `add` command
+- ✅ Discoverability: Developers know where to find behavior code
+- ✅ Separation of Concerns: Schema, constants, logic, and tests are separate
+- ✅ Type Safety: Schema drives both runtime validation and TypeScript types
+
+**Example: Compound Commands Behavior**
+
+Initially implemented incorrectly as:
+```
+❌ registry/behaviors/invoker-commands-polyfill.ts
+❌ registry/behaviors/invoker-commands-polyfill.test.ts
+```
+
+Corrected to proper structure:
+```
+✅ registry/behaviors/compound-commands/
+   ├── _behavior-definition.ts
+   ├── constants.ts
+   ├── schema.ts
+   ├── behavior.ts
+   └── behavior.test.ts
+```
+
+**When in Doubt:** If you're adding capability to an element (even buttons, even for "infrastructure-like" features), it's a behavior and needs the standard structure.
+
+---
+
 ### Behavior Design
 
 1. **Single Responsibility**: Each behavior should do one thing well
