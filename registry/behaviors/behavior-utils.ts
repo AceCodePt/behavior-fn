@@ -109,9 +109,10 @@ export function parseBehaviorNames(behaviorAttr: string | null | undefined): str
     // Convert invalid characters to spaces (global flag to convert ALL occurrences)
     // This creates delimiters between words so "reveal123logger" → "reveal   logger"
     // Valid characters: letters (a-zA-Z) and hyphens (-)
-    // Everything else (numbers, special chars, commas, etc.) becomes a space
+    // Everything else (numbers, special chars, commas, whitespace, etc.) becomes a space
     .replace(/[^a-zA-Z-]/g, " ")
-    // Split on spaces (one or more) to get individual behavior names
+    // Split on whitespace (one or more) to get individual behavior names
+    // Since replace() already converted everything to spaces, this splits on those spaces
     // Hyphens are preserved, so "input-watcher" stays as one name
     .split(/\s+/)
     // Remove empty strings
