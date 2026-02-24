@@ -67,6 +67,11 @@ export function enableAutoLoader(): () => void {
     if (processedElements.has(element)) {
       return;
     }
+    
+    // Only process HTMLElements (not SVGElement, etc.)
+    if (!(element instanceof HTMLElement)) {
+      return;
+    }
 
     // Skip if element already has an explicit `is` attribute
     // (either user-defined or previously set by auto-loader)
