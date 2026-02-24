@@ -1,7 +1,10 @@
-// src/transformers/toArkType.ts
-import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../types/schema";
+import type { Validator } from "../validator";
+import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../../types/schema";
 
-export function toArkType(schema: AttributeSchema): string {
+/**
+ * Converts a TypeBox schema (JSON Schema format at runtime) to ArkType code.
+ */
+function transformToArkType(schema: AttributeSchema): string {
   function parse(s: JSONSchemaProperty): string {
     if ('type' in s && s.type === 'string') {
       if (s.minLength) return `"string >= ${s.minLength}"`;
@@ -62,4 +65,53 @@ export const safeValidate = (data: unknown) => {
 };
 export const observedAttributes = ${JSON.stringify(keys)} as const;
 `;
+}
+
+/**
+ * ArkType validator implementation.
+ */
+export class ArkTypeValidator implements Validator {
+  readonly id = 2;
+  readonly label = "ArkType";
+  readonly packageName = "arktype";
+
+  transformSchema(schemaObject: AttributeSchema, _rawContent: string): string {
+    return transformToArkType(schemaObject);
+  }
+
+  getObservedAttributesCode(): string {
+    // Current behavior in index.ts: does not replace for ArkType, so it uses the default (TypeBox)
+    // We reproduce this by returning the default implementation logic, 
+    // or we could return a specific one if we knew how to inspect ArkType.
+    // For now, preserving existing behavior (even if potentially incorrect for ArkType).
+    return `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  if (!schema) return [];
+  // TypeBox TObject guarantees 'properties'
+  if ("properties" in schema) {
+    return Object.keys(schema.properties);
+  }
+  return [];
+};`;
+  }
+
+  getUtilsImports(): string {
+    return ``;
+  }
+
+  getTypesFileContent(): string {
+    return `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { type Type } from "arktype";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends Type
+    ? T["infer"]
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | Type | object;
+`;
+  }
 }

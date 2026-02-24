@@ -44,6 +44,11 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
+- [ ] [Registry Discovery and Directory](docs/tasks/registry-discovery-directory/task.md) 🔒 Blocked by: [Multi-Registry Support]
+- [ ] [Consolidated Registry Format Support](docs/tasks/consolidated-registry-format/task.md) 🔒 Blocked by: [Multi-Registry Support]
+- [ ] [Security Hardening for Multi-Registry](docs/tasks/security-hardening-registries/task.md) 🔒 Blocked by: [Multi-Registry Support]
+- [-] [Add Test Files Import Option](docs/tasks/add-test-files-option/task.md)
 - [-] [Refactor Strategies to Validators with Directory Structure](docs/tasks/refactor-strategies-to-validators/task.md)
 - [-] [Remove Jiti Dependency - Build Registry Instead](docs/tasks/remove-jiti-build-registry/task.md)
 - [-] [Simplify Init Flow](docs/tasks/simplify-init-flow/task.md)

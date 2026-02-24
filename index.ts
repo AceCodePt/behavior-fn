@@ -16,6 +16,8 @@ import {
 import { getStrategy, strategies } from "./src/strategies/index";
 import { detectPlatform } from "./src/platforms/index";
 import type { PlatformStrategy } from "./src/platforms/platform-strategy";
+import { getValidator, validators, type ValidatorId } from "./src/validators/index";
+import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
 import type { InitConfig, Validator } from "./src/types/init";
@@ -87,7 +89,7 @@ function rewriteImports(content: string, config: Config): string {
 async function installBehavior(
   name: string,
   config: Config,
-  validatorType: number = 0,
+  validatorType: ValidatorId = 0,
   platform?: PlatformStrategy,
 ) {
   const behavior = registry.find((b) => b.name === name);
@@ -96,12 +98,8 @@ async function installBehavior(
     process.exit(1);
   }
 
-  // Get validator strategy
-  const strategy = getStrategy(validatorType);
-  if (!strategy) {
-    console.error(`Validator type ${validatorType} not supported.`);
-    process.exit(1);
-  }
+  // Get validator
+  const validator = getValidator(validatorType);
 
   console.log(`Installing behavior: ${name}...`);
 
@@ -153,7 +151,7 @@ async function installBehavior(
         const schemaPath = path.join(__dirname, "registry/behaviors", file.path);
         const mod = await jiti.import<{ schema?: AttributeSchema }>(schemaPath);
         if (mod.schema) {
-          content = strategy.transformSchema(mod.schema, content);
+          content = validator.transformSchema(mod.schema, content);
         }
       } catch (e) {
         console.warn(`Failed to transform schema for ${file.path}:`, e);
@@ -186,12 +184,12 @@ async function installBehavior(
       }
 
       // Optimize getObservedAttributes for the selected validator
-      const imports = strategy.getUtilsImports();
+      const imports = validator.getUtilsImports();
       if (imports) {
         content = `${imports}\n` + content;
       }
       
-      const observedAttributesCode = strategy.getObservedAttributesCode();
+      const observedAttributesCode = validator.getObservedAttributesCode();
       if (observedAttributesCode) {
         content = content.replace(
           /export const getObservedAttributes = [\s\S]*?^};/m,
@@ -210,7 +208,7 @@ async function installBehavior(
 
     // Transform types.ts based on validator
     if (file.path === "types.ts") {
-      content = strategy.getTypesFileContent();
+      content = validator.getTypesFileContent();
     }
 
     fs.writeFileSync(filePath, content);
@@ -365,63 +363,13 @@ const args = process.argv.slice(2);
 const command = args[0];
 const behaviorName = args[1];
 
-/**
- * Parse CLI flags from process.argv
- */
-function parseFlags(): Record<string, string | boolean> {
-  const flags: Record<string, string | boolean> = {};
-  
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    
-    if (arg.startsWith("--")) {
-      const [key, value] = arg.slice(2).split("=");
-      flags[key] = value || true;
-    } else if (arg === "-d") {
-      flags.defaults = true;
-    } else if (arg === "-y") {
-      flags.yes = true;
-    }
-  }
-  
-  return flags;
-}
-
-/**
- * Map validator name to strategy ID
- */
-function getValidatorId(name: string): number {
-  const mapping: Record<string, number> = {
-    zod: 0,
-    valibot: 1,
-    arktype: 2,
-    typebox: 3,
-    "zod-mini": 4,
-  };
-  return mapping[name.toLowerCase()] ?? 0;
-}
-
-/**
- * Get validator name from strategy ID
- */
-function getValidatorName(id: number): Validator {
-  const mapping: Record<number, Validator> = {
-    0: "zod",
-    1: "valibot",
-    2: "arktype",
-    3: "typebox",
-    4: "zod-mini",
-  };
-  return mapping[id] ?? "zod";
-}
-
-async function getValidatorType(name: string): Promise<number> {
+async function getValidatorType(name: string): Promise<ValidatorId> {
   const detectedValidators = detectValidatorFromPackageJson(process.cwd());
 
   if (detectedValidators.length > 1) {
-    const choices = strategies
-      .filter((s) => detectedValidators.includes(s.id))
-      .map((s) => ({ title: s.label, value: s.id }));
+    const choices = validators
+      .filter((v) => detectedValidators.includes(v.id))
+      .map((v) => ({ title: v.label, value: v.id }));
       
     const response = await prompts({
       type: "select",
@@ -569,10 +517,7 @@ export async function main() {
     
     // Detect platform once
     const platform = detectAndValidatePlatform();
-    const validatorId = getValidatorId(validatorChoice);
-    await installBehavior("core", legacyConfig, validatorId, platform);
-    
-    console.log(`✓ Ready! Run \`behavior-fn add reveal\` to add your first behavior.`);
+    await installBehavior("core", config, 0 as const, platform);
     process.exit(0);
   }
 
@@ -598,7 +543,7 @@ export async function main() {
       const registryPath = path.resolve(process.cwd(), config.paths.registry);
       if (!fs.existsSync(registryPath)) {
         console.log("Core files not found. Installing core...");
-        await installBehavior("core", config, 0, platform);
+        await installBehavior("core", config, 0 as const, platform);
       }
     }
 

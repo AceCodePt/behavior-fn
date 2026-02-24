@@ -1,11 +1,17 @@
 // tests/transformers.test.ts
 import { describe, it, expect } from 'vitest';
 import { Type } from '@sinclair/typebox';
-import { toZod } from '../src/transformers/toZod';
-import { toValibot } from '../src/transformers/toValibot';
-import { toArkType } from '../src/transformers/toArkType';
-import { toTypeBox } from '../src/transformers/toTypeBox';
-import { toZodMini } from '../src/transformers/toZodMini';
+import { ZodValidator } from '../src/validators/zod/index';
+import { ValibotValidator } from '../src/validators/valibot/index';
+import { ArkTypeValidator } from '../src/validators/arktype/index';
+import { TypeBoxValidator } from '../src/validators/typebox/index';
+import { ZodMiniValidator } from '../src/validators/zod-mini/index';
+
+const zodValidator = new ZodValidator();
+const valibotValidator = new ValibotValidator();
+const arktypeValidator = new ArkTypeValidator();
+const typeboxValidator = new TypeBoxValidator();
+const zodMiniValidator = new ZodMiniValidator();
 
 describe('Schema Transformers', () => {
   const schema = Type.Object({
@@ -21,7 +27,7 @@ describe('Schema Transformers', () => {
 
   describe('toZod', () => {
     it('generates valid Zod code', () => {
-      const code = toZod(schema);
+      const code = zodValidator.transformSchema(schema, '');
       expect(code).toContain('import { z } from "zod"');
       expect(code).toContain('z.string().min(1)');
       expect(code).toContain('z.string().optional()');
@@ -35,7 +41,7 @@ describe('Schema Transformers', () => {
 
   describe('toZodMini', () => {
     it('generates valid Zod Mini code', () => {
-      const code = toZodMini(schema);
+      const code = zodMiniValidator.transformSchema(schema, '');
       expect(code).toContain('import * as z from "zod/mini"');
       expect(code).toContain('z.min(z.string(), 1)');
       expect(code).toContain('z.optional(z.string())');
@@ -52,7 +58,7 @@ describe('Schema Transformers', () => {
 
   describe('toValibot', () => {
     it('generates valid Valibot code', () => {
-      const code = toValibot(schema);
+      const code = valibotValidator.transformSchema(schema, '');
       expect(code).toContain('import * as v from "valibot"');
       expect(code).toContain('v.pipe(v.string(), v.minLength(1))');
       expect(code).toContain('v.optional(v.string())');
@@ -66,7 +72,7 @@ describe('Schema Transformers', () => {
 
   describe('toArkType', () => {
     it('generates valid ArkType code', () => {
-      const code = toArkType(schema);
+      const code = arktypeValidator.transformSchema(schema, '');
       expect(code).toContain('import { type } from "arktype"');
       expect(code).toContain('"required": "string >= 1"');
       expect(code).toContain('"optional?": "string"');
@@ -81,7 +87,7 @@ describe('Schema Transformers', () => {
   describe('toTypeBox', () => {
     it('generates valid TypeBox code (wrapper)', () => {
       const rawContent = `export const schema = Type.Object({...});`;
-      const code = toTypeBox(rawContent, schema);
+      const code = typeboxValidator.transformSchema(schema, rawContent);
       expect(code).toContain('import { Value } from \'@sinclair/typebox/value\'');
       // expect(code).toContain('export type Schema = Static<typeof schema>'); // Removed as source now exports Schema
       expect(code).toContain('observedAttributes = ["required","optional","enum","number","boolean","nested"]');

@@ -1,10 +1,10 @@
-// src/transformers/toValibot.ts
-import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../types/schema";
+import type { Validator } from "../validator";
+import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../../types/schema";
 
 /**
  * Converts a TypeBox schema (JSON Schema format at runtime) to Valibot code.
  */
-export function toValibot(schema: AttributeSchema): string {
+function transformToValibot(schema: AttributeSchema): string {
   function parse(s: JSONSchemaProperty): string {
     // 1. Strings
     if ('type' in s && s.type === 'string') {
@@ -88,4 +88,49 @@ export const validate = (data: unknown) => v.parse(schema, data);
 export const safeValidate = (data: unknown) => v.safeParse(schema, data);
 export const observedAttributes = ${JSON.stringify(keys)} as const;
 `;
+}
+
+/**
+ * Valibot validator implementation.
+ */
+export class ValibotValidator implements Validator {
+  readonly id = 1;
+  readonly label = "Valibot";
+  readonly packageName = "valibot";
+
+  transformSchema(schemaObject: AttributeSchema, _rawContent: string): string {
+    return transformToValibot(schemaObject);
+  }
+
+  getObservedAttributesCode(): string {
+    return `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  if (!schema) return [];
+  // Valibot ObjectSchema has 'entries' property
+  if ("entries" in schema && typeof schema.entries === "object") {
+    return Object.keys(schema.entries);
+  }
+  return [];
+};`;
+  }
+
+  getUtilsImports(): string {
+    return ``; // Valibot utils don't need imports for getObservedAttributes since we use duck typing
+  }
+
+  getTypesFileContent(): string {
+    return `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { type BaseSchema, type InferOutput } from "valibot";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends BaseSchema
+    ? InferOutput<T>
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | BaseSchema | object;
+`;
+  }
 }

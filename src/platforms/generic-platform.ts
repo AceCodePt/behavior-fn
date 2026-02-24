@@ -1,9 +1,9 @@
-import type { PlatformStrategy, PlatformName } from "./platform-strategy";
+import type { PlatformStrategy } from "./platform-strategy";
 
 export class GenericPlatform implements PlatformStrategy {
-  id = 99;
-  name: PlatformName = "generic";
-  label = "Generic";
+  readonly id = 99;
+  readonly name = "generic";
+  readonly label = "Generic";
 
   detect(_cwd: string): boolean {
     // Generic platform always matches as fallback
