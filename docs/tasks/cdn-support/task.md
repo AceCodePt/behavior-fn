@@ -133,17 +133,52 @@ dist/
 }
 ```
 
-### 3. Auto-Registration Footer
+### 3. Auto-Registration with Auto-Loader (Zero-Config DX)
 
-Individual behavior bundles should auto-register when loaded:
+**Individual behavior bundles are fully standalone and self-configuring:**
 
+Each behavior bundle (e.g., `reveal.js`) includes:
+1. **Core runtime** (registry, defineBehavioralHost, auto-loader) - bundled inline
+2. **The behavior itself** - exported factory function
+3. **Auto-registration code** - registers the behavior on load
+4. **Auto-loader enabled** - automatically adds `is` attributes to elements with `behavior` attribute
+
+**Result:** Users just load the script and use behaviors directly—no setup code needed!
+
+```html
+<!-- Just load the behavior -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+
+<!-- Use it immediately - no setup! -->
+<dialog behavior="reveal" id="modal">Content</dialog>
+<button commandfor="modal" command="--toggle">Open</button>
+```
+
+**How it works:**
 ```javascript
-// Auto-injected footer for reveal.js
-if (typeof window !== 'undefined' && window.BehaviorFN) {
-  window.BehaviorFN.registerBehavior('reveal', BehaviorFN_Reveal.revealBehaviorFactory);
-  console.log('✅ Registered behavior: reveal');
+// Auto-injected standalone entry for reveal.js
+import { registerBehavior, enableAutoLoader } from "...core...";
+import { revealBehaviorFactory } from "...behavior...";
+
+if (typeof window !== 'undefined') {
+  // Setup global namespace
+  window.BehaviorFN = { registerBehavior, getBehavior, defineBehavioralHost, enableAutoLoader };
+  window.registerBehavior = registerBehavior; // Convenience
+  
+  // Auto-register this behavior
+  registerBehavior('reveal', revealBehaviorFactory);
+  
+  // Auto-enable the auto-loader (no is attributes needed!)
+  enableAutoLoader();
+  
+  console.log('✅ BehaviorFN: Loaded "reveal" behavior with auto-loader enabled');
 }
 ```
+
+**All-in-one bundle (`behavior-fn.all.js`) also auto-enables loader:**
+- Includes ALL behaviors pre-registered
+- Auto-loader enabled by default
+- Zero-config path for maximum DX
 
 ### 4. Global API Surface
 
@@ -190,27 +225,38 @@ BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
 defineBehavioralHost('dialog', 'behavioral-reveal', []);
 ```
 
-**Auto-loader usage (skip `is` attributes):**
+**Zero-config usage (auto-loader enabled by default):**
 ```html
+<!-- Just load and use - no setup code needed! -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 
-<script>
-  // Enable auto-loader - no need for is attributes or defineBehavioralHost!
-  enableAutoLoader();
-</script>
-
-<!-- Now just use behavior attribute -->
-<dialog id="modal" behavior="reveal">
-  Content
-</dialog>
+<!-- Works immediately - no is attributes, no defineBehavioralHost, no enableAutoLoader -->
+<dialog behavior="reveal" id="modal">Content</dialog>
 <button commandfor="modal" command="--toggle">Toggle</button>
 ```
 
+**Advanced usage (manual control):**
+```html
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+
+<script>
+  // Namespaced API
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  
+  // OR direct global API
+  defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  
+  // OR auto-loader (but it's enabled by default in individual bundles)
+  enableAutoLoader();
+</script>
+```
+
 **Rationale:**
-- Namespaced: Avoids global pollution, clear ownership
-- Direct global: Better DX, less typing, familiar pattern
-- Auto-loader: Ultimate simplicity, no `is` attributes needed
-- Support all three: Users choose their preference
+- **Zero-config (default)**: Auto-registration + auto-loader = just load and use
+- **Namespaced**: Avoids global pollution, clear ownership
+- **Direct global**: Better DX, less typing, familiar pattern
+- **Support all patterns**: Users choose based on their needs
 
 ### 5. Package.json Updates
 

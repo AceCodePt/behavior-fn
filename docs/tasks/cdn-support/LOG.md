@@ -2,7 +2,8 @@
 
 **Task:** Implement CDN support with dual package strategy (Option 3)  
 **Created:** 2026-02-24  
-**Status:** Planned
+**Updated:** 2026-02-24 (Added zero-config auto-loader enhancement)  
+**Status:** In Progress
 
 ---
 
@@ -223,6 +224,106 @@ BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
 - ESM: Modern import syntax (tree-shakeable, import maps)
 - Different users have different needs
 - File size overhead is minimal
+
+### 7. Zero-Config Auto-Registration with Auto-Loader (NEW!)
+
+**Enhancement:** Individual behavior bundles are now **fully standalone** with auto-loader enabled by default.
+
+**User Experience Before:**
+```html
+<!-- Load core -->
+<script src="https://unpkg.com/behavior-fn/dist/cdn/behavior-fn.js"></script>
+<!-- Load behavior -->
+<script src="https://unpkg.com/behavior-fn/dist/cdn/reveal.js"></script>
+
+<!-- Setup code needed -->
+<script>
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+</script>
+
+<!-- Explicit is attribute required -->
+<dialog is="behavioral-reveal" behavior="reveal" id="modal">Content</dialog>
+```
+
+**User Experience After (Zero-Config):**
+```html
+<!-- Just load the behavior - that's it! -->
+<script src="https://unpkg.com/behavior-fn/dist/cdn/reveal.js"></script>
+
+<!-- Works immediately - no setup, no is attribute -->
+<dialog behavior="reveal" id="modal">Content</dialog>
+<button commandfor="modal" command="--toggle">Open</button>
+```
+
+**How It Works:**
+
+Each individual behavior bundle (e.g., `reveal.js`) now:
+1. **Includes core runtime** - `registerBehavior`, `defineBehavioralHost`, `enableAutoLoader` bundled inline
+2. **Auto-registers the behavior** - Calls `registerBehavior('reveal', revealBehaviorFactory)` on load
+3. **Auto-enables the auto-loader** - Calls `enableAutoLoader()` on load
+4. **Exposes global API** - Both namespaced (`BehaviorFN.*`) and direct (`defineBehavioralHost()`)
+
+**Implementation:**
+```typescript
+// Standalone entry generated for each behavior (e.g., reveal.js)
+import { registerBehavior, getBehavior, defineBehavioralHost } from "...core...";
+import { enableAutoLoader } from "...auto-loader...";
+import { revealBehaviorFactory } from "...behavior...";
+
+if (typeof window !== 'undefined') {
+  // Setup global namespace
+  window.BehaviorFN = {
+    registerBehavior, getBehavior, defineBehavioralHost, enableAutoLoader,
+    behaviorRegistry: new Map(),
+  };
+  
+  // Also expose globally for convenience
+  window.registerBehavior = registerBehavior;
+  window.defineBehavioralHost = defineBehavioralHost;
+  window.enableAutoLoader = enableAutoLoader;
+  
+  // Auto-register this behavior
+  registerBehavior('reveal', revealBehaviorFactory);
+  
+  // Auto-enable the auto-loader (zero-config!)
+  enableAutoLoader();
+  
+  console.log('✅ BehaviorFN: Loaded "reveal" behavior with auto-loader enabled');
+}
+```
+
+**All-in-one bundle also updated:**
+- `behavior-fn.all.js` now calls `enableAutoLoader()` automatically
+- Zero-config path for all behaviors at once
+
+**Benefits:**
+- ✅ **Ultimate DX** - Just load a script and use behaviors
+- ✅ **No mental overhead** - No need to learn `defineBehavioralHost()` or `is` attributes
+- ✅ **Fastest path to value** - Working modal in 3 lines of HTML
+- ✅ **Perfect for demos/prototypes** - CodePen, JSFiddle, quick experiments
+- ✅ **Familiar pattern** - Like Alpine.js (`x-data`) or HTMX (`hx-get`)
+
+**Tradeoffs:**
+- ⚠️ Each individual behavior bundle includes core runtime (~7KB baseline)
+- ⚠️ Loading multiple individual behaviors means code duplication
+- ⚠️ Auto-loader has ~2KB overhead + MutationObserver cost
+- ⚠️ Less explicit (harder to debug if something goes wrong)
+
+**Recommendation:**
+- **Prototypes/demos:** Use individual behaviors with auto-loader (zero-config)
+- **Multiple behaviors:** Use `behavior-fn.all.js` (shared core, still zero-config)
+- **Production apps:** Use CLI + manual `defineBehavioralHost()` (explicit control)
+
+**Alternative Considered:** Keep auto-loader opt-in
+- ❌ Requires users to call `enableAutoLoader()` manually
+- ❌ Still need to understand `is` attributes if they forget
+- ❌ Less convenient for quick experiments
+
+**Why this is safe:**
+- Auto-loader is already opt-in for CLI users (via import)
+- CDN users prioritize convenience over control
+- Advanced users can still disable it: `// TODO: Add opt-out mechanism if needed`
+- MutationObserver overhead is minimal for typical use cases
 
 ---
 

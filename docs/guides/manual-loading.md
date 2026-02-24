@@ -1,17 +1,16 @@
-# Manual Loading via CDN
+# CDN Usage
 
-This guide explains how to use BehaviorFN behaviors **without the CLI** by loading them directly from a CDN using simple `<script>` tags.
+Load BehaviorFN behaviors directly from a CDN using `<script>` tags.
 
 Perfect for:
-- **Quick prototypes** and demos
-- **Static HTML sites** without build tools
-- **Learning** how behaviors work
-- **CodePen, JSFiddle**, and similar platforms
-- **No npm, no bundler, no CLI**
+- Quick prototypes and demos
+- Static HTML sites without build tools
+- Learning and experimentation
+- CodePen, JSFiddle, and similar platforms
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```html
 <!DOCTYPE html>
@@ -21,89 +20,78 @@ Perfect for:
   <title>BehaviorFN CDN Example</title>
 </head>
 <body>
-  <!-- Your HTML with behaviors -->
-  <dialog is="behavioral-reveal" id="modal" behavior="reveal">
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  
+  <dialog behavior="reveal" id="modal">
     <h2>Hello Modal!</h2>
-    <p>Loaded from CDN—no build tools!</p>
+    <p>Loaded from CDN</p>
     <button commandfor="modal" command="--hide">Close</button>
   </dialog>
   
-  <button commandfor="modal" command="--toggle">
-    Open Modal
-  </button>
-
-  <!-- Load BehaviorFN from CDN -->
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-  
-  <!-- Initialize -->
-  <script>
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
-  </script>
+  <button commandfor="modal" command="--toggle">Open Modal</button>
 </body>
 </html>
 ```
 
-**That's it!** Save this HTML file, open it in a browser, and it works.
-
 ---
 
-## 📦 CDN Options
+## Loading Options
 
-### Option 1: All-in-One Bundle (Easiest)
-
-Load everything at once:
-
-```html
-<!-- Loads core + all behaviors (~20KB gzipped) -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-
-<script>
-  // All behaviors are pre-registered
-  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
-</script>
-```
-
-**Pros:**
-- ✅ Single script tag
-- ✅ All behaviors included
-- ✅ Simple setup
-
-**Cons:**
-- ⚠️ Larger file size (loads all behaviors even if you don't use them)
-
----
-
-### Option 2: Core + Individual Behaviors (Optimized)
+### Individual Behaviors
 
 Load only what you need:
 
 ```html
-<!-- Load core runtime first (~5KB gzipped) -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
-
-<!-- Load specific behaviors you need -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
 
-<script>
-  // Behaviors auto-register when loaded
-  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', []);
-</script>
+<dialog behavior="reveal logger" id="modal">
+  <h2>Hello!</h2>
+</dialog>
+<button commandfor="modal" command="--toggle">Toggle</button>
 ```
 
-**Pros:**
-- ✅ Smaller file size
-- ✅ Only load what you need
-- ✅ Better performance
-
-**Cons:**
-- ⚠️ Multiple script tags
+Each behavior bundle (~10KB) is self-contained and works independently.
 
 ---
 
-### Option 3: ES Modules from CDN
+### All-in-One Bundle
 
-Use modern ES modules:
+Load all behaviors at once:
+
+```html
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+
+<dialog behavior="reveal" id="modal">Content</dialog>
+<button commandfor="modal" command="--toggle">Toggle</button>
+```
+
+Single bundle (~20KB gzipped) with all behaviors included.
+
+---
+
+### Manual Registration (Advanced)
+
+For explicit control over registration:
+
+```html
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+
+<script>
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+</script>
+
+<dialog is="behavioral-reveal" behavior="reveal" id="modal">
+  Content
+</dialog>
+```
+
+Use when you need explicit control over behavioral host registration.
+
+---
+
+### ES Modules
 
 ```html
 <script type="module">
@@ -119,26 +107,20 @@ Use modern ES modules:
 </script>
 ```
 
-**Pros:**
-- ✅ Modern standard
-- ✅ Tree-shakeable
-- ✅ Works with import maps
-
-**Cons:**
-- ⚠️ Requires module support (all modern browsers)
+Modern import syntax with tree-shaking support.
 
 ---
 
-## 🎯 Complete Examples
+## Examples
 
-### Example 1: Modal Dialog
+### Modal Dialog
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Modal Dialog Example</title>
+  <title>Modal Dialog</title>
   <style>
     dialog {
       padding: 30px;
@@ -163,36 +145,31 @@ Use modern ES modules:
 <body>
   <h1>Modal Dialog with Reveal Behavior</h1>
   
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  
   <button commandfor="my-modal" command="--toggle">
     Open Modal
   </button>
   
-  <dialog is="behavioral-reveal" id="my-modal" behavior="reveal">
+  <dialog id="my-modal" behavior="reveal">
     <h2>🎉 Success!</h2>
-    <p>This modal is powered by BehaviorFN loaded from CDN.</p>
+    <p>This modal is powered by BehaviorFN from CDN.</p>
     <button commandfor="my-modal" command="--hide">Close</button>
   </dialog>
-
-  <!-- Load from CDN -->
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-  
-  <script>
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
-  </script>
 </body>
 </html>
 ```
 
 ---
 
-### Example 2: Popover Menu
+### Popover Menu
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Popover Menu Example</title>
+  <title>Popover Menu</title>
   <style>
     [popover] {
       padding: 20px;
@@ -205,14 +182,13 @@ Use modern ES modules:
 <body>
   <h1>Popover Menu</h1>
   
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  
   <button commandfor="menu" command="--toggle">
     Show Menu
   </button>
   
-  <div is="behavioral-reveal" 
-       id="menu" 
-       behavior="reveal" 
-       popover="auto">
+  <div id="menu" behavior="reveal" popover="auto">
     <h3>Menu</h3>
     <ul>
       <li>📄 New Document</li>
@@ -220,32 +196,27 @@ Use modern ES modules:
       <li>⚙️ Settings</li>
     </ul>
   </div>
-
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-  
-  <script>
-    BehaviorFN.defineBehavioralHost('div', 'behavioral-reveal', []);
-  </script>
 </body>
 </html>
 ```
 
 ---
 
-### Example 3: HTMX-Style Requests
+### HTMX-Style Requests
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Request Behavior Example</title>
+  <title>Request Behavior</title>
 </head>
 <body>
   <h1>Search with Request Behavior</h1>
   
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/request.js"></script>
+  
   <input 
-    is="behavioral-request"
     behavior="request"
     type="search"
     placeholder="Search..."
@@ -256,43 +227,32 @@ Use modern ES modules:
   >
   
   <div id="results"></div>
-
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-  
-  <script>
-    BehaviorFN.defineBehavioralHost('input', 'behavioral-request', [
-      'request-url',
-      'request-method',
-      'request-trigger',
-      'request-target',
-      'request-debounce',
-    ]);
-  </script>
 </body>
 </html>
 ```
 
 ---
 
-### Example 4: Multiple Behaviors
+### Multiple Behaviors
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Multiple Behaviors Example</title>
+  <title>Multiple Behaviors</title>
 </head>
 <body>
   <h1>Dialog with Multiple Behaviors</h1>
+  
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
   
   <button commandfor="logged-modal" command="--toggle">
     Open Modal
   </button>
   
-  <!-- Multiple behaviors: reveal + logger -->
-  <dialog is="behavioral-logger-reveal" 
-          id="logged-modal" 
+  <dialog id="logged-modal" 
           behavior="reveal logger"
           log-events="command,click"
           log-prefix="[Modal]">
@@ -301,74 +261,48 @@ Use modern ES modules:
     <p>Check your browser console to see logged events!</p>
     <button commandfor="logged-modal" command="--hide">Close</button>
   </dialog>
-
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-  
-  <script>
-    // Note: behaviors sorted alphabetically in is="behavioral-logger-reveal"
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', [
-      'log-events',
-      'log-prefix',
-      'log-attrs',
-    ]);
-  </script>
 </body>
 </html>
 ```
 
 ---
 
-## 🧩 Available CDN Bundles
+## Available Bundles
 
-All bundles are available on jsdelivr and unpkg:
+All bundles are available on unpkg and jsdelivr:
 
-### Core Runtime
-```html
-<!-- UMD/IIFE bundle -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+**Individual Behaviors:**
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js`
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js`
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/request.js`
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/input-watcher.js`
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/compute.js`
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/element-counter.js`
 
-<!-- ES Module -->
-<script type="module">
-  import * as BehaviorFN from 'https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
-</script>
-```
+**All-in-One:**
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js`
 
-### Individual Behaviors
-```html
-<!-- reveal -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+**Core Runtime (for manual registration):**
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js`
 
-<!-- logger -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
-
-<!-- request -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/request.js"></script>
-
-<!-- input-watcher -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/input-watcher.js"></script>
-
-<!-- compute -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/compute.js"></script>
-
-<!-- element-counter -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/element-counter.js"></script>
-```
-
-### All-in-One
-```html
-<!-- Everything -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-```
+**ES Modules:**
+- Add `.esm.js` extension for any bundle (e.g., `reveal.esm.js`)
 
 ---
 
-## 📚 API Reference
+## API Reference
 
-When loaded via CDN, BehaviorFN exposes a global `BehaviorFN` object:
+### Global Object
 
-### `BehaviorFN.registerBehavior(name, factory)`
+CDN bundles expose `window.BehaviorFN`:
 
-Register a behavior factory function:
+```javascript
+BehaviorFN.registerBehavior(name, factory)
+BehaviorFN.getBehavior(name)
+BehaviorFN.defineBehavioralHost(tagName, customElementName, observedAttributes)
+```
+
+### Register Behavior
 
 ```javascript
 BehaviorFN.registerBehavior('my-behavior', (el) => {
@@ -382,6 +316,17 @@ BehaviorFN.registerBehavior('my-behavior', (el) => {
   };
 });
 ```
+
+### Define Behavioral Host
+
+```javascript
+BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+```
+
+Parameters:
+- `tagName` - Base HTML element
+- `customElementName` - Custom element name (must be `behavioral-*`)
+- `observedAttributes` - Array of attributes to observe (optional)
 
 ### `BehaviorFN.getBehavior(name)`
 
@@ -448,117 +393,81 @@ The `is` attribute is **required** for behaviors to load:
 <dialog is="behavioral-logger-reveal" behavior="reveal logger">
 ```
 
-### Invoker Commands API
+### Invoker Commands
 
-BehaviorFN uses the native [Invoker Commands API](https://open-ui.org/components/invokers.explainer/):
+BehaviorFN uses the [Invoker Commands API](https://open-ui.org/components/invokers.explainer/):
 
 ```html
-<!-- Trigger button (no behavior needed) -->
-<button commandfor="modal" command="--toggle">
-  Toggle Modal
-</button>
-
-<!-- Target element (has behavior) -->
-<dialog is="behavioral-reveal" id="modal" behavior="reveal">
-  Content
-</dialog>
+<button commandfor="modal" command="--toggle">Toggle Modal</button>
+<dialog id="modal" behavior="reveal">Content</dialog>
 ```
 
-**Available commands** (behavior-specific):
-
-**Reveal behavior:**
-- `--show` - Show the element
-- `--hide` - Hide the element
+**Reveal commands:**
+- `--show` - Show element
+- `--hide` - Hide element
 - `--toggle` - Toggle visibility
 
-**Request behavior:**
-- `--trigger` - Trigger the HTTP request
+**Request commands:**
+- `--trigger` - Trigger HTTP request
 - `--close-sse` - Close SSE connection
 
 ### Event Handlers
 
-Behaviors can define event handlers that are automatically wired:
+Behaviors return objects with event handlers:
 
 ```javascript
 BehaviorFN.registerBehavior('click-counter', (el) => {
   let count = 0;
   
   return {
-    connectedCallback() {
-      el.textContent = `Clicks: ${count}`;
-    },
-    
-    // onClick -> 'click' event
     onClick() {
       count++;
       el.textContent = `Clicks: ${count}`;
-    },
-    
-    // onCommand -> 'command' event
-    onCommand(e) {
-      if (e.detail.command === '--reset') {
-        count = 0;
-        el.textContent = `Clicks: ${count}`;
-      }
-    },
+    }
   };
 });
 ```
 
-**Naming convention:**
-- `onCommand` → `command` event
-- `onClick` → `click` event
-- `onMouseenter` → `mouseenter` event
-- `onInput` → `input` event
+Handler naming: `onClick` → `'click'` event, `onCommand` → `'command'` event
 
 ---
 
-## 🛠️ Advanced Usage
+## Advanced Usage
 
-### Creating Custom Behaviors
+### Custom Behaviors
 
-You can define custom behaviors inline:
+Define behaviors inline:
 
 ```html
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
 
 <script>
-  // Define a custom click counter behavior
   BehaviorFN.registerBehavior('click-counter', (el) => {
     let count = 0;
-    
     return {
-      connectedCallback() {
-        el.textContent = `Clicks: ${count}`;
-      },
-      
       onClick() {
         count++;
         el.textContent = `Clicks: ${count}`;
-      },
+      }
     };
   });
   
-  // Define host
   BehaviorFN.defineBehavioralHost('div', 'behavioral-click-counter', []);
 </script>
 
-<!-- Use it -->
 <div is="behavioral-click-counter" behavior="click-counter">
   Click me!
 </div>
 ```
 
-### Using with Import Maps
-
-For better control over CDN URLs:
+### Import Maps
 
 ```html
 <script type="importmap">
 {
   "imports": {
-    "behavior-fn": "https://cdn.jsdelivr.net/npm/behavior-fn@0.1.0/dist/cdn/behavior-fn.esm.js",
-    "behavior-fn/reveal": "https://cdn.jsdelivr.net/npm/behavior-fn@0.1.0/dist/cdn/reveal.esm.js"
+    "behavior-fn": "https://unpkg.com/behavior-fn@0.1.0/dist/cdn/behavior-fn.esm.js",
+    "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.1.0/dist/cdn/reveal.esm.js"
   }
 }
 </script>
@@ -572,136 +481,62 @@ For better control over CDN URLs:
 </script>
 ```
 
-### Auto-Loader with CDN
-
-Use the auto-loader to avoid specifying `is` attributes:
-
-```html
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-
-<script>
-  // Enable auto-loader
-  BehaviorFN.enableAutoLoader();
-</script>
-
-<!-- No is attribute needed! -->
-<dialog id="modal" behavior="reveal">
-  Content here
-</dialog>
-
-<button commandfor="modal" command="--toggle">Toggle</button>
-```
-
-**Note:** Auto-loader adds ~2KB and uses MutationObserver. See [Auto-Loader Guide](./auto-loader.md) for details.
-
 ---
 
-## 🌐 Browser Compatibility
+## Browser Compatibility
 
-### ES Modules (Option 3)
-✅ All modern browsers support ES modules
-
-### Custom Built-in Elements (Required for `is` attribute)
-⚠️ **Safari doesn't support `is` attribute**
-
-**Workaround:** Use the polyfill:
+**Custom Built-in Elements:**
+Safari requires polyfill for `is` attribute:
 
 ```html
-<!-- Load polyfill before BehaviorFN -->
-<script src="https://unpkg.com/@ungap/custom-elements"></script>
-
-<!-- Then load BehaviorFN -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/@ungap/custom-elements@latest"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 ```
 
-### Invoker Commands API
-⚠️ Limited support (Chrome 114+, experimental)
-
-**Workaround:** Manual command dispatching:
+**Invoker Commands API:**
+Limited support (Chrome 114+). Fallback:
 
 ```html
 <button id="trigger">Open Modal</button>
-<dialog is="behavioral-reveal" id="modal" behavior="reveal">Content</dialog>
+<dialog id="modal" behavior="reveal">Content</dialog>
 
 <script>
   document.getElementById('trigger').addEventListener('click', () => {
-    const modal = document.getElementById('modal');
-    modal.dispatchEvent(new CustomEvent('command', {
-      bubbles: true,
-      detail: { command: '--toggle' }
-    }));
+    document.getElementById('modal').dispatchEvent(
+      new CustomEvent('command', {
+        bubbles: true,
+        detail: { command: '--toggle' }
+      })
+    );
   });
 </script>
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### Behaviors Not Working
+**Behaviors not working:**
+- Check browser console for errors
+- Verify script loaded before DOM elements
+- For Safari, add custom elements polyfill
 
-**Check:**
-1. ✅ Is the `is` attribute present?
-2. ✅ Did you call `defineBehavioralHost()`?
-3. ✅ Is the script loaded before the element?
-4. ✅ Check browser console for errors
-
-**Solution:** Initialize after DOM is ready:
-
-```html
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
-  });
-</script>
-```
-
-### Commands Not Working
-
-**Check:**
-1. ✅ Does `commandfor` match the element `id`?
-2. ✅ Is the `command` attribute correct (e.g., `--toggle`)?
-3. ✅ Does the browser support Invoker Commands API?
-
-**Solution:** Use manual dispatching (see Browser Compatibility above)
-
-### `BehaviorFN is not defined`
-
-**Cause:** Script not loaded or script tag order is wrong
-
-**Solution:** Ensure the core script loads first:
-
-```html
-<!-- Load core first -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
-
-<!-- Then load behaviors -->
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
-
-<!-- Then initialize -->
-<script>
-  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
-</script>
-```
+**Commands not working:**
+- Verify `commandfor` matches element `id`
+- Check command name (e.g., `--toggle`)
+- Try manual event dispatching (see Browser Compatibility)
 
 ---
 
-## 📊 Bundle Sizes
+## Bundle Sizes
 
 Approximate gzipped sizes:
 
-| Bundle | Size (gzipped) |
-|--------|----------------|
-| `behavior-fn.js` (core) | ~5 KB |
-| `reveal.js` | ~2 KB |
-| `logger.js` | ~1 KB |
-| `request.js` | ~3 KB |
-| `input-watcher.js` | ~2 KB |
-| `compute.js` | ~2 KB |
-| `element-counter.js` | ~1 KB |
-| `behavior-fn.all.js` (everything) | ~18 KB |
+| Bundle | Size |
+|--------|------|
+| Individual behaviors | ~10 KB each |
+| `behavior-fn.all.js` | ~20 KB |
+| Core only | ~7 KB |
 
 ---
 
@@ -747,31 +582,16 @@ BehaviorFN is available on multiple CDNs:
 
 ---
 
-## 💡 When to Use CDN vs CLI
+## CDN vs CLI
 
-### Use CDN (Manual Loading) When:
-- ✅ Simple HTML projects without build tools
-- ✅ Quick prototypes and demos
-- ✅ Learning and experimenting
-- ✅ CodePen, JSFiddle, or similar platforms
-- ✅ You want zero configuration
+**Use CDN for:**
+- Quick prototypes and demos
+- Static HTML sites
+- Learning and experimentation
+- CodePen, JSFiddle
 
-### Use CLI When:
-- ✅ You have a build tool (Vite, Webpack, etc.)
-- ✅ You want customization and control
-- ✅ You need TypeScript support
-- ✅ You want schema transformation (TypeBox → Zod)
-- ✅ Production applications
-
----
-
-## 📖 Next Steps
-
-- **[Using Behaviors Guide](./using-behaviors.md)** - Learn more about behaviors
-- **[Auto-Loader Guide](./auto-loader.md)** - Skip the `is` attribute
-- **[Architecture Overview](../architecture/behavior-system.md)** - How it works
-- **[Contributing Guide](./contributing-behaviors.md)** - Create your own behaviors
-
----
-
-**Happy coding with CDN! 🎉**
+**Use CLI for:**
+- Production applications
+- TypeScript projects
+- Build tool integration
+- Code customization
