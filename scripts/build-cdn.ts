@@ -116,18 +116,36 @@ async function buildCDNBundles() {
 async function buildAllInOne(behaviorDirs: string[]) {
   const allInOneEntry = join(cdnOutDir, "_all-in-one-entry.js");
   
+  // Discover actual export names for each behavior
+  const { readFile } = await import("node:fs/promises");
+  const behaviorExports: Array<{ name: string; exportName: string }> = [];
+  
+  for (const name of behaviorDirs) {
+    const behaviorPath = join(registryDir, name, "behavior.ts");
+    const content = await readFile(behaviorPath, "utf-8");
+    
+    // Match: export const <name>BehaviorFactory OR export const <name>Behavior
+    const match = content.match(/export\s+const\s+(\w+(?:BehaviorFactory|Behavior))\s*[:=]/);
+    
+    if (match) {
+      behaviorExports.push({ name, exportName: match[1] });
+    } else {
+      console.warn(`⚠️  Could not find export in ${name}/behavior.ts, skipping...`);
+    }
+  }
+  
   // Create temporary entry file that imports everything
   const imports = [
     `import * as core from "${join(registryDir, "behavior-registry.ts")}";`,
     `import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";`,
     `import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";`,
-    ...behaviorDirs.map((name) => 
-      `import { ${toCamelCase(name)}BehaviorFactory } from "${join(registryDir, name, "behavior.ts")}";`
+    ...behaviorExports.map(({ name, exportName }) => 
+      `import { ${exportName} } from "${join(registryDir, name, "behavior.ts")}";`
     ),
   ].join("\n");
 
-  const registrations = behaviorDirs.map((name) => 
-    `  core.registerBehavior("${name}", ${toCamelCase(name)}BehaviorFactory);`
+  const registrations = behaviorExports.map(({ name, exportName }) => 
+    `  core.registerBehavior("${name}", ${exportName});`
   ).join("\n");
 
   const entryCode = `
@@ -141,7 +159,7 @@ if (typeof window !== 'undefined') {
     defineBehavioralHost,
     enableAutoLoader,
     behaviors: {
-${behaviorDirs.map(name => `      "${name}": ${toCamelCase(name)}BehaviorFactory,`).join("\n")}
+${behaviorExports.map(({ name, exportName }) => `      "${name}": ${exportName},`).join("\n")}
     },
   };
   
@@ -154,7 +172,7 @@ ${behaviorDirs.map(name => `      "${name}": ${toCamelCase(name)}BehaviorFactory
   // Auto-register all behaviors
 ${registrations}
   
-  console.log("✅ BehaviorFN loaded with ${behaviorDirs.length} behaviors");
+  console.log("✅ BehaviorFN loaded with ${behaviorExports.length} behaviors");
 }
 `;
 
