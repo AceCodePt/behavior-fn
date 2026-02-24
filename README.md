@@ -348,6 +348,59 @@ Count matching elements in the DOM and display the count reactively.
 
 ---
 
+### 🎨 **json-template**
+Data binding and template rendering for JSON data sources with implicit template patterns.
+
+**Attributes:**
+- `json-template-for` — ID of the `<script type="application/json">` element containing the data (like `for` in `<label>`)
+- `data-key` — JSON path for data binding (on descendant elements)
+- `json-template-item` — ID of template for array items (optional - can use implicit nested template)
+
+**Example:**
+```html
+<!-- Data source -->
+<script type="application/json" id="user-data">
+  {
+    "name": "Sagi",
+    "projects": [
+      {"title": "BehaviorFN", "stars": 100},
+      {"title": "AutoWC", "stars": 50}
+    ]
+  }
+</script>
+
+<!-- Renderer with implicit template -->
+<div 
+  is="behavioral-json-template"
+  behavior="json-template" 
+  json-template-for="user-data"
+>
+  <template>
+    <h2 data-key="name"></h2>
+    
+    <!-- Array with implicit nested template -->
+    <ul data-key="projects">
+      <template>
+        <li>
+          <span data-key="title"></span>: <span data-key="stars"></span> ⭐
+        </li>
+      </template>
+    </ul>
+  </template>
+</div>
+```
+
+**Features:**
+- Implicit template pattern (like `<input>` in `<label>`)
+- Watches data source for changes (MutationObserver)
+- Nested path resolution: `user.profile.name`, `items[0].title`
+- Implicit array templates: Nested `<template>` for array items
+- Explicit template IDs: Reusable templates via `json-template-item`
+- Template preservation: Templates never deleted, always available for re-rendering
+- Recursive nesting: Arrays in arrays in objects - all supported
+
+---
+
 ### 🪵 **logger**
 Debug helper that logs interaction events to the console.
 

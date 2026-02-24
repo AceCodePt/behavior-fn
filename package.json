@@ -1,7 +1,7 @@
 {
 	"name": "behavior-fn",
 	"description": "Copy-paste behavior mixins for Web Components - Own your code, not your dependencies",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"type": "module",
 	"bin": {
 		"behavior-fn": "./dist/index.js"
