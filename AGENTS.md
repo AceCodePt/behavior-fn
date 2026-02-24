@@ -295,6 +295,18 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 - **TypeScript:** Strict mode enabled. No `any`. Use `unknown` and narrow types.
 - **Behavior Naming:** Behaviors must be named in kebab-case (e.g., `reveal`, `input-watcher`).
 - **Event Handling:** Behavior implementations must return an object with camelCase event handlers (e.g., `onCommand`, `onClick`, `onMouseEnter`) which are automatically wired up by the host using standard `addEventListener`.
+- **Invoker Commands API:** We use the native **Invoker Commands API** (`commandfor` and `command` attributes) for declarative button controls. Trigger buttons do NOT need the `is` attribute—only elements with `behavior` attributes need `is` based on their behaviors.
+  ```html
+  <!-- Trigger (uses Invoker Commands - no is needed) -->
+  <button commandfor="modal" command="--toggle">Open</button>
+  
+  <!-- Target (has behavior - needs is="behavioral-{behavior-names}") -->
+  <dialog is="behavioral-reveal" id="modal" behavior="reveal">Content</dialog>
+  ```
+- **Behavioral Hosts:** Only elements with the `behavior` attribute require the `is` attribute to activate behavior loading. The `is` value is `behavioral-{sorted-behavior-names}`:
+  - Single: `behavior="reveal"` → `is="behavioral-reveal"`
+  - Multiple: `behavior="reveal logger"` → `is="behavioral-logger-reveal"` (sorted alphabetically)
+  - Without the `is` attribute, behaviors will not load.
 - **Zod/TypeBox:** Use for all runtime validation.
 - **No External Dependencies:** Behaviors should be dependency-free whenever possible.
 - **Testing:** Use `vitest` and `jsdom`. Every behavior **MUST** have tests.
@@ -316,8 +328,17 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 
 1.  **Single Source of Truth (DRY):** Metadata (like `observedAttributes`) should be derived programmatically from the Schema (the Contract). Avoid manual duplication.
 2.  **Standard Web APIs:** Prefer standard DOM mechanisms (Events, `addEventListener`, `MutationObserver`) over custom method delegation or proxies. This ensures better compatibility and standard behavior.
-3.  **Test Harness Abstraction:** Centralize test host creation logic. Use helpers like `getObservedAttributes` to keep tests resilient to changes.
-4.  **Type Safety:** Avoid `as any`. Use `keyof typeof` and proper type narrowing for dynamic property access to catch runtime errors early.
+3.  **Invoker Commands API:** We leverage the native **Invoker Commands API** for semi-interactivity. This is a web standard that provides declarative control over interactive elements using `commandfor` and `command` attributes. Benefits:
+    - **Zero JavaScript Required:** Buttons can control behaviors declaratively
+    - **Built-in Accessibility:** ARIA attributes are automatically managed
+    - **Standard Behavior:** Works with native browser features (dialogs, popovers)
+    - **Clear Separation:** Triggers (with `commandfor`) vs. Targets (with `behavior`)
+4.  **Behavioral Host Activation:** The `is` attribute is **required** for behavior loading. Only elements with the `behavior` attribute need `is` based on their behaviors. The `is` value format is `behavioral-{sorted-behavior-names}`. For example:
+    - `behavior="reveal"` → `is="behavioral-reveal"`
+    - `behavior="reveal logger"` → `is="behavioral-logger-reveal"` (sorted alphabetically)
+    - Trigger elements using the Invoker Commands API do NOT need the `is` attribute.
+5.  **Test Harness Abstraction:** Centralize test host creation logic. Use helpers like `getObservedAttributes` to keep tests resilient to changes.
+6.  **Type Safety:** Avoid `as any`. Use `keyof typeof` and proper type narrowing for dynamic property access to catch runtime errors early.
 
 ## Agent Roles
 
