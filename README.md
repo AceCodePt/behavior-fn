@@ -81,13 +81,50 @@ registerBehavior("reveal", RevealBehavior);
 <button is="behavioral-button" behavior="reveal">Click me</button>
 ```
 
-## Creating a New Behavior
+## Contributing Behaviors
 
-To contribute a new behavior to this repository:
+Want to contribute a new behavior to the registry? We've made it easy!
 
-1.  **Naming:** Use kebab-case (e.g., `reveal`).
-2.  Create a folder in `registry/behaviors/<name>/`.
-3.  Add `_behavior-definition.ts` (the contract).
-4.  Add `behavior.ts` (the logic).
-5.  Add `behavior.test.ts` (the tests).
-6.  Add an entry to `registry/behaviors-registry.json`.
+### Quick Start
+
+```bash
+pnpm build
+node dist/index.js create my-behavior-name
+```
+
+This scaffolds a complete behavior with:
+- Schema definition (`schema.ts`)
+- Implementation template (`behavior.ts`)
+- Test scaffolding (`behavior.test.ts`)
+- Automatic registry updates
+
+### Full Guide
+
+For a comprehensive guide on creating, implementing, testing, and managing behaviors, see:
+
+📖 **[Contributing Behaviors Guide](docs/guides/contributing-behaviors.md)**
+
+The guide covers:
+- Schema design patterns
+- Event handler implementation
+- Testing strategies
+- Common behavior patterns
+- Best practices
+
+## Removing a Behavior
+
+To remove a behavior from the registry:
+
+```bash
+pnpm build
+node dist/index.js remove my-behavior-name
+```
+
+This will:
+
+1.  Validate the behavior name exists in the registry.
+2.  Prevent removal of the `core` behavior (required by the system).
+3.  Delete the behavior directory from `registry/behaviors/<name>/`.
+4.  Automatically update `registry/behaviors-registry.json`.
+
+**Note:** The remove command cannot be undone. Make sure you have committed any work before removing a behavior.
