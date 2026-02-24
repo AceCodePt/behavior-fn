@@ -21,6 +21,7 @@ interface BuildTarget {
   entry: string;
   outfile: string;
   globalName: string;
+  exportName?: string; // Actual export name from the behavior file
 }
 
 async function buildCDNBundles() {
@@ -47,13 +48,29 @@ async function buildCDNBundles() {
     globalName: "BehaviorFN",
   });
 
+  // Discover export names for each behavior
+  const { readFile } = await import("node:fs/promises");
+  
   // Individual behavior bundles
   for (const behaviorName of behaviorDirs) {
+    const behaviorPath = join(registryDir, behaviorName, "behavior.ts");
+    const content = await readFile(behaviorPath, "utf-8");
+    
+    // Match: export const <name>BehaviorFactory OR export const <name>Behavior
+    const match = content.match(/export\s+const\s+(\w+(?:BehaviorFactory|Behavior))\s*[:=]/);
+    const exportName = match ? match[1] : null;
+    
+    if (!exportName) {
+      console.warn(`⚠️  Could not find export in ${behaviorName}/behavior.ts, skipping...`);
+      continue;
+    }
+    
     targets.push({
       name: behaviorName,
-      entry: join(registryDir, behaviorName, "behavior.ts"),
+      entry: behaviorPath,
       outfile: join(cdnOutDir, `${behaviorName}.js`),
       globalName: `BehaviorFN_${toPascalCase(behaviorName)}`,
+      exportName,
     });
   }
 
@@ -62,9 +79,59 @@ async function buildCDNBundles() {
     console.log(`📦 Building ${target.name}...`);
     
     try {
+      const isCoreBuild = target.name === "core";
+      const isBehaviorBuild = !isCoreBuild;
+      
+      // For individual behaviors, create a standalone entry that includes core + behavior
+      let actualEntry = target.entry;
+      
+      if (isBehaviorBuild) {
+        // Create temporary entry file that includes core runtime + behavior + auto-registration
+        const standaloneEntry = join(cdnOutDir, `_${target.name}-standalone.js`);
+        const standaloneCode = `
+// Import core runtime (will be bundled)
+import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
+import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
+
+// Import behavior
+import { ${target.exportName} } from "${target.entry}";
+
+// Setup global namespace
+if (typeof window !== 'undefined') {
+  // Ensure BehaviorFN namespace exists
+  if (!window.BehaviorFN) {
+    window.BehaviorFN = {
+      registerBehavior,
+      getBehavior,
+      defineBehavioralHost,
+      enableAutoLoader,
+      behaviorRegistry: new Map(),
+    };
+    
+    // Also expose functions globally for convenience
+    window.registerBehavior = registerBehavior;
+    window.getBehavior = getBehavior;
+    window.defineBehavioralHost = defineBehavioralHost;
+    window.enableAutoLoader = enableAutoLoader;
+  }
+  
+  // Auto-register this behavior
+  registerBehavior('${target.name}', ${target.exportName});
+  
+  // Auto-enable the auto-loader for zero-config DX
+  enableAutoLoader();
+  
+  console.log('✅ BehaviorFN: Loaded "${target.name}" behavior with auto-loader enabled');
+}
+`;
+        await writeFile(standaloneEntry, standaloneCode);
+        actualEntry = standaloneEntry;
+      }
+      
       // Build IIFE version
       await build({
-        entryPoints: [target.entry],
+        entryPoints: [actualEntry],
         bundle: true,
         format: "iife",
         globalName: target.globalName,
@@ -73,12 +140,6 @@ async function buildCDNBundles() {
         target: "es2020",
         minify: true,
         sourcemap: true,
-        // Automatically register behaviors when loaded
-        footer: {
-          js: target.name !== "core" 
-            ? generateAutoRegisterFooter(target.name)
-            : "",
-        },
       });
       
       console.log(`✅ Built ${target.outfile} (IIFE)`);
@@ -86,7 +147,7 @@ async function buildCDNBundles() {
       // Build ESM version
       const esmOutfile = target.outfile.replace('.js', '.esm.js');
       await build({
-        entryPoints: [target.entry],
+        entryPoints: [actualEntry],
         bundle: true,
         format: "esm",
         outfile: esmOutfile,
@@ -172,7 +233,10 @@ ${behaviorExports.map(({ name, exportName }) => `      "${name}": ${exportName},
   // Auto-register all behaviors
 ${registrations}
   
-  console.log("✅ BehaviorFN loaded with ${behaviorExports.length} behaviors");
+  // Auto-enable the auto-loader for zero-config DX
+  enableAutoLoader();
+  
+  console.log("✅ BehaviorFN loaded with ${behaviorExports.length} behaviors (auto-loader enabled)");
 }
 `;
 
@@ -411,15 +475,7 @@ ${behaviorDirs.map(name => `    <li><code>${name}.js</code></li>`).join("\n")}
   console.log(`✅ Generated ${join(cdnOutDir, "index.html")}\n`);
 }
 
-function generateAutoRegisterFooter(behaviorName: string): string {
-  return `
-// Auto-register when loaded
-if (typeof window !== 'undefined' && window.BehaviorFN) {
-  window.BehaviorFN.registerBehavior('${behaviorName}', ${toPascalCase(behaviorName)}.${toCamelCase(behaviorName)}BehaviorFactory);
-  console.log('✅ Registered behavior: ${behaviorName}');
-}
-`;
-}
+
 
 function toCamelCase(str: string): string {
   return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
