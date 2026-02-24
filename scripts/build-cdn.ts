@@ -57,11 +57,12 @@ async function buildCDNBundles() {
     });
   }
 
-  // Build each target
+  // Build each target (both IIFE and ESM)
   for (const target of targets) {
     console.log(`📦 Building ${target.name}...`);
     
     try {
+      // Build IIFE version
       await build({
         entryPoints: [target.entry],
         bundle: true,
@@ -80,7 +81,22 @@ async function buildCDNBundles() {
         },
       });
       
-      console.log(`✅ Built ${target.outfile}\n`);
+      console.log(`✅ Built ${target.outfile} (IIFE)`);
+
+      // Build ESM version
+      const esmOutfile = target.outfile.replace('.js', '.esm.js');
+      await build({
+        entryPoints: [target.entry],
+        bundle: true,
+        format: "esm",
+        outfile: esmOutfile,
+        platform: "browser",
+        target: "es2020",
+        minify: true,
+        sourcemap: true,
+      });
+      
+      console.log(`✅ Built ${esmOutfile} (ESM)\n`);
     } catch (error) {
       console.error(`❌ Failed to build ${target.name}:`, error);
     }
@@ -144,6 +160,7 @@ ${registrations}
 
   await writeFile(allInOneEntry, entryCode);
 
+  // Build IIFE version
   await build({
     entryPoints: [allInOneEntry],
     bundle: true,
@@ -156,7 +173,21 @@ ${registrations}
     sourcemap: true,
   });
 
-  console.log(`✅ Built ${join(cdnOutDir, "behavior-fn.all.js")}\n`);
+  console.log(`✅ Built ${join(cdnOutDir, "behavior-fn.all.js")}`);
+
+  // Build ESM version
+  await build({
+    entryPoints: [allInOneEntry],
+    bundle: true,
+    format: "esm",
+    outfile: join(cdnOutDir, "behavior-fn.all.esm.js"),
+    platform: "browser",
+    target: "es2020",
+    minify: true,
+    sourcemap: true,
+  });
+
+  console.log(`✅ Built ${join(cdnOutDir, "behavior-fn.all.esm.js")}\n`);
 }
 
 async function generateCDNExamples(behaviorDirs: string[]) {
@@ -215,14 +246,14 @@ async function generateCDNExamples(behaviorDirs: string[]) {
 
   <h2>Method 1: Individual Behaviors</h2>
   <pre><code>&lt;!-- Load core runtime --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"&gt;&lt;/script&gt;
 
 &lt;!-- Load specific behavior --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
 
   <h2>Method 2: All-in-One Bundle</h2>
   <pre><code>&lt;!-- Load everything at once --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"&gt;&lt;/script&gt;</code></pre>
 
   <h2>Available Behaviors</h2>
   <ul>
@@ -247,7 +278,7 @@ ${behaviorDirs.map(name => `    <li><code>${name}.js</code></li>`).join("\n")}
 &lt;html&gt;
 &lt;head&gt;
   &lt;!-- Load BehaviorFN from CDN --&gt;
-  &lt;script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"&gt;&lt;/script&gt;
   
   &lt;!-- Initialize --&gt;
   &lt;script&gt;

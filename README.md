@@ -25,7 +25,7 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 > **💡 No Build Tools?** Load behaviors directly from CDN with a single `<script>` tag!  
 > ```html
-> <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+> <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 > ```
 > See the **[CDN Loading Guide](docs/guides/manual-loading.md)** for details.
 

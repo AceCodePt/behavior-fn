@@ -348,7 +348,7 @@ Individual behavior bundles auto-register when loaded:
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
   
   <!-- or jsdelivr -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script> -->
+  <!-- <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script> -->
 </head>
 <body>
   <dialog is="behavioral-reveal" id="modal" behavior="reveal">
@@ -541,3 +541,126 @@ After implementation:
 ---
 
 **Next Steps:** Begin implementation following task.md specifications.
+
+---
+
+## Dependency Philosophy: Self-Contained Bundles
+
+### The Principle
+
+**CDN bundles are self-contained with zero external runtime dependencies.**
+
+### Two Distribution Modes
+
+**CLI/npm Mode:**
+```typescript
+// Source code can have dependencies
+import { defineAutoWebComponent } from "auto-wc";
+import { Type } from "@sinclair/typebox";
+
+// Users run: npm install
+// Dependencies are installed to node_modules/
+```
+
+**CDN Mode:**
+```typescript
+// Same source code
+import { defineAutoWebComponent } from "auto-wc";
+import { Type } from "@sinclair/typebox";
+
+// esbuild bundles everything:
+// dist/cdn/behavior-fn.js includes:
+// - Your code
+// - auto-wc code (bundled in!)
+// - TypeBox code (bundled in!)
+// - All dependencies (bundled in!)
+
+// CDN users just load one file:
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+```
+
+### Key Insight
+
+**The source code and CDN bundles are NOT the same thing:**
+
+- **Source code** (in `registry/behaviors/`): TypeScript with dependencies
+- **CDN bundles** (in `dist/cdn/`): JavaScript with dependencies bundled in
+
+esbuild is the bridge that transforms source → self-contained bundles.
+
+### What This Means
+
+**For behavior developers:**
+- ✅ You CAN use dependencies in source code (auto-wc, TypeBox, etc.)
+- ✅ esbuild will bundle them automatically
+- ✅ CDN users get one self-contained file
+- ❌ Avoid dependencies that don't bundle well (native modules, etc.)
+
+**For CDN users:**
+- ✅ One script tag loads everything
+- ✅ No `npm install` needed
+- ✅ No separate dependency loading
+- ✅ Works immediately in the browser
+
+### Example Flow
+
+```
+1. Write source code with dependencies:
+   registry/behaviors/behavioral-host.ts
+   import { defineAutoWebComponent } from "auto-wc";
+   
+2. Run build:
+   pnpm build
+   
+3. esbuild bundles for CDN:
+   dist/cdn/behavior-fn.js
+   (contains behavioral-host + auto-wc code)
+   
+4. CDN user loads:
+   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+   
+5. Everything works!
+   No additional dependencies to load.
+```
+
+### Prohibited Patterns
+
+**❌ External runtime dependencies that aren't bundled:**
+```typescript
+// Bad: Expecting users to load lodash separately
+import _ from 'lodash';
+
+// CDN users would need:
+<script src="https://unpkg.com/lodash"></script>
+<script src="https://unpkg.com/behavior-fn"></script>
+// This defeats the "one script tag" simplicity!
+```
+
+**✅ Bundled dependencies are fine:**
+```typescript
+// Good: auto-wc gets bundled
+import { defineAutoWebComponent } from 'auto-wc';
+
+// CDN users only need:
+<script src="https://unpkg.com/behavior-fn"></script>
+// auto-wc code is already inside!
+```
+
+### Testing Self-Containment
+
+After building, verify bundles work standalone:
+
+```bash
+# Build CDN bundles
+pnpm build
+
+# Serve without node_modules
+cd dist/cdn/
+python -m http.server 8000
+
+# Open browser, test behaviors
+# Should work with ZERO external dependencies!
+```
+
+---
+

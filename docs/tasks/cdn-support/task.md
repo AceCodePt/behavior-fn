@@ -25,7 +25,7 @@ This creates barriers for:
 By adding CDN support, users can simply do:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 <script>
   BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
 </script>
@@ -388,7 +388,7 @@ grep -q "defineAutoWebComponent" dist/cdn/behavior-fn.js
 <script src="https://unpkg.com/@ungap/custom-elements"></script>
 
 <!-- Then load BehaviorFN -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 ```
 
 ## Success Criteria
@@ -872,3 +872,66 @@ After this task is complete:
 3. **Add More Examples** (community-driven)
 4. **Create Video Tutorial** (documentation)
 5. **Publish Blog Post** (marketing)
+
+### 10. Dependency Philosophy: Self-Contained CDN Bundles
+
+**Critical Principle:** CDN bundles must be **self-contained** with **zero external runtime dependencies**.
+
+**Two Distribution Modes:**
+
+**Mode 1: CLI/npm Installation (with build tools)**
+- ✅ Source code CAN have dependencies (auto-wc, TypeBox, etc.)
+- ✅ Users run `npm install` which installs all dependencies
+- ✅ Build tools (Vite, Webpack, etc.) bundle everything
+- ✅ Example: `import { defineAutoWebComponent } from "auto-wc"` - perfectly fine!
+
+**Mode 2: CDN Bundles (no build tools)**
+- ✅ **All dependencies bundled into output files** by esbuild
+- ✅ Users get self-contained `.js` files with everything included
+- ✅ No separate dependency loading needed
+- ✅ Example: `behavior-fn.js` includes auto-wc code inside it
+
+**How it works:**
+
+```typescript
+// Source code (registry/behaviors/behavioral-host.ts)
+import { defineAutoWebComponent } from "auto-wc"; // ✅ Has dependency
+
+// After esbuild bundles for CDN:
+// dist/cdn/behavior-fn.js contains:
+// - behavioral-host code
+// - auto-wc code (bundled in)
+// - behavior-registry code
+// - All dependencies included!
+
+// CDN user only needs:
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+// ✅ No additional scripts needed - it's all in one file!
+```
+
+**What this means for behavior developers:**
+
+```typescript
+// ✅ GOOD: Internal dependencies (bundled by esbuild)
+import { Type } from "@sinclair/typebox";
+import { defineAutoWebComponent } from "auto-wc";
+import { parseBehaviorNames } from "./behavior-utils";
+
+// ❌ BAD: External runtime dependencies (not bundled)
+// Would require CDN users to load separately:
+<script src="https://unpkg.com/lodash"></script>
+<script src="https://unpkg.com/behavior-fn"></script>
+```
+
+**Best practices:**
+
+1. **Keep source code dependency-free when possible** - Reduces bundle size
+2. **Required dependencies are fine** - esbuild will bundle them
+3. **Avoid external runtime dependencies** - CDN users can't easily install them
+4. **Test CDN bundles work standalone** - No missing dependencies
+
+**Summary:**
+- Source code dependencies: ✅ **Allowed** (bundled by esbuild)
+- External runtime dependencies: ❌ **Avoid** (CDN users can't install)
+- Self-contained bundles: ✅ **Required** (one script tag, everything works)
+
