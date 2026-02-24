@@ -6,16 +6,6 @@ import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
 import { getStrategy, strategies } from "./src/strategies/index";
-import {
-  validateBehaviorName,
-  behaviorExists,
-} from "./src/utils/validation";
-import {
-  generateBehaviorDefinition,
-  generateSchema,
-  generateBehavior,
-  generateTest,
-} from "./src/templates/behavior-templates";
 import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
