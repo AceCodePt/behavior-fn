@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Opt-In Auto-Loader for Behavioral Hosts](docs/tasks/opt-in-auto-loader/task.md)
 - [-] [Replace @standard-schema/spec with auto-wc in Core Dependencies](docs/tasks/replace-standard-schema-with-auto-wc/task.md)
 - [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
 - [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
