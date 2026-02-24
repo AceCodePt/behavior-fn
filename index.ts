@@ -6,6 +6,13 @@ import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
 import { detectEnvironment } from "./src/utils/detect";
+import { validateBehaviorName, behaviorExists } from "./src/utils/validation";
+import {
+  generateBehaviorDefinition,
+  generateSchema,
+  generateBehavior,
+  generateTest,
+} from "./src/templates/behavior-templates";
 import { getStrategy, strategies } from "./src/strategies/index";
 import { detectPlatform } from "./src/platforms/index";
 import type { PlatformStrategy } from "./src/platforms/platform-strategy";
@@ -15,7 +22,9 @@ import type { InitConfig, Validator } from "./src/types/init";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-let jiti: any = null;
+let jiti: {
+  import: <T>(id: string) => Promise<T>;
+} | null = null;
 
 // Load registry
 const registryPath = path.join(__dirname, "registry/behaviors-registry.json");
