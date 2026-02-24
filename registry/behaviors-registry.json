@@ -153,6 +153,27 @@
     ]
   },
   {
+    "name": "compound-commands",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "compound-commands/_behavior-definition.ts"
+      },
+      {
+        "path": "compound-commands/constants.ts"
+      },
+      {
+        "path": "compound-commands/schema.ts"
+      },
+      {
+        "path": "compound-commands/behavior.ts"
+      },
+      {
+        "path": "compound-commands/behavior.test.ts"
+      }
+    ]
+  },
+  {
     "name": "test-remove-behavior",
     "dependencies": [],
     "files": [
