@@ -18,20 +18,21 @@ export const platforms = [
   genericPlatform, // Always last (fallback)
 ] as const;
 
-// Extract the valid IDs from the platforms themselves
-export type PlatformId = (typeof platforms)[number]["id"];
-
-// Extract the platform names from the platforms themselves
+// Extract the platform names from the platforms themselves (this IS the unique ID)
 export type PlatformName = (typeof platforms)[number]["name"];
 
 /**
- * Get a platform by its ID.
+ * Get a platform by its name (the unique identifier).
  * 
- * @param id - The platform ID
- * @returns The platform strategy, or undefined if not found
+ * @param name - The platform name (e.g., "next", "astro", "generic")
+ * @returns The platform strategy
  */
-export function getPlatform(id: PlatformId): PlatformStrategy | undefined {
-  return platforms.find((p) => p.id === id);
+export function getPlatform(name: string): PlatformStrategy {
+  const platform = platforms.find((p) => p.name === name);
+  if (!platform) {
+    throw new Error(`Platform "${name}" not found`);
+  }
+  return platform;
 }
 
 /**

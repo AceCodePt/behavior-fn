@@ -20,18 +20,29 @@ export const validators = [
   zodMiniValidator,
 ] as const;
 
-// Extract the valid IDs from the validators themselves
-export type ValidatorId = (typeof validators)[number]["id"];
-
-// Extract the package names from the validators themselves
+// Extract the package names from the validators themselves (this IS the unique ID)
 export type PackageName = (typeof validators)[number]["packageName"];
 
-export function getValidator(id: ValidatorId): Validator {
-  const validator = validators.find(v => v.id === id);
+/**
+ * Get validator by package name (the unique identifier)
+ * @param packageName - The npm package name (e.g., "zod", "valibot")
+ * @returns The validator instance
+ */
+export function getValidator(packageName: string): Validator {
+  const validator = validators.find(v => v.packageName === packageName.toLowerCase());
   if (!validator) {
-    throw new Error(`Validator with id ${id} not found`);
+    throw new Error(`Validator "${packageName}" not found`);
   }
   return validator;
+}
+
+/**
+ * Check if a package name is a valid validator
+ * @param packageName - The npm package name to check
+ * @returns true if validator exists, false otherwise
+ */
+export function isValidValidator(packageName: string): packageName is PackageName {
+  return validators.some(v => v.packageName === packageName.toLowerCase());
 }
 
 export type { Validator } from "./validator";

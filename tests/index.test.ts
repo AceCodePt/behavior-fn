@@ -180,7 +180,7 @@ describe("CLI (index.ts)", () => {
   });
 
   it('should support --validator override flag', async () => {
-    process.argv = ["node", "behavior-fn", "init", "--defaults", "--validator=typebox"];
+    process.argv = ["node", "behavior-fn", "init", "--defaults", "--validator=@sinclair/typebox"];
 
     mocks.fs.existsSync.mockImplementation((p: string) => {
       if (p.toString().endsWith("tsconfig.json")) return true;
@@ -213,11 +213,11 @@ describe("CLI (index.ts)", () => {
     // Verify typebox was used instead of zod
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("behavior.config.json"),
-      expect.stringMatching(/"validator": "typebox"/),
+      expect.stringMatching(/"validator": "@sinclair\/typebox"/),
     );
     
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining("Using defaults: typebox"),
+      expect.stringContaining("Using defaults: @sinclair/typebox"),
     );
   });
 
@@ -306,11 +306,11 @@ describe("CLI (index.ts)", () => {
 
   it('should support all validator options (zod, valibot, arktype, typebox, zod-mini)', async () => {
     const validators = [
-      { name: "zod", id: 0 },
-      { name: "valibot", id: 1 },
-      { name: "arktype", id: 2 },
-      { name: "typebox", id: 3 },
-      { name: "zod-mini", id: 4 },
+      { name: "zod" },
+      { name: "valibot" },
+      { name: "arktype" },
+      { name: "@sinclair/typebox" },
+      { name: "zod-mini" },
     ];
 
     for (const { name } of validators) {
@@ -467,8 +467,8 @@ describe("CLI (index.ts)", () => {
     });
     mocks.fs.readdirSync.mockReturnValue([]);
 
-    // Mock prompt response to choose Valibot (1)
-    mocks.prompts.mockResolvedValue({ validator: 1 });
+    // Mock prompt response to choose Valibot
+    mocks.prompts.mockResolvedValue({ validator: "valibot" });
 
     const { main } = await import("../index");
     try {
@@ -483,8 +483,8 @@ describe("CLI (index.ts)", () => {
         type: "select",
         message: expect.stringContaining("Multiple validators detected"),
         choices: expect.arrayContaining([
-          expect.objectContaining({ title: "Zod", value: 0 }),
-          expect.objectContaining({ title: "Valibot", value: 1 }),
+          expect.objectContaining({ title: "Zod", value: "zod" }),
+          expect.objectContaining({ title: "Valibot", value: "valibot" }),
         ]),
       }),
     );

@@ -94,7 +94,6 @@ export const observedAttributes = ${JSON.stringify(keys)} as const;
  * Valibot validator implementation.
  */
 export class ValibotValidator implements Validator {
-  readonly id = 1;
   readonly label = "Valibot";
   readonly packageName = "valibot";
 

@@ -7,12 +7,8 @@
 
 export interface PlatformStrategy {
   /**
-   * Unique identifier for the platform (e.g., 0, 1, 2)
-   */
-  readonly id: number;
-
-  /**
-   * Internal name identifier (kebab-case)
+   * Internal name identifier (kebab-case) - unique key for the platform
+   * Examples: "next", "astro", "generic"
    */
   readonly name: string;
 

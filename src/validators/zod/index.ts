@@ -101,7 +101,6 @@ export const observedAttributes = ${JSON.stringify(keys)} as const;
  * Zod validator implementation.
  */
 export class ZodValidator implements Validator {
-  readonly id = 0;
   readonly label = "Zod";
   readonly packageName = "zod";
 

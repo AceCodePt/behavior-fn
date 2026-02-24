@@ -13,14 +13,15 @@ import {
   generateBehavior,
   generateTest,
 } from "./src/templates/behavior-templates";
-import { getStrategy, strategies } from "./src/strategies/index";
-import { detectPlatform } from "./src/platforms/index";
-import type { PlatformStrategy } from "./src/platforms/platform-strategy";
-import { getValidator, validators, type ValidatorId } from "./src/validators/index";
+import {
+  getValidator,
+  validators,
+  type PackageName,
+} from "./src/validators/index";
 import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
-import type { InitConfig, Validator } from "./src/types/init";
+import type { InitConfig } from "./src/types/init";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +31,9 @@ let jiti: {
 
 // Load registry
 const registryPath = path.join(__dirname, "registry/behaviors-registry.json");
-const registry: BehaviorRegistry = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
+const registry: BehaviorRegistry = JSON.parse(
+  fs.readFileSync(registryPath, "utf-8"),
+);
 
 interface Config {
   paths: {
@@ -67,9 +70,9 @@ function loadConfig(): Config | null {
 function detectAndValidatePlatform(): PlatformStrategy {
   const cwd = process.cwd();
   const platform = detectPlatform(cwd);
-  
+
   console.log(`Detected platform: ${platform.label}`);
-  
+
   // Validate platform
   const validation = platform.validate(cwd);
   if (!validation.valid && validation.errors) {
@@ -78,7 +81,7 @@ function detectAndValidatePlatform(): PlatformStrategy {
       console.warn(`  - ${error}`);
     }
   }
-  
+
   return platform;
 }
 
@@ -92,7 +95,7 @@ function rewriteImports(content: string, config: Config): string {
 async function installBehavior(
   name: string,
   config: Config,
-  validatorType: ValidatorId = 0,
+  validatorPackageName: PackageName = "zod",
   platform?: PlatformStrategy,
   includeTests: boolean = true,
 ) {
@@ -103,7 +106,7 @@ async function installBehavior(
   }
 
   // Get validator
-  const validator = getValidator(validatorType);
+  const validator = getValidator(validatorPackageName);
 
   console.log(`Installing behavior: ${name}...`);
 
@@ -157,7 +160,11 @@ async function installBehavior(
         }
         // Use jiti to import TypeScript schema files at runtime
         // jiti handles both .ts (dev) and .js (built) transparently
-        const schemaPath = path.join(__dirname, "registry/behaviors", file.path);
+        const schemaPath = path.join(
+          __dirname,
+          "registry/behaviors",
+          file.path,
+        );
         const mod = await jiti.import<{ schema?: AttributeSchema }>(schemaPath);
         if (mod.schema) {
           content = validator.transformSchema(mod.schema, content);
@@ -174,7 +181,7 @@ async function installBehavior(
     if (file.path === "behavior-utils.ts") {
       // Detect platform if not provided
       const activePlatform = platform || detectAndValidatePlatform();
-      
+
       // Transform isServer check
       content = content.replace(
         "export const isServer = () => typeof window === 'undefined';",
@@ -197,7 +204,7 @@ async function installBehavior(
       if (imports) {
         content = `${imports}\n` + content;
       }
-      
+
       const observedAttributesCode = validator.getObservedAttributesCode();
       if (observedAttributesCode) {
         content = content.replace(
@@ -302,15 +309,22 @@ async function createBehavior(name: string) {
   };
 
   registry.push(newEntry);
-  const registryJsonPath = path.join(registryRoot, "registry/behaviors-registry.json");
+  const registryJsonPath = path.join(
+    registryRoot,
+    "registry/behaviors-registry.json",
+  );
   fs.writeFileSync(registryJsonPath, JSON.stringify(registry, null, 2) + "\n");
   console.log(`  Updated registry`);
 
   console.log(`\nBehavior "${name}" created successfully!`);
   console.log(`\nNext steps:`);
-  console.log(`  1. Edit registry/behaviors/${name}/schema.ts to define attributes`);
+  console.log(
+    `  1. Edit registry/behaviors/${name}/schema.ts to define attributes`,
+  );
   console.log(`  2. Implement logic in registry/behaviors/${name}/behavior.ts`);
-  console.log(`  3. Write tests in registry/behaviors/${name}/behavior.test.ts`);
+  console.log(
+    `  3. Write tests in registry/behaviors/${name}/behavior.test.ts`,
+  );
   console.log(`  4. Run 'pnpm test' to verify your implementation`);
 }
 
@@ -328,8 +342,13 @@ async function removeBehavior(name: string) {
     : path.join(__dirname, "..");
 
   // Reload registry to get latest state
-  const registryJsonPath = path.join(registryRoot, "registry/behaviors-registry.json");
-  const currentRegistry = JSON.parse(fs.readFileSync(registryJsonPath, "utf-8"));
+  const registryJsonPath = path.join(
+    registryRoot,
+    "registry/behaviors-registry.json",
+  );
+  const currentRegistry = JSON.parse(
+    fs.readFileSync(registryJsonPath, "utf-8"),
+  );
 
   // Check if behavior exists
   if (!behaviorExists(name, currentRegistry)) {
@@ -339,7 +358,9 @@ async function removeBehavior(name: string) {
 
   // Don't allow removing core
   if (name === "core") {
-    console.error(`Error: Cannot remove "core" behavior. It is required by the system.`);
+    console.error(
+      `Error: Cannot remove "core" behavior. It is required by the system.`,
+    );
     process.exit(1);
   }
 
@@ -361,7 +382,10 @@ async function removeBehavior(name: string) {
   const registryIndex = currentRegistry.findIndex((b: any) => b.name === name);
   if (registryIndex !== -1) {
     currentRegistry.splice(registryIndex, 1);
-    fs.writeFileSync(registryJsonPath, JSON.stringify(currentRegistry, null, 2) + "\n");
+    fs.writeFileSync(
+      registryJsonPath,
+      JSON.stringify(currentRegistry, null, 2) + "\n",
+    );
     console.log(`  Updated registry`);
   }
 
@@ -377,14 +401,36 @@ const flags = {
   withTests: args.includes("--with-tests") || args.includes("-t"),
 };
 
-async function getValidatorType(name: string): Promise<ValidatorId> {
+/**
+ * Parse CLI flags from process.argv
+ */
+function parseFlags(): Record<string, string | boolean> {
+  const flags: Record<string, string | boolean> = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg.startsWith("--")) {
+      const [key, value] = arg.slice(2).split("=");
+      flags[key] = value || true;
+    } else if (arg === "-d") {
+      flags.defaults = true;
+    } else if (arg === "-y") {
+      flags.yes = true;
+    }
+  }
+
+  return flags;
+}
+
+async function getValidatorType(name: string): Promise<PackageName> {
   const detectedValidators = detectValidatorFromPackageJson(process.cwd());
 
   if (detectedValidators.length > 1) {
     const choices = validators
-      .filter((v) => detectedValidators.includes(v.id))
-      .map((v) => ({ title: v.label, value: v.id }));
-      
+      .filter((v) => detectedValidators.includes(v.packageName))
+      .map((v) => ({ title: v.label, value: v.packageName }));
+
     const response = await prompts({
       type: "select",
       name: "validator",
@@ -421,27 +467,31 @@ export async function main() {
 
   if (command === "init") {
     const flags = parseFlags();
-    
+
     // Detect environment
     const detected = detectEnvironment();
-    
+
     // Log detection results
     console.log("┌─────────────────────────────────────────┐");
     console.log("│  Welcome to BehaviorCN! 🎯              │");
     console.log("└─────────────────────────────────────────┘");
     console.log("");
-    console.log(`✓ Detected: ${detected.typescript ? "TypeScript" : "JavaScript"}, ${detected.packageManager}`);
+    console.log(
+      `✓ Detected: ${detected.typescript ? "TypeScript" : "JavaScript"}, ${detected.packageManager}`,
+    );
     console.log("");
-    
-    let validatorChoice: Validator;
+
+    let validatorChoice: PackageName;
     let pathChoice: string;
-    
+
     // Check for --defaults flag
     if (flags.defaults || flags.d) {
       // Use defaults
-      validatorChoice = flags.validator ? flags.validator as Validator : "zod";
-      pathChoice = flags.path ? flags.path as string : detected.suggestedPath;
-      
+      validatorChoice = flags.validator
+        ? (flags.validator as PackageName)
+        : "zod";
+      pathChoice = flags.path ? (flags.path as string) : detected.suggestedPath;
+
       console.log(`✓ Using defaults: ${validatorChoice}, ${pathChoice}`);
     } else {
       // Interactive mode - ask 2 questions
@@ -452,7 +502,7 @@ export async function main() {
         { title: "TypeBox (fastest)", value: "typebox" },
         { title: "Zod Mini (lightweight)", value: "zod-mini" },
       ];
-      
+
       const response = await prompts([
         {
           type: "select",
@@ -468,23 +518,27 @@ export async function main() {
           initial: detected.suggestedPath,
         },
       ]);
-      
+
       // Handle user cancellation
       if (!response.validator || !response.path) {
         console.log("Init cancelled.");
         process.exit(1);
       }
-      
-      validatorChoice = flags.validator ? flags.validator as Validator : response.validator;
-      pathChoice = flags.path ? flags.path as string : response.path;
+
+      validatorChoice = flags.validator
+        ? (flags.validator as PackageName)
+        : response.validator;
+      pathChoice = flags.path ? (flags.path as string) : response.path;
     }
-    
+
     // Override TypeScript detection if --no-ts flag is present
     const useTypeScript = flags["no-ts"] ? false : detected.typescript;
-    
+
     // Override package manager if --pm flag is present
-    const packageManager = flags.pm ? flags.pm as string : detected.packageManager;
-    
+    const packageManager = flags.pm
+      ? (flags.pm as string)
+      : detected.packageManager;
+
     // Create new config format
     const newConfig: InitConfig = {
       validator: validatorChoice,
@@ -492,7 +546,7 @@ export async function main() {
       behaviorsPath: pathChoice,
       packageManager: packageManager as "pnpm" | "bun" | "npm" | "yarn",
     };
-    
+
     // Also create old format for backward compatibility
     const legacyConfig: Config = {
       paths: {
@@ -507,31 +561,31 @@ export async function main() {
         testUtils: "@/test-utils",
       },
     };
-    
+
     // Write new config
     fs.writeFileSync(
       path.join(process.cwd(), NEW_CONFIG_FILE),
       JSON.stringify(newConfig, null, 2),
     );
-    
+
     // Write legacy config for backward compatibility
     fs.writeFileSync(
       path.join(process.cwd(), CONFIG_FILE),
       JSON.stringify(legacyConfig, null, 2),
     );
-    
+
     console.log(`✓ Created ${NEW_CONFIG_FILE}`);
-    
+
     // Create behaviors directory
     const behaviorsDir = path.resolve(process.cwd(), pathChoice);
     if (!fs.existsSync(behaviorsDir)) {
       fs.mkdirSync(behaviorsDir, { recursive: true });
       console.log(`✓ Created ${pathChoice}/`);
     }
-    
+
     // Detect platform once
     const platform = detectAndValidatePlatform();
-    await installBehavior("core", config, 0 as const, platform);
+    await installBehavior("core", legacyConfig, validatorChoice, platform);
     process.exit(0);
   }
 
@@ -570,7 +624,7 @@ export async function main() {
       const registryPath = path.resolve(process.cwd(), config.paths.registry);
       if (!fs.existsSync(registryPath)) {
         console.log("Core files not found. Installing core...");
-        await installBehavior("core", config, 0 as const, platform);
+        await installBehavior("core", config, "zod", platform);
       }
     }
 
@@ -592,9 +646,7 @@ export async function main() {
   console.error(
     "  create <behavior-name> Create a new behavior (scaffolds files in registry)",
   );
-  console.error(
-    "  remove <behavior-name> Remove a behavior from the registry",
-  );
+  console.error("  remove <behavior-name> Remove a behavior from the registry");
   console.error(
     "  add <behavior-name> [options]",
   );

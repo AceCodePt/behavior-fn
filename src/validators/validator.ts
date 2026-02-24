@@ -6,19 +6,15 @@ import type { AttributeSchema } from "../types/schema";
  */
 export interface Validator {
   /**
-   * Unique identifier for the validator (e.g., 0, 1, 2)
+   * The package name (unique identifier for the validator)
+   * This is both the npm package name AND the unique key
    */
-  readonly id: number;
+  readonly packageName: string;
   
   /**
    * Display name for CLI prompts
    */
   readonly label: string;
-
-  /**
-   * The package name to detect in package.json
-   */
-  readonly packageName: string;
 
   /**
    * Transform a TypeBox schema to this validator's code.

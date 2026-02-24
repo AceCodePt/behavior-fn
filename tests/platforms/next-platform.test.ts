@@ -18,9 +18,6 @@ describe("NextPlatform", () => {
   });
 
   describe("identity", () => {
-    it("should have correct id", () => {
-      expect(platform.id).toBe(1);
-    });
 
     it("should have correct name", () => {
       expect(platform.name).toBe("next");
