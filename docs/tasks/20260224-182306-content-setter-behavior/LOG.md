@@ -51,7 +51,7 @@ A behavior that responds to Invoker Commands and sets either:
   is="behavioral-content-setter"
   behavior="content-setter"
   id="message"
-  content-setter-target="textContent"
+  content-setter-attribute="textContent"
   content-setter-value="Hello World!">
 </div>
 
@@ -64,7 +64,7 @@ A behavior that responds to Invoker Commands and sets either:
   is="behavioral-content-setter"
   behavior="content-setter"
   id="theme-box"
-  content-setter-target="data-theme"
+  content-setter-attribute="data-theme"
   content-setter-value="dark"
   class="container">
   Content here
@@ -79,7 +79,7 @@ A behavior that responds to Invoker Commands and sets either:
   is="behavioral-content-setter"
   behavior="content-setter"
   id="status"
-  content-setter-target="data-active"
+  content-setter-attribute="data-active"
   content-setter-value="true"
   content-setter-mode="toggle">
   Status Box
@@ -94,7 +94,7 @@ A behavior that responds to Invoker Commands and sets either:
   is="behavioral-content-setter"
   behavior="content-setter"
   id="panel"
-  content-setter-target="aria-hidden"
+  content-setter-attribute="aria-hidden"
   content-setter-value="true">
   Panel Content
 </div>
@@ -102,9 +102,9 @@ A behavior that responds to Invoker Commands and sets either:
 
 ### Schema Attributes
 
-#### `content-setter-target` (required)
+#### `content-setter-attribute` (required)
 - **Type:** `string`
-- **Description:** The target to modify. Can be:
+- **Description:** The attribute to modify. Can be:
   - Any attribute name (e.g., `"data-theme"`, `"aria-hidden"`, `"class"`)
   - The literal string `"textContent"` for text content updates
 - **Examples:** `"data-theme"`, `"textContent"`, `"aria-expanded"`
@@ -131,7 +131,7 @@ A behavior that responds to Invoker Commands and sets either:
 2. Define constants in `constants.ts`:
    ```typescript
    export const CONTENT_SETTER_ATTRS = {
-     TARGET: "content-setter-target",
+     ATTRIBUTE: "content-setter-attribute",
      VALUE: "content-setter-value",
      MODE: "content-setter-mode",
    } as const;
@@ -143,7 +143,7 @@ A behavior that responds to Invoker Commands and sets either:
    import { CONTENT_SETTER_ATTRS } from "./constants";
 
    export const schema = Type.Object({
-     [CONTENT_SETTER_ATTRS.TARGET]: Type.String(),
+     [CONTENT_SETTER_ATTRS.ATTRIBUTE]: Type.String(),
      [CONTENT_SETTER_ATTRS.VALUE]: Type.String(),
      [CONTENT_SETTER_ATTRS.MODE]: Type.Optional(
        Type.Union([
@@ -206,9 +206,9 @@ A behavior that responds to Invoker Commands and sets either:
 
 ### Logic Flow
 1. Listen for `command` event
-2. Read `content-setter-target`, `content-setter-value`, `content-setter-mode`
-3. Determine target type:
-   - If target === `"textContent"` → use `element.textContent`
+2. Read `content-setter-attribute`, `content-setter-value`, `content-setter-mode`
+3. Determine attribute type:
+   - If attribute === `"textContent"` → use `element.textContent`
    - Otherwise → treat as attribute name
 4. Apply based on mode:
    - **set**: Set value directly
@@ -216,9 +216,9 @@ A behavior that responds to Invoker Commands and sets either:
    - **remove**: Remove attribute (error if textContent)
 
 ### Validation
-- Required: `content-setter-target`, `content-setter-value`
+- Required: `content-setter-attribute`, `content-setter-value`
 - Mode must be one of: `"set"`, `"toggle"`, `"remove"`
-- Cannot use `"remove"` mode with `textContent` target
+- Cannot use `"remove"` mode with `textContent` attribute
 
 ### Security
 - ✅ `textContent` only (safe, no HTML parsing)
@@ -246,9 +246,9 @@ registry/behaviors/content-setter/
 ### Unit Tests (behavior.test.ts)
 1. **Set textContent**
    ```typescript
-   test("sets textContent when target is 'textContent'", () => {
+   test("sets textContent when attribute is 'textContent'", () => {
      const el = createTestHost({ 
-       "content-setter-target": "textContent",
+       "content-setter-attribute": "textContent",
        "content-setter-value": "New Text"
      });
      el.dispatchEvent(new Event("command"));
@@ -258,9 +258,9 @@ registry/behaviors/content-setter/
 
 2. **Set attribute**
    ```typescript
-   test("sets data attribute when target is attribute name", () => {
+   test("sets data attribute when attribute is attribute name", () => {
      const el = createTestHost({ 
-       "content-setter-target": "data-theme",
+       "content-setter-attribute": "data-theme",
        "content-setter-value": "dark"
      });
      el.dispatchEvent(new Event("command"));
@@ -272,7 +272,7 @@ registry/behaviors/content-setter/
    ```typescript
    test("toggles attribute value on repeated commands", () => {
      const el = createTestHost({ 
-       "content-setter-target": "data-active",
+       "content-setter-attribute": "data-active",
        "content-setter-value": "true",
        "content-setter-mode": "toggle"
      });
@@ -287,7 +287,7 @@ registry/behaviors/content-setter/
    ```typescript
    test("removes attribute in remove mode", () => {
      const el = createTestHost({ 
-       "content-setter-target": "data-temp",
+       "content-setter-attribute": "data-temp",
        "content-setter-value": "",
        "content-setter-mode": "remove"
      });
@@ -301,7 +301,7 @@ registry/behaviors/content-setter/
    ```typescript
    test("throws error when using remove mode with textContent", () => {
      const el = createTestHost({ 
-       "content-setter-target": "textContent",
+       "content-setter-attribute": "textContent",
        "content-setter-value": "",
        "content-setter-mode": "remove"
      });
@@ -317,7 +317,7 @@ registry/behaviors/content-setter/
    ```html
    <button commandfor="app" command="--set-content">Dark Mode</button>
    <div is="behavioral-content-setter" behavior="content-setter" 
-        id="app" content-setter-target="data-theme" 
+        id="app" content-setter-attribute="data-theme" 
         content-setter-value="dark">
    ```
 
@@ -325,7 +325,7 @@ registry/behaviors/content-setter/
    ```html
    <button commandfor="msg" command="--set-content">Show Success</button>
    <p is="behavioral-content-setter" behavior="content-setter"
-      id="msg" content-setter-target="textContent" 
+      id="msg" content-setter-attribute="textContent" 
       content-setter-value="Operation successful!">
    ```
 
@@ -333,7 +333,7 @@ registry/behaviors/content-setter/
    ```html
    <button commandfor="panel" command="--set-content">Hide Panel</button>
    <div is="behavioral-content-setter" behavior="content-setter"
-        id="panel" content-setter-target="aria-hidden" 
+        id="panel" content-setter-attribute="aria-hidden" 
         content-setter-value="true">
    ```
 
@@ -341,7 +341,7 @@ registry/behaviors/content-setter/
    ```html
    <button commandfor="list" command="--set-content">Show Active</button>
    <ul is="behavioral-content-setter" behavior="content-setter"
-       id="list" content-setter-target="data-filter" 
+       id="list" content-setter-attribute="data-filter" 
        content-setter-value="active">
    ```
 
@@ -370,7 +370,7 @@ Add to behavior documentation:
 - [ ] Registered in `behaviors-registry.json`
 - [ ] All tests pass (minimum 5 test cases)
 - [ ] Tests cover: set, toggle, remove modes
-- [ ] Tests cover: textContent and attribute targets
+- [ ] Tests cover: textContent and attribute names
 - [ ] Tests cover: error cases
 - [ ] No `innerHTML` or `outerHTML` support (security)
 - [ ] Follows Invoker Commands API pattern
