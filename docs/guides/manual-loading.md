@@ -33,7 +33,7 @@ Perfect for:
   </button>
 
   <!-- Load BehaviorFN from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
   
   <!-- Initialize -->
   <script>
@@ -55,7 +55,7 @@ Load everything at once:
 
 ```html
 <!-- Loads core + all behaviors (~20KB gzipped) -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 
 <script>
   // All behaviors are pre-registered
@@ -79,11 +79,11 @@ Load only what you need:
 
 ```html
 <!-- Load core runtime first (~5KB gzipped) -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
 
 <!-- Load specific behaviors you need -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/logger.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
 
 <script>
   // Behaviors auto-register when loaded
@@ -110,9 +110,9 @@ Use modern ES modules:
   import { 
     registerBehavior, 
     defineBehavioralHost 
-  } from 'https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
+  } from 'https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
   
-  import { revealBehaviorFactory } from 'https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.esm.js';
+  import { revealBehaviorFactory } from 'https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.esm.js';
   
   registerBehavior('reveal', revealBehaviorFactory);
   defineBehavioralHost('dialog', 'behavioral-reveal', []);
@@ -174,7 +174,7 @@ Use modern ES modules:
   </dialog>
 
   <!-- Load from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
   
   <script>
     BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
@@ -221,7 +221,7 @@ Use modern ES modules:
     </ul>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
   
   <script>
     BehaviorFN.defineBehavioralHost('div', 'behavioral-reveal', []);
@@ -257,7 +257,7 @@ Use modern ES modules:
   
   <div id="results"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
   
   <script>
     BehaviorFN.defineBehavioralHost('input', 'behavioral-request', [
@@ -302,7 +302,7 @@ Use modern ES modules:
     <button commandfor="logged-modal" command="--hide">Close</button>
   </dialog>
 
-  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
   
   <script>
     // Note: behaviors sorted alphabetically in is="behavioral-logger-reveal"
@@ -325,39 +325,39 @@ All bundles are available on jsdelivr and unpkg:
 ### Core Runtime
 ```html
 <!-- UMD/IIFE bundle -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
 
 <!-- ES Module -->
 <script type="module">
-  import * as BehaviorFN from 'https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
+  import * as BehaviorFN from 'https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
 </script>
 ```
 
 ### Individual Behaviors
 ```html
 <!-- reveal -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 
 <!-- logger -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/logger.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
 
 <!-- request -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/request.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/request.js"></script>
 
 <!-- input-watcher -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/input-watcher.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/input-watcher.js"></script>
 
 <!-- compute -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/compute.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/compute.js"></script>
 
 <!-- element-counter -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/element-counter.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/element-counter.js"></script>
 ```
 
 ### All-in-One
 ```html
 <!-- Everything -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 ```
 
 ---
@@ -520,7 +520,7 @@ BehaviorFN.registerBehavior('click-counter', (el) => {
 You can define custom behaviors inline:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
 
 <script>
   // Define a custom click counter behavior
@@ -577,7 +577,7 @@ For better control over CDN URLs:
 Use the auto-loader to avoid specifying `is` attributes:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 
 <script>
   // Enable auto-loader
@@ -611,7 +611,7 @@ Use the auto-loader to avoid specifying `is` attributes:
 <script src="https://unpkg.com/@ungap/custom-elements"></script>
 
 <!-- Then load BehaviorFN -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 ```
 
 ### Invoker Commands API
@@ -649,7 +649,7 @@ Use the auto-loader to avoid specifying `is` attributes:
 **Solution:** Initialize after DOM is ready:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -675,10 +675,10 @@ Use the auto-loader to avoid specifying `is` attributes:
 
 ```html
 <!-- Load core first -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
 
 <!-- Then load behaviors -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 
 <!-- Then initialize -->
 <script>
@@ -722,7 +722,7 @@ BehaviorFN is available on multiple CDNs:
 
 ### jsdelivr (Alternative)
 ```html
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 ```
 
 **Why jsdelivr:**
