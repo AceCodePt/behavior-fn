@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [JSON Template Behavior](docs/tasks/json-template-behavior/task.md)
+- [-] [JSON Template Behavior](docs/tasks/json-template-behavior/task.md)
 - [-] [Compound Invoker Commands Support](docs/tasks/compound-invoker-commands/task.md)
 - [-] [Request Behavior JSON Script Update Support](docs/tasks/request-json-script-update/task.md)
 - [x] [Align Behavior Attributes and Documentation](docs/tasks/20260224-125849-align-behavior-attributes/LOG.md)
