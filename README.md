@@ -372,6 +372,101 @@ Debug helper that logs interaction events to the console.
 
 ---
 
+## ⚡ Compound Commands Behavior
+
+The **compound-commands** behavior extends buttons with support for **compound commands**—triggering multiple commands on multiple elements with a single button click.
+
+### Basic Usage
+
+Add the behavior to your button:
+
+```html
+<button 
+  is="behavioral-compound-commands"
+  behavior="compound-commands"
+  commandfor="modal, form" 
+  command="--toggle, --clear">
+  Toggle & Clear
+</button>
+```
+
+### Syntax
+
+Use comma-separated values in `commandfor` and `command` attributes:
+
+```html
+<!-- Multiple commands to single target -->
+<button 
+  is="behavioral-compound-commands"
+  behavior="compound-commands"
+  commandfor="modal" 
+  command="--show, --focus">
+  Show & Focus
+</button>
+
+<!-- Single command to multiple targets (broadcast) -->
+<button 
+  is="behavioral-compound-commands"
+  behavior="compound-commands"
+  commandfor="modal, panel" 
+  command="--hide">
+  Hide Both
+</button>
+
+<!-- Exact mapping (N targets : N commands) -->
+<button 
+  is="behavioral-compound-commands"
+  behavior="compound-commands"
+  commandfor="modal, form" 
+  command="--toggle, --clear">
+  Toggle & Clear
+</button>
+```
+
+### Valid States
+
+| Pattern | Example | Behavior |
+|---------|---------|----------|
+| **Single target + multiple commands** | `commandfor="modal"` + `command="--show, --focus"` | Target receives all commands sequentially |
+| **Multiple targets + single command** | `commandfor="modal, panel"` + `command="--hide"` | All targets receive same command (broadcast) |
+| **Equal counts (N:N mapping)** | `commandfor="modal, form"` + `command="--toggle, --clear"` | Paired dispatch: `modal` gets `--toggle`, `form` gets `--clear` |
+
+### Invalid State
+
+**Mismatched counts (both > 1, different lengths):**
+```html
+<!-- ❌ Invalid: 3 targets, 2 commands -->
+<button commandfor="a, b, c" command="--x, --y">...</button>
+```
+→ Logs error and prevents dispatch
+
+### Installation
+
+```bash
+# Add the behavior to your project
+npx behavior-fn add compound-commands
+```
+
+Then register it:
+
+```typescript
+import { registerBehavior } from "./behaviors/behavior-registry";
+import { compoundCommandsBehaviorFactory } from "./behaviors/compound-commands/behavior";
+
+registerBehavior("compound-commands", compoundCommandsBehaviorFactory);
+```
+
+### Features
+
+- ✅ Zero dependencies
+- ✅ Standard behavior pattern
+- ✅ Comprehensive error handling
+- ✅ TypeScript support
+- ✅ Works with all target behaviors
+- ✅ Automatic event source tracking
+
+---
+
 ## 🎛️ CLI Reference
 
 ### `behavior-fn init`
