@@ -3,15 +3,26 @@ import { NextPlatform } from "./next-platform";
 import { GenericPlatform } from "./generic-platform";
 import type { PlatformStrategy } from "./platform-strategy";
 
+// Export platform instances for direct use
+export const astroPlatform = new AstroPlatform();
+export const nextPlatform = new NextPlatform();
+export const genericPlatform = new GenericPlatform();
+
 /**
  * Registry of all available platform strategies.
  * Platforms are checked in order, with Generic as the fallback.
  */
-export const platforms: PlatformStrategy[] = [
-  new AstroPlatform(),
-  new NextPlatform(),
-  new GenericPlatform(), // Always last (fallback)
-];
+export const platforms = [
+  astroPlatform,
+  nextPlatform,
+  genericPlatform, // Always last (fallback)
+] as const;
+
+// Extract the valid IDs from the platforms themselves
+export type PlatformId = (typeof platforms)[number]["id"];
+
+// Extract the platform names from the platforms themselves
+export type PlatformName = (typeof platforms)[number]["name"];
 
 /**
  * Get a platform by its ID.
@@ -19,7 +30,7 @@ export const platforms: PlatformStrategy[] = [
  * @param id - The platform ID
  * @returns The platform strategy, or undefined if not found
  */
-export function getPlatform(id: number): PlatformStrategy | undefined {
+export function getPlatform(id: PlatformId): PlatformStrategy | undefined {
   return platforms.find((p) => p.id === id);
 }
 
@@ -40,10 +51,10 @@ export function detectPlatform(cwd: string): PlatformStrategy {
   
   // Should never reach here since Generic always matches,
   // but return Generic as a safety fallback
-  return platforms[platforms.length - 1];
+  return genericPlatform;
 }
 
-export * from "./platform-strategy";
+export type { PlatformStrategy } from "./platform-strategy";
 export { AstroPlatform } from "./astro-platform";
 export { NextPlatform } from "./next-platform";
 export { GenericPlatform } from "./generic-platform";

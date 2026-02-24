@@ -1,9 +1,10 @@
-import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../types/schema";
+import type { Validator } from "../validator";
+import type { AttributeSchema, JSONSchemaObject, JSONSchemaProperty } from "../../types/schema";
 
 /**
  * Converts a TypeBox schema (JSON Schema format at runtime) to Zod Mini code.
  */
-export function toZodMini(schema: AttributeSchema): string {
+function transformToZodMini(schema: AttributeSchema): string {
   function parse(s: JSONSchemaProperty): string {
     // 1. Strings
     if ('type' in s && s.type === 'string') {
@@ -89,4 +90,48 @@ export const validate = (data: unknown) => schema.parse(data);
 export const safeValidate = (data: unknown) => schema.safeParse(data);
 export const observedAttributes = ${JSON.stringify(keys)} as const;
 `;
+}
+
+/**
+ * Zod Mini validator implementation.
+ */
+export class ZodMiniValidator implements Validator {
+  readonly id = 4;
+  readonly label = "Zod Mini";
+  readonly packageName = "zod-mini";
+
+  transformSchema(schemaObject: AttributeSchema, _rawContent: string): string {
+    return transformToZodMini(schemaObject);
+  }
+
+  getObservedAttributesCode(): string {
+    return `export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
+  if (!schema) return [];
+  if (schema instanceof z.ZodObject) {
+    return Object.keys(schema.shape);
+  }
+  return [];
+};`;
+  }
+
+  getUtilsImports(): string {
+    return `import { z } from "zod";`;
+  }
+
+  getTypesFileContent(): string {
+    return `import { type StandardSchemaV1 } from "@standard-schema/spec";
+import { z } from "zod";
+
+/**
+ * Universal schema inference helper.
+ */
+export type InferSchema<T> = T extends StandardSchemaV1
+  ? StandardSchemaV1.InferOutput<T>
+  : T extends z.ZodType
+    ? z.infer<T>
+    : unknown;
+
+export type BehaviorSchema = StandardSchemaV1 | z.ZodType | object;
+`;
+  }
 }

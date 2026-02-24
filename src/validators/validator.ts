@@ -1,27 +1,29 @@
 import type { AttributeSchema } from "../types/schema";
 
-export type PackageName = "zod" | "valibot" | "arktype" | "@sinclair/typebox" | "zod-mini";
-
-export interface ValidatorStrategy {
+/**
+ * Validator interface for schema transformation.
+ * Each validator (Zod, Valibot, etc.) implements this interface.
+ */
+export interface Validator {
   /**
    * Unique identifier for the validator (e.g., 0, 1, 2)
    */
-  id: number;
+  readonly id: number;
   
   /**
    * Display name for CLI prompts
    */
-  label: string;
+  readonly label: string;
 
   /**
    * The package name to detect in package.json
    */
-  packageName: PackageName;
+  readonly packageName: string;
 
   /**
-   * Transform a raw schema object (from jiti) into a string representation for the validator.
-   * @param schemaObject The actual schema object loaded via jiti
-   * @param rawContent The raw file content (sometimes needed for TypeBox)
+   * Transform a TypeBox schema to this validator's code.
+   * @param schemaObject The TypeBox schema object
+   * @param rawContent The raw file content (for TypeBox passthrough)
    */
   transformSchema(schemaObject: AttributeSchema, rawContent: string): string;
 

@@ -5,23 +5,21 @@
  * Each platform implementation provides detection, validation, and transformation logic.
  */
 
-export type PlatformName = "astro" | "next" | "remix" | "svelte-kit" | "nuxt" | "generic";
-
 export interface PlatformStrategy {
   /**
    * Unique identifier for the platform (e.g., 0, 1, 2)
    */
-  id: number;
+  readonly id: number;
 
   /**
    * Internal name identifier (kebab-case)
    */
-  name: PlatformName;
+  readonly name: string;
 
   /**
    * Display name for CLI output and logging
    */
-  label: string;
+  readonly label: string;
 
   /**
    * Detect if this platform is being used in the given directory.

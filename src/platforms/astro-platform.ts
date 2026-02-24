@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { PlatformStrategy, PlatformName } from "./platform-strategy";
+import type { PlatformStrategy } from "./platform-strategy";
 
 export class AstroPlatform implements PlatformStrategy {
-  id = 0;
-  name: PlatformName = "astro";
-  label = "Astro";
+  readonly id = 0;
+  readonly name = "astro";
+  readonly label = "Astro";
 
   detect(cwd: string): boolean {
     const files = fs.readdirSync(cwd);

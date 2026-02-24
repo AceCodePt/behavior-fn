@@ -7,9 +7,156 @@ Welcome to **BehaviorCN**. This repository is the **Source of Truth** for the "B
 1.  **Source-as-Registry:** The code lives in `registry/behaviors/` as real TypeScript files using **TypeBox** as the canonical schema definition. There is no separate "build" step for the registry itself.
 2.  **Transformation-on-Install:** The CLI (`behavior-fn add`) is responsible for transforming the canonical TypeBox code into the user's preferred validator (Zod, Valibot, etc.) at installation time. This includes rewriting schema definitions and utility functions like `getObservedAttributes`.
 3.  **Decoupled Logic:** Behaviors are standalone modules. They do not know about the consuming app's registry until wired up. They must be **headless** (no styles) and **framework-agnostic** (vanilla DOM/Web Components).
-3.  **Type Safety:** Every behavior exports a Zod/TypeBox schema (`_behavior-definition.ts`) that drives runtime validation and TypeScript intellisense. **No `any`**.
-4.  **Clean Code:** We adhere to strict coding standards. Code must be readable, maintainable, and testable.
-5.  **Optimistic Concurrency:** We use a file-based locking mechanism in `TASKS.md` to manage work.
+4.  **Type Safety:** Every behavior exports a Zod/TypeBox schema (`_behavior-definition.ts`) that drives runtime validation and TypeScript intellisense. **No `any`**.
+5.  **Clean Code:** We adhere to strict coding standards. Code must be readable, maintainable, and testable.
+6.  **Optimistic Concurrency:** We use a file-based locking mechanism in `TASKS.md` to manage work.
+
+## Fundamental Principles
+
+### 1. Single Source of Truth (Ultimate DRY)
+
+**All types must be derived from data, never manually defined.**
+
+When you have data structures (like validators or platforms), the types should be extracted from those structures, not duplicated:
+
+```typescript
+// ❌ BAD: Manual type definition (duplication)
+export type ValidatorId = 0 | 1 | 2 | 3 | 4;
+export const validators = { 0: zodValidator, 1: valibotValidator, ... };
+
+// ✅ GOOD: Type derived from data
+export const validators = [zodValidator, valibotValidator, ...] as const;
+export type ValidatorId = (typeof validators)[number]["id"];  // Extracts: 0 | 1 | 2 | 3 | 4
+```
+
+**Benefits:**
+- Add a validator → types update automatically
+- No manual synchronization needed
+- Impossible for types to drift from implementation
+- TypeScript infers literal types automatically
+
+**Application:** This principle applies to validators, platforms, and any registry-like structure.
+
+### 2. Readonly Metadata with Literal Types
+
+**All metadata fields that shouldn't change must be `readonly` with literal type inference.**
+
+```typescript
+// ❌ BAD: Mutable fields, widened types
+export class ZodValidator {
+  id: number = 0;              // Type: number (too wide)
+  packageName: string = "zod"; // Type: string (too wide)
+}
+
+// ✅ GOOD: Readonly fields, literal types
+export class ZodValidator {
+  readonly id = 0;              // Type: 0 (literal)
+  readonly packageName = "zod"; // Type: "zod" (literal)
+}
+```
+
+**Benefits:**
+- Immutability enforced at compile time
+- Literal types enable precise type inference
+- Better autocomplete and type safety
+- Self-documenting code
+
+### 3. Export Singleton Instances
+
+**Create instances once, export them, and reuse everywhere.**
+
+```typescript
+// ❌ BAD: Creating instances multiple times
+// validators/index.ts
+const validators = [new ZodValidator(), ...];
+
+// detect-validator.ts
+const zodValidator = validators.find(v => v.packageName === "zod");
+
+// ✅ GOOD: Export singletons, import where needed
+// validators/index.ts
+export const zodValidator = new ZodValidator();
+export const validators = [zodValidator, ...] as const;
+
+// detect-validator.ts
+import { zodValidator } from "../validators/index";
+```
+
+**Benefits:**
+- True singleton pattern
+- Memory efficient
+- No runtime searches needed
+- Clear dependencies
+
+### 4. Avoid Hardcoded Magic Values
+
+**Never hardcode IDs, names, or other values that exist in the data.**
+
+```typescript
+// ❌ BAD: Hardcoded IDs
+if (allDeps["zod"]) {
+  detectedValidators.push(0);  // Magic number!
+  detectedValidators.push(4);  // What is 4?
+}
+
+// ✅ GOOD: Use values from the actual instances
+import { zodValidator, zodMiniValidator } from "../validators/index";
+
+if (allDeps["zod"]) {
+  detectedValidators.push(zodValidator.id);
+  detectedValidators.push(zodMiniValidator.id);
+}
+```
+
+**Benefits:**
+- Self-documenting code
+- Single source of truth
+- Refactoring-safe
+- No magic numbers
+
+### 5. Type-Safe Registry Pattern
+
+**Use arrays with `as const` for registries, derive types from them.**
+
+```typescript
+// Complete pattern for a registry:
+
+// 1. Define interface with readonly metadata
+export interface Validator {
+  readonly id: number;
+  readonly packageName: string;
+  // ... methods
+}
+
+// 2. Implement with literal values
+export class ZodValidator implements Validator {
+  readonly id = 0;
+  readonly packageName = "zod";
+}
+
+// 3. Export singleton instances
+export const zodValidator = new ZodValidator();
+
+// 4. Create typed array registry
+export const validators = [zodValidator, ...] as const;
+
+// 5. Derive types from the registry
+export type ValidatorId = (typeof validators)[number]["id"];
+export type PackageName = (typeof validators)[number]["packageName"];
+
+// 6. Type-safe lookup function
+export function getValidator(id: ValidatorId): Validator {
+  const validator = validators.find(v => v.id === id);
+  if (!validator) throw new Error(`Validator ${id} not found`);
+  return validator;
+}
+```
+
+**This pattern ensures:**
+- Complete type safety
+- No manual type maintenance
+- Easy to extend (just add a new class)
+- Compile-time guarantees
 
 ## Operational Rules
 

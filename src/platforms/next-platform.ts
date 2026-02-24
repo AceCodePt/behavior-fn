@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { PlatformStrategy, PlatformName } from "./platform-strategy";
+import type { PlatformStrategy } from "./platform-strategy";
 
 export class NextPlatform implements PlatformStrategy {
-  id = 1;
-  name: PlatformName = "next";
-  label = "Next.js";
+  readonly id = 1;
+  readonly name = "next";
+  readonly label = "Next.js";
 
   detect(cwd: string): boolean {
     const files = fs.readdirSync(cwd);
