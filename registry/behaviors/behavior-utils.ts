@@ -70,3 +70,54 @@ export const uniqueBehaviorDef = <
 };
 
 export const isServer = () => typeof window === "undefined";
+
+/**
+ * Parse and normalize behavior names from a behavior attribute string.
+ * 
+ * This is the **canonical** implementation used by both auto-loader and behavioral-host
+ * to ensure consistent behavior parsing across the system.
+ * 
+ * **Algorithm:**
+ * 1. Trim whitespace
+ * 2. Convert invalid characters to spaces (creates delimiters between words)
+ * 3. Split on any non-letter/non-hyphen character (preserving hyphens in names)
+ * 4. Filter out empty strings
+ * 5. Sort alphabetically for consistency
+ * 
+ * **Why convert instead of remove?**
+ * - If we just remove invalid chars, "reveal123logger" becomes "reveallogger" (one word)
+ * - By converting to spaces, "reveal123logger" becomes "reveal   logger" (two words)
+ * - The split step then correctly separates them
+ * 
+ * **Examples:**
+ * - `"reveal logger"` → `["logger", "reveal"]`
+ * - `"reveal, logger"` → `["logger", "reveal"]`
+ * - `"reveal123logger"` → `["logger", "reveal"]` (numbers become delimiters)
+ * - `"input-watcher"` → `["input-watcher"]` (hyphens preserved)
+ * - `"reveal logger input-watcher"` → `["input-watcher", "logger", "reveal"]`
+ * 
+ * @param behaviorAttr The raw behavior attribute value
+ * @returns Array of sorted, normalized behavior names
+ */
+export function parseBehaviorNames(behaviorAttr: string | null | undefined): string[] {
+  if (!behaviorAttr || !behaviorAttr.trim()) {
+    return [];
+  }
+
+  return behaviorAttr
+    .trim()
+    // Convert invalid characters to spaces (global flag to convert ALL occurrences)
+    // This creates delimiters between words so "reveal123logger" → "reveal   logger"
+    // Valid characters: letters (a-zA-Z) and hyphens (-)
+    // Everything else (numbers, special chars, commas, whitespace, etc.) becomes a space
+    .replace(/[^a-zA-Z-]/g, " ")
+    // Split on whitespace (one or more) to get individual behavior names
+    // Since replace() already converted everything to spaces, this splits on those spaces
+    // Hyphens are preserved, so "input-watcher" stays as one name
+    .split(/\s+/)
+    // Remove empty strings
+    .filter(Boolean)
+    // Sort alphabetically for consistent ordering
+    // This ensures "reveal logger" and "logger reveal" produce the same result
+    .sort();
+}

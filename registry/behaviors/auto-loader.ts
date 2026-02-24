@@ -1,6 +1,6 @@
 import { defineBehavioralHost } from "./behavioral-host";
 import { getBehavior } from "./behavior-registry";
-import { getObservedAttributes } from "./behavior-utils";
+import { parseBehaviorNames } from "./behavior-utils";
 
 /**
  * Opt-in utility that automatically adds `is="behavioral-*"` attributes
@@ -77,22 +77,9 @@ export function enableAutoLoader(): () => void {
 
     const behaviorAttr = element.getAttribute("behavior");
 
-    // Skip if no behavior attribute or empty
-    if (!behaviorAttr || !behaviorAttr.trim()) {
-      processedElements.add(element);
-      return;
-    }
-
-    // Parse and sort behaviors alphabetically for consistency
-    // This matches the parsing logic in behavioral-host.ts exactly
-    const behaviors = behaviorAttr
-      .trim()
-      // Remove invalid characters (note: g flag not needed - split handles remaining chars)
-      .replace(/[^a-zA-Z- ,]/, "")
-      // Split on anything that's NOT letters or hyphens (keeps hyphens in behavior names)
-      .split(/[^a-zA-z-]+/)
-      .filter(Boolean)
-      .sort();
+    // Parse behavior names using the canonical parser
+    // This ensures consistency with behavioral-host.ts
+    const behaviors = parseBehaviorNames(behaviorAttr);
 
     // Skip if no valid behaviors
     if (behaviors.length === 0) {
