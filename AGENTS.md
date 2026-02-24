@@ -418,12 +418,29 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   - Improve consistency across the codebase
   - Enhance type safety or DX
   - **Do NOT hesitate to break APIs if it makes the codebase better.** Document migrations for users, but prioritize correctness over backward compatibility.
-- **File Structure:**
+- **File Structure:** Every behavior MUST follow this exact 5-file structure:
   ```text
   registry/behaviors/<name>/
-  ├── _behavior-definition.ts  # The Contract (Schema)
-  ├── behavior.ts              # The Logic (Implementation)
-  └── behavior.test.ts         # The Verification (Tests)
+  ├── _behavior-definition.ts  # The Contract (name + schema)
+  ├── constants.ts             # Attribute name constants (BEHAVIOR_ATTRS)
+  ├── schema.ts                # TypeBox schema definition
+  ├── behavior.ts              # The Logic (factory function)
+  └── behavior.test.ts         # The Verification (tests)
+  ```
+  
+  **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 5 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.
+  
+  **Example Mistake to Avoid:**
+  ```text
+  ❌ registry/behaviors/my-feature.ts
+  ❌ registry/behaviors/my-feature.test.ts
+  
+  ✅ registry/behaviors/my-feature/
+     ├── _behavior-definition.ts
+     ├── constants.ts
+     ├── schema.ts
+     ├── behavior.ts
+     └── behavior.test.ts
   ```
 
 ### 4. Git Protocol
