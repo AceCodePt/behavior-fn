@@ -15,18 +15,44 @@ export default ${toConstantCase(behaviorName)}_DEFINITION;
 `;
 }
 
+export function generateConstants(behaviorName: string): string {
+  const constantsName = `${toConstantCase(behaviorName)}_ATTRS`;
+  
+  return `/**
+ * Attribute name constants for the ${behaviorName} behavior.
+ * 
+ * This file contains ONLY attribute name constants - no schema validation logic.
+ * Separated from schema.ts to keep CDN bundles lightweight (~50KB smaller).
+ * 
+ * The ${behaviorName} behavior [TODO: add description].
+ */
+export const ${constantsName} = {
+  // Add your attribute constants here
+  // Example:
+  // /** Description of what this attribute does */
+  // MY_ATTRIBUTE: "${behaviorName}-my-attribute",
+} as const;
+`;
+}
+
 export function generateSchema(behaviorName: string): string {
+  const constantsName = `${toConstantCase(behaviorName)}_ATTRS`;
+  
   return `import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
+import { ${constantsName} } from "./constants";
+
+// Re-export constants for convenience
+export { ${constantsName} };
 
 /**
  * Schema for ${behaviorName} behavior
  * Define your attributes here using TypeBox
  */
 export const schema = Type.Object({
-  // Add your attribute definitions here
+  // Add your attribute definitions here using the constants
   // Example:
-  // "my-attribute": Type.Optional(Type.String()),
+  // [${constantsName}.MY_ATTRIBUTE]: Type.Optional(Type.String()),
 });
 
 export type SchemaType = InferSchema<typeof schema>;
@@ -35,8 +61,11 @@ export type SchemaType = InferSchema<typeof schema>;
 
 export function generateBehavior(behaviorName: string): string {
   const factoryName = toCamelCase(behaviorName) + "BehaviorFactory";
+  const constantsName = `${toConstantCase(behaviorName)}_ATTRS`;
   
-  return `/**
+  return `import { ${constantsName} } from "./constants";
+
+/**
  * ${capitalize(behaviorName)} Behavior Implementation
  * 
  * This factory creates the behavior instance for the element.
@@ -48,7 +77,8 @@ export const ${factoryName} = (el: HTMLElement) => {
     // Add your event handlers here
     // Example:
     // onClick(e: MouseEvent) {
-    //   console.log('Element clicked!');
+    //   const myAttr = el.getAttribute(${constantsName}.MY_ATTRIBUTE);
+    //   console.log('Element clicked!', myAttr);
     // },
   };
 };

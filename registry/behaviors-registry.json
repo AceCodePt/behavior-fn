@@ -34,6 +34,9 @@
         "path": "compute/_behavior-definition.ts"
       },
       {
+        "path": "compute/constants.ts"
+      },
+      {
         "path": "compute/schema.ts"
       },
       {
@@ -50,6 +53,9 @@
     "files": [
       {
         "path": "element-counter/_behavior-definition.ts"
+      },
+      {
+        "path": "element-counter/constants.ts"
       },
       {
         "path": "element-counter/schema.ts"
@@ -70,6 +76,9 @@
         "path": "logger/_behavior-definition.ts"
       },
       {
+        "path": "logger/constants.ts"
+      },
+      {
         "path": "logger/schema.ts"
       },
       {
@@ -88,6 +97,9 @@
         "path": "request/_behavior-definition.ts"
       },
       {
+        "path": "request/constants.ts"
+      },
+      {
         "path": "request/schema.ts"
       },
       {
@@ -104,6 +116,9 @@
     "files": [
       {
         "path": "reveal/_behavior-definition.ts"
+      },
+      {
+        "path": "reveal/constants.ts"
       },
       {
         "path": "reveal/schema.ts"
