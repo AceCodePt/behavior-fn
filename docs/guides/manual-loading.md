@@ -42,9 +42,14 @@ Perfect for:
 Load only what you need:
 
 ```html
+<!-- Load specific behaviors -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
 
+<!-- Load auto-loader (enables automatic is attribute addition) -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
+
+<!-- Now just use behavior attribute (no is needed!) -->
 <dialog behavior="reveal logger" id="modal">
   <h2>Hello!</h2>
 </dialog>
@@ -52,6 +57,27 @@ Load only what you need:
 ```
 
 Each behavior bundle (~10KB) is self-contained and works independently.
+
+**Without auto-loader**, use explicit `is` attributes and define behavioral hosts:
+
+```html
+<!-- Load behaviors only -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
+
+<!-- Define behavioral hosts manually -->
+<script>
+  // Define a dialog that can host reveal and logger behaviors
+  window.BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', []);
+</script>
+
+<!-- Add is attribute explicitly -->
+<dialog is="behavioral-logger-reveal" behavior="reveal logger" id="modal">
+  <h2>Hello!</h2>
+</dialog>
+```
+
+**Note:** The auto-loader automatically calls `defineBehavioralHost()` for you. Without it, you must define hosts manually for each tag+behavior combination you use.
 
 ---
 
