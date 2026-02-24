@@ -265,6 +265,108 @@ export type DetectionResult = ReturnType<typeof detectEnvironment>;
 - One less thing to maintain manually
 - Refactoring-safe (change return → type updates)
 
+### 8. Schema Constants Pattern (Behavior Schemas)
+
+**All behavior schemas MUST define attribute name constants before the schema definition.**
+
+This is a critical pattern for maintaining consistency across behaviors. Every behavior schema file must follow this structure:
+
+```typescript
+// ❌ BAD: String literals in schema
+import { Type } from "@sinclair/typebox";
+import { type InferSchema } from "../types";
+
+export const schema = Type.Object({
+  "behavior-attribute": Type.String(),
+  "behavior-another": Type.Optional(Type.Number()),
+});
+
+export type SchemaType = InferSchema<typeof schema>;
+```
+
+```typescript
+// ✅ GOOD: Constants before schema
+import { Type } from "@sinclair/typebox";
+import { type InferSchema } from "../types";
+
+// 1. Define constants at the top (single source of truth)
+export const BEHAVIOR_ATTRS = {
+  ATTRIBUTE: "behavior-attribute",
+  ANOTHER: "behavior-another",
+} as const;
+
+// 2. Use constants in schema definition
+export const schema = Type.Object({
+  [BEHAVIOR_ATTRS.ATTRIBUTE]: Type.String(),
+  [BEHAVIOR_ATTRS.ANOTHER]: Type.Optional(Type.Number()),
+});
+
+// 3. Export types derived from schema
+export type SchemaType = InferSchema<typeof schema>;
+```
+
+**Naming Convention for Constants:**
+- Constant object: `{BEHAVIOR_NAME}_ATTRS` (e.g., `REVEAL_ATTRS`, `COMPUTE_ATTRS`)
+- Keys: SCREAMING_SNAKE_CASE (e.g., `WHEN_TARGET`, `FORMULA`)
+- Values: kebab-case matching HTML attribute convention (e.g., `"reveal-when-target"`, `"compute-formula"`)
+
+**Implementation Usage:**
+
+```typescript
+// behavior.ts
+import { BEHAVIOR_ATTRS } from "./schema";
+
+export const behaviorFactory = (el: HTMLElement) => {
+  // ✅ GOOD: Use constants
+  const value = el.getAttribute(BEHAVIOR_ATTRS.ATTRIBUTE);
+  
+  // ❌ BAD: String literals
+  const value = el.getAttribute("behavior-attribute");
+  
+  return {
+    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+      // ✅ GOOD: Compare with constant
+      if (name === BEHAVIOR_ATTRS.ATTRIBUTE && oldValue !== newValue) {
+        // handle change
+      }
+    }
+  };
+};
+```
+
+**Benefits:**
+- Single source of truth for attribute names
+- Refactor-safe: change attribute name once in schema, applies everywhere
+- No typos in getAttribute/setAttribute calls
+- TypeScript autocomplete for attribute names
+- Easy to grep for attribute usage
+- Self-documenting: constants show all available attributes at a glance
+
+**Standard HTML Attributes Exception:**
+Standard HTML attributes (`hidden`, `open`, `popover`) should be used directly, not as constants:
+
+```typescript
+// ✅ GOOD: Standard HTML attributes used directly
+const isHidden = el.hasAttribute("hidden");
+const isOpen = (el as HTMLDialogElement).open;
+
+// ✅ GOOD: Behavior-specific attributes use constants
+const delay = el.getAttribute(REVEAL_ATTRS.DELAY);
+```
+
+**Attribute Naming Convention:**
+Every behavior-specific attribute MUST follow: `{behavior-name}-{attribute-name}`
+
+Examples:
+- ✅ `reveal-delay`, `reveal-duration`, `reveal-anchor`
+- ✅ `compute-formula`
+- ✅ `request-url`, `request-method`, `request-trigger`
+- ✅ `input-watcher-target`, `input-watcher-format`
+- ✅ `element-counter-root`, `element-counter-selector`
+- ✅ `logger-trigger`
+
+This prevents attribute name collisions and makes ownership clear.
+
 ## Operational Rules
 
 ### 1. Environment & Branching
@@ -310,6 +412,12 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 - **Zod/TypeBox:** Use for all runtime validation.
 - **No External Dependencies:** Behaviors should be dependency-free whenever possible.
 - **Testing:** Use `vitest` and `jsdom`. Every behavior **MUST** have tests.
+- **Breaking Changes:** We are in **beta** (pre-1.0). Breaking changes are acceptable and encouraged when they:
+  - Fix architectural issues
+  - Establish better patterns
+  - Improve consistency across the codebase
+  - Enhance type safety or DX
+  - **Do NOT hesitate to break APIs if it makes the codebase better.** Document migrations for users, but prioritize correctness over backward compatibility.
 - **File Structure:**
   ```text
   registry/behaviors/<name>/

@@ -153,6 +153,8 @@ export class MathParser {
 
 // --- Behavior Implementation ---
 
+import { COMPUTE_ATTRS } from "./schema";
+
 const evaluatingElements = new Set<HTMLElement>();
 
 export const computeBehaviorFactory = (el: HTMLElement) => {
@@ -165,7 +167,7 @@ export const computeBehaviorFactory = (el: HTMLElement) => {
     });
     cleanupFns = [];
 
-    const formula = el.getAttribute("formula");
+    const formula = el.getAttribute(COMPUTE_ATTRS.FORMULA);
     if (!formula) return; // Return empty object if no formula
 
     const parser = new MathParser(formula);
@@ -269,7 +271,7 @@ export const computeBehaviorFactory = (el: HTMLElement) => {
       oldValue: string | null,
       newValue: string | null,
     ) {
-      if (name === "formula" && oldValue !== newValue) {
+      if (name === COMPUTE_ATTRS.FORMULA && oldValue !== newValue) {
         setup();
       }
     },

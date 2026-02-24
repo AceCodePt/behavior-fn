@@ -2,7 +2,8 @@
 
 **Task ID:** 20260224-125849-align-behavior-attributes  
 **Created:** 2026-02-24 12:58:49  
-**Status:** Planning  
+**Completed:** 2026-02-24 13:05:00  
+**Status:** Completed  
 **Agent:** Architect  
 
 ## Goal
@@ -106,30 +107,30 @@ This task follows the PDSRTDD workflow with a focus on maintaining the **Schema 
 
 Each change should be atomic and independently verifiable:
 
-### Task 1: Update Compute Behavior
-- [ ] Update `compute/schema.ts` with `COMPUTE_ATTRS` and `compute-formula`
-- [ ] Update `compute/behavior.ts` to use `COMPUTE_ATTRS.FORMULA`
-- [ ] Update `compute/behavior.test.ts` with new attribute name
-- [ ] Verify tests pass
+### Task 1: Update Compute Behavior ✅ COMPLETED
+- [x] Update `compute/schema.ts` with `COMPUTE_ATTRS` and `compute-formula`
+- [x] Update `compute/behavior.ts` to use `COMPUTE_ATTRS.FORMULA`
+- [x] Update `compute/behavior.test.ts` with new attribute name
+- [x] Verify tests pass - All 19 tests passing
 
-### Task 2: Update Element-Counter Behavior
-- [ ] Update `element-counter/schema.ts` with new attribute names
-- [ ] Update `element-counter/behavior.ts` to use new constants
-- [ ] Update `element-counter/behavior.test.ts` with new attribute names
-- [ ] Verify tests pass
+### Task 2: Update Element-Counter Behavior ✅ COMPLETED
+- [x] Update `element-counter/schema.ts` with new attribute names
+- [x] Implementation already uses constants - no changes needed
+- [x] Tests already use constants - no changes needed
+- [x] Verify tests pass - All 2 tests passing
 
-### Task 3: Update Logger Behavior
-- [ ] Update `logger/schema.ts` with `LOGGER_ATTRS` and `logger-trigger`
-- [ ] Update `logger/behavior.ts` to use `LOGGER_ATTRS.TRIGGER`
-- [ ] Update `logger/behavior.test.ts` with new attribute name
-- [ ] Verify tests pass
+### Task 3: Update Logger Behavior ✅ COMPLETED
+- [x] Update `logger/schema.ts` with `LOGGER_ATTRS` and `logger-trigger`
+- [x] Update `logger/behavior.ts` to use `LOGGER_ATTRS.TRIGGER`
+- [x] Update `logger/behavior.test.ts` with new attribute name
+- [x] Verify tests pass - All 2 tests passing
 
-### Task 4: Update README Documentation
-- [ ] Update `request` behavior documentation (fix and add attributes)
-- [ ] Update `input-watcher` behavior documentation (already has correct prefixes in code)
-- [ ] Update `compute` behavior documentation (complete rewrite)
-- [ ] Update `element-counter` behavior documentation (complete rewrite)
-- [ ] Update `logger` behavior documentation (complete rewrite)
+### Task 4: Update README Documentation ✅ COMPLETED
+- [x] Update `request` behavior documentation (added missing attributes: `request-confirm`, `request-push-url`, `request-vals`)
+- [x] Update `input-watcher` behavior documentation (corrected to use `input-watcher-*` prefixes)
+- [x] Update `compute` behavior documentation (complete rewrite with correct `compute-formula` attribute)
+- [x] Update `element-counter` behavior documentation (complete rewrite with correct prefixes)
+- [x] Update `logger` behavior documentation (complete rewrite with correct `logger-trigger` attribute)
 
 ## Success Criteria
 
@@ -167,3 +168,80 @@ Each change should be atomic and independently verifiable:
 - Run full test suite after each atomic change
 - Verify examples in README actually work
 - Update any example projects if they exist
+
+## Implementation Summary
+
+All tasks completed successfully with full test coverage:
+
+### Changes Made
+
+1. **compute behavior:**
+   - Changed `formula` → `compute-formula` in schema
+   - Added `COMPUTE_ATTRS` constant
+   - Updated implementation and all 19 tests
+   - README completely rewritten with accurate examples
+
+2. **element-counter behavior:**
+   - Changed `data-root` → `element-counter-root`
+   - Changed `data-selector` → `element-counter-selector`
+   - Updated schema constants
+   - Implementation already used constants (no changes needed)
+   - Tests already used constants (no changes needed)
+   - README completely rewritten with accurate examples
+
+3. **logger behavior:**
+   - Changed `log-trigger` → `logger-trigger` in schema
+   - Added `LOGGER_ATTRS` constant
+   - Updated implementation and all 2 tests
+   - README completely rewritten with accurate examples
+
+4. **Documentation fixes (no code changes):**
+   - **request:** Added missing attributes (`request-confirm`, `request-push-url`, `request-vals`)
+   - **input-watcher:** Corrected documentation to use proper `input-watcher-*` prefixes
+
+### Test Results
+
+All 240 tests passing across 20 test files:
+- ✅ compute: 19 tests passing
+- ✅ element-counter: 2 tests passing
+- ✅ logger: 2 tests passing
+- ✅ reveal: 17 tests passing
+- ✅ input-watcher: 4 tests passing
+- ✅ request: 36 tests passing
+- ✅ All other behaviors: passing
+- ✅ CLI tests: passing
+- ✅ Integration tests: passing
+
+### Additional Improvements (Schema Standardization)
+
+Beyond the original scope, ensured ALL behavior schemas follow the constant pattern:
+
+1. **reveal behavior:**
+   - Added `REVEAL_ATTRS` constant with all attribute names
+   - Updated implementation to use constants
+   - Already had correct naming convention, just needed constants
+
+2. **input-watcher behavior:**
+   - Added `INPUT_WATCHER_ATTRS` constant with all attribute names
+   - Updated implementation to use constants
+   - Already had correct naming convention, just needed constants
+
+3. **request behavior:**
+   - Already had `REQUEST_ATTRS` constants ✅
+   - No changes needed
+
+**Result:** All 6 behaviors now follow the same pattern:
+- Constants defined at top of schema file
+- Schema uses constants (not string literals)
+- Implementation imports and uses constants
+- Tests use constants where applicable
+- Single source of truth maintained
+
+### Breaking Changes
+
+This is a breaking change for users of:
+- `compute` behavior (attribute renamed)
+- `element-counter` behavior (attributes renamed)
+- `logger` behavior (attribute renamed)
+
+Migration guide should be added to CHANGELOG before release.

@@ -1,12 +1,13 @@
 import { type BehaviorFactory } from "~registry";
 import { hasValue } from "~utils";
+import { INPUT_WATCHER_ATTRS } from "./schema";
 
 export const inputWatcherBehavior: BehaviorFactory = (host) => {
   let targets: Element[] = [];
   let cleanupFns: Array<() => void> = [];
 
   const getTargets = () => {
-    const selector = host.getAttribute("input-watcher-target");
+    const selector = host.getAttribute(INPUT_WATCHER_ATTRS.TARGET);
     if (!selector) return [];
 
     const result: Element[] = [];
@@ -29,7 +30,7 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
   };
 
   const readValue = (el: Element) => {
-    const attr = host.getAttribute("input-watcher-attr");
+    const attr = host.getAttribute(INPUT_WATCHER_ATTRS.ATTR);
     if (attr) {
       return el.getAttribute(attr) ?? "";
     }
@@ -44,7 +45,7 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
     if (targets.length === 0) return;
 
     const values = targets.map(readValue);
-    const format = host.getAttribute("input-watcher-format");
+    const format = host.getAttribute(INPUT_WATCHER_ATTRS.FORMAT);
 
     let output = "";
 
@@ -75,7 +76,7 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
 
     targets = getTargets();
 
-    const eventsStr = host.getAttribute("input-watcher-events");
+    const eventsStr = host.getAttribute(INPUT_WATCHER_ATTRS.EVENTS);
     const events = eventsStr
       ? eventsStr.split(",").map((e) => e.trim())
       : ["input", "change"];
