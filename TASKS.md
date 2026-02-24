@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Request Behavior JSON Script Update Support](docs/tasks/request-json-script-update/task.md)
 - [x] [Align Behavior Attributes and Documentation](docs/tasks/20260224-125849-align-behavior-attributes/LOG.md)
 - [x] [Fix Behavior Parsing Inconsistency Between Auto-Loader and Behavioral Host](docs/tasks/fix-behavior-parsing-inconsistency/task.md)
 - [x] [Opt-In Auto-Loader for Behavioral Hosts](docs/tasks/opt-in-auto-loader/task.md)
