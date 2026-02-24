@@ -1,24 +1,46 @@
 {
 	"name": "behavior-fn",
-	"description": "Copy-paste behavior mixins for Web Components",
-	"main": "index.js",
+	"description": "Copy-paste behavior mixins for Web Components - Own your code, not your dependencies",
+	"version": "0.1.0",
 	"type": "module",
-	"version": "0.0.1",
 	"bin": {
 		"behavior-fn": "./dist/index.js"
 	},
+	"files": [
+		"dist",
+		"registry"
+	],
 	"scripts": {
 		"build": "tsup index.ts --format esm --clean --external jiti --onSuccess \"cp -r registry dist/ && chmod +x dist/index.js\"",
-		"test": "vitest run"
+		"test": "vitest run",
+		"prepublishOnly": "npm run build && npm run test"
 	},
 	"keywords": [
 		"web-components",
 		"mixin",
 		"behavior",
-		"typescript"
+		"typescript",
+		"headless-ui",
+		"johf",
+		"declarative",
+		"copy-paste",
+		"no-framework",
+		"vanilla-js",
+		"custom-elements",
+		"zod",
+		"valibot",
+		"typebox"
 	],
 	"author": "Sagi Carmel (https://github.com/AceCodePt)",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/AceCodePt/behavior-fn.git"
+	},
+	"bugs": {
+		"url": "https://github.com/AceCodePt/behavior-fn/issues"
+	},
+	"homepage": "https://github.com/AceCodePt/behavior-fn#readme",
 	"devDependencies": {
 		"@sinclair/typebox": "^0.34.48",
 		"@types/node": "^25.2.3",
