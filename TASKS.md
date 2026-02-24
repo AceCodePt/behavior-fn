@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Add Test Files Import Option](docs/tasks/add-test-files-option/task.md)
+- [-] [Add Test Files Import Option](docs/tasks/add-test-files-option/task.md)
 - [-] [Refactor Strategies to Validators with Directory Structure](docs/tasks/refactor-strategies-to-validators/task.md)
 - [-] [Remove Jiti Dependency - Build Registry Instead](docs/tasks/remove-jiti-build-registry/task.md)
 - [-] [Simplify Init Flow](docs/tasks/simplify-init-flow/task.md)
