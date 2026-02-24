@@ -169,6 +169,12 @@ export function enableAutoLoader(): () => void {
       const newElement = document.createElement(tagName, {
         is: customElementName,
       });
+      
+      // Fallback: Explicitly set `is` attribute if createElement didn't honor it
+      // (JSDOM and some test environments don't support the `is` option)
+      if (!newElement.hasAttribute("is")) {
+        newElement.setAttribute("is", customElementName);
+      }
 
       // Preserve ALL attributes from the original element
       for (let i = 0; i < element.attributes.length; i++) {
