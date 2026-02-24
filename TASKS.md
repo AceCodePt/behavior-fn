@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
 - [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
 - [ ] [Registry Discovery and Directory](docs/tasks/registry-discovery-directory/task.md) 🔒 Blocked by: [Multi-Registry Support]
 - [ ] [Consolidated Registry Format Support](docs/tasks/consolidated-registry-format/task.md) 🔒 Blocked by: [Multi-Registry Support]
