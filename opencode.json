@@ -7,6 +7,9 @@
 		"build": {
 			"disable": true
 		},
+		"explore": {
+			"disable": true
+		},
 		"architect": {
 			"model": "opencode/claude-sonnet-4-5",
 			"prompt": "docs/contributing/agent-prompts/architect.md"
