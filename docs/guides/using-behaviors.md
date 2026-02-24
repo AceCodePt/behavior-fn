@@ -2,6 +2,8 @@
 
 This guide explains how to use behaviors in your application after installing them via `behavior-fn`.
 
+> **Note:** If you prefer to load behaviors without using the CLI (for simple projects or non-modular setups), see the [Manual Loading Guide](./manual-loading.md).
+
 ## Prerequisites
 
 Ensure you have initialized `behavior-fn` and installed the desired behavior.

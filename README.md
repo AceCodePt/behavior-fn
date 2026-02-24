@@ -23,6 +23,8 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ## 🚀 Quick Start
 
+> **💡 Note:** If you prefer to load behaviors without using the CLI (for simple projects, vanilla HTML/JS setups, or non-modular environments), see the **[Manual Loading Guide](docs/guides/manual-loading.md)**.
+
 ### Installation
 
 ```bash
