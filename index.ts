@@ -44,6 +44,9 @@ interface Config {
     registry: string;
     testUtils: string;
   };
+  optionalFiles?: {
+    tests?: boolean; // Default: false (production-first, lean installations)
+  };
 }
 
 const CONFIG_FILE = "behavior.json";
@@ -91,6 +94,7 @@ async function installBehavior(
   config: Config,
   validatorType: ValidatorId = 0,
   platform?: PlatformStrategy,
+  includeTests: boolean = true,
 ) {
   const behavior = registry.find((b) => b.name === name);
   if (!behavior) {
@@ -105,6 +109,11 @@ async function installBehavior(
 
   // Install files
   for (const file of behavior.files) {
+    // Skip test files if not requested (silent skip - only log installs)
+    if (!includeTests && file.path.endsWith(".test.ts")) {
+      continue;
+    }
+
     let targetDir = config.paths.behaviors;
     let fileName = file.path;
 
@@ -361,7 +370,12 @@ async function removeBehavior(name: string) {
 
 const args = process.argv.slice(2);
 const command = args[0];
-const behaviorName = args[1];
+// Extract behavior name (first non-flag argument after command)
+const behaviorName = args.find((arg, idx) => idx > 0 && !arg.startsWith("-"));
+// Parse flags (simplified: only --with-tests for opt-in)
+const flags = {
+  withTests: args.includes("--with-tests") || args.includes("-t"),
+};
 
 async function getValidatorType(name: string): Promise<ValidatorId> {
   const detectedValidators = detectValidatorFromPackageJson(process.cwd());
@@ -538,6 +552,19 @@ export async function main() {
     // Detect platform once
     const platform = detectAndValidatePlatform();
 
+    // Resolve includeTests decision (flags > config > default)
+    // Default: false (production-first, lean installations)
+    let includeTests = false;
+    
+    if (flags.withTests) {
+      // Explicit opt-in via flag
+      includeTests = true;
+    } else if (config.optionalFiles?.tests !== undefined) {
+      // Use config preference if set
+      includeTests = config.optionalFiles.tests;
+    }
+    // No prompt - non-interactive by default (CI/CD friendly)
+
     // Always ensure core is installed (check registry file existence)
     if (behaviorName !== "core") {
       const registryPath = path.resolve(process.cwd(), config.paths.registry);
@@ -552,6 +579,7 @@ export async function main() {
       config,
       await getValidatorType(behaviorName),
       platform,
+      includeTests,
     );
     process.exit(0);
   }
@@ -568,7 +596,15 @@ export async function main() {
     "  remove <behavior-name> Remove a behavior from the registry",
   );
   console.error(
-    "  add <behavior-name>    Add a specific behavior to your project",
+    "  add <behavior-name> [options]",
+  );
+  console.error(
+    "                         Add a specific behavior to your project",
+  );
+  console.error("");
+  console.error("Options for 'add' command:");
+  console.error(
+    "  -t, --with-tests       Include test files for reference/learning",
   );
   if (process.env.NODE_ENV !== "test") {
     process.exit(1);
