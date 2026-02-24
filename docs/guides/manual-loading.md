@@ -1,658 +1,777 @@
-# Manual Loading Without CLI
+# Manual Loading via CDN
 
-This guide explains how to use behaviors **without** the `behavior-fn` CLI tool. This is useful for:
+This guide explains how to use BehaviorFN behaviors **without the CLI** by loading them directly from a CDN using simple `<script>` tags.
 
-- **Simple projects** without a build system or module bundler
-- **Script tag imports** in vanilla HTML/JS projects
-- **Direct integration** where you want full control over the loading process
-- **Prototyping** or testing behaviors quickly
+Perfect for:
+- **Quick prototypes** and demos
+- **Static HTML sites** without build tools
+- **Learning** how behaviors work
+- **CodePen, JSFiddle**, and similar platforms
+- **No npm, no bundler, no CLI**
 
-## Overview
+---
 
-The BehaviorFN library works through three core concepts:
-
-1. **Behavior Registration** - Register behavior factory functions in a central registry
-2. **Host Definition** - Define which HTML elements can host behaviors
-3. **HTML Declaration** - Use the `behavior` and `is` attributes in your HTML
-
-## Prerequisites
-
-You'll need these core files from the BehaviorFN library:
-
-```
-src/
-├── behaviors/
-│   ├── behavior-registry.ts      # Core registry system
-│   ├── behavioral-host.ts        # Host mixin system
-│   ├── behavior-utils.ts         # Utility functions
-│   └── [behavior-name]/          # Individual behaviors
-│       ├── _behavior-definition.ts
-│       ├── schema.ts
-│       └── behavior.ts
-```
-
-You can either:
-- Copy these files from the [GitHub repository](https://github.com/saghul/behavior-fn)
-- Use the CLI once to generate them: `npx behavior-fn init && npx behavior-fn add reveal`
-- Download individual behavior folders as needed
-
-## Method 1: Direct Registration (Simplest)
-
-This method is best for **simple, inline behaviors** or **quick prototyping**.
-
-### Step 1: Import Core Infrastructure
-
-```typescript
-import { registerBehavior } from "./behaviors/behavior-registry";
-import { defineBehavioralHost } from "./behaviors/behavioral-host";
-```
-
-### Step 2: Define Your Behavior Inline
-
-```typescript
-// Define a simple click counter behavior
-const clickCounterFactory = (el: HTMLElement) => {
-  let count = 0;
-  
-  return {
-    connectedCallback() {
-      // Initialize when element connects to DOM
-      el.textContent = `Clicks: ${count}`;
-    },
-    
-    onClick(e: MouseEvent) {
-      // Handle click events (automatically wired up)
-      count++;
-      el.textContent = `Clicks: ${count}`;
-    },
-  };
-};
-```
-
-### Step 3: Register the Behavior
-
-```typescript
-registerBehavior("click-counter", clickCounterFactory);
-```
-
-### Step 4: Define a Behavioral Host
-
-```typescript
-// Register <div> as a behavioral host with custom element name
-defineBehavioralHost("div", "behavioral-click-counter", []);
-```
-
-### Step 5: Use in HTML
-
-```html
-<div is="behavioral-click-counter" behavior="click-counter">
-  Click me!
-</div>
-```
-
-### Complete Example
-
-```typescript
-// app.ts
-import { registerBehavior } from "./behaviors/behavior-registry";
-import { defineBehavioralHost } from "./behaviors/behavioral-host";
-
-// Define behavior
-const clickCounterFactory = (el: HTMLElement) => {
-  let count = 0;
-  return {
-    connectedCallback() {
-      el.textContent = `Clicks: ${count}`;
-    },
-    onClick() {
-      count++;
-      el.textContent = `Clicks: ${count}`;
-    },
-  };
-};
-
-// Register
-registerBehavior("click-counter", clickCounterFactory);
-defineBehavioralHost("div", "behavioral-click-counter", []);
-```
-
-```html
-<!-- index.html -->
-<!DOCTYPE html>
-<html>
-<head>
-  <script type="module" src="./app.ts"></script>
-</head>
-<body>
-  <div is="behavioral-click-counter" behavior="click-counter">
-    Click me!
-  </div>
-</body>
-</html>
-```
-
-## Method 2: Import Pre-built Behaviors
-
-This method is best for **using existing behaviors** from the registry without the CLI.
-
-### Step 1: Copy Behavior Files
-
-Copy the behavior folder you want from `registry/behaviors/` to your project:
-
-```
-src/
-└── behaviors/
-    ├── behavior-registry.ts
-    ├── behavioral-host.ts
-    ├── behavior-utils.ts
-    └── reveal/                    # Copied from registry
-        ├── _behavior-definition.ts
-        ├── schema.ts
-        └── behavior.ts
-```
-
-### Step 2: Import and Register
-
-```typescript
-// app.ts
-import { registerBehavior } from "./behaviors/behavior-registry";
-import { defineBehavioralHost } from "./behaviors/behavioral-host";
-import { getObservedAttributes } from "./behaviors/behavior-utils";
-
-// Import the behavior
-import { revealBehaviorFactory } from "./behaviors/reveal/behavior";
-import REVEAL_DEFINITION from "./behaviors/reveal/_behavior-definition";
-
-// Register the behavior
-registerBehavior(REVEAL_DEFINITION.name, revealBehaviorFactory);
-
-// Define behavioral host with observed attributes
-defineBehavioralHost(
-  "dialog",
-  "behavioral-reveal",
-  getObservedAttributes(REVEAL_DEFINITION.schema)
-);
-```
-
-### Step 3: Use in HTML
+## 🚀 Quick Start
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <script type="module" src="./app.ts"></script>
+  <meta charset="UTF-8">
+  <title>BehaviorFN CDN Example</title>
 </head>
 <body>
-  <!-- The dialog with reveal behavior -->
+  <!-- Your HTML with behaviors -->
   <dialog is="behavioral-reveal" id="modal" behavior="reveal">
-    <h2>Modal Content</h2>
-    <p>This is a modal dialog with reveal behavior.</p>
+    <h2>Hello Modal!</h2>
+    <p>Loaded from CDN—no build tools!</p>
+    <button commandfor="modal" command="--hide">Close</button>
   </dialog>
   
-  <!-- Button to control the dialog (uses Invoker Commands API) -->
   <button commandfor="modal" command="--toggle">
-    Toggle Modal
+    Open Modal
   </button>
+
+  <!-- Load BehaviorFN from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  
+  <!-- Initialize -->
+  <script>
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  </script>
 </body>
 </html>
 ```
 
-### Multiple Behaviors Example
+**That's it!** Save this HTML file, open it in a browser, and it works.
 
-```typescript
-// app.ts
-import { registerBehavior } from "./behaviors/behavior-registry";
-import { defineBehavioralHost } from "./behaviors/behavioral-host";
-import { getObservedAttributes } from "./behaviors/behavior-utils";
+---
 
-// Import multiple behaviors
-import { revealBehaviorFactory } from "./behaviors/reveal/behavior";
-import REVEAL_DEFINITION from "./behaviors/reveal/_behavior-definition";
+## 📦 CDN Options
 
-import { loggerBehaviorFactory } from "./behaviors/logger/behavior";
-import LOGGER_DEFINITION from "./behaviors/logger/_behavior-definition";
+### Option 1: All-in-One Bundle (Easiest)
 
-// Register all behaviors
-registerBehavior(REVEAL_DEFINITION.name, revealBehaviorFactory);
-registerBehavior(LOGGER_DEFINITION.name, loggerBehaviorFactory);
-
-// Define hosts with combined observed attributes
-const dialogAttrs = [
-  ...getObservedAttributes(REVEAL_DEFINITION.schema),
-  ...getObservedAttributes(LOGGER_DEFINITION.schema),
-];
-
-defineBehavioralHost("dialog", "behavioral-logger-reveal", dialogAttrs);
-```
+Load everything at once:
 
 ```html
-<!-- Multiple behaviors on one element (sorted alphabetically) -->
-<dialog is="behavioral-logger-reveal" 
-        id="modal" 
-        behavior="reveal logger">
-  Content
-</dialog>
+<!-- Loads core + all behaviors (~20KB gzipped) -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+
+<script>
+  // All behaviors are pre-registered
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+</script>
 ```
 
-## Method 3: Script Tag Integration (No Bundler)
+**Pros:**
+- ✅ Single script tag
+- ✅ All behaviors included
+- ✅ Simple setup
 
-For projects without a build system, you can use browser modules directly.
+**Cons:**
+- ⚠️ Larger file size (loads all behaviors even if you don't use them)
 
-### Step 1: Convert to Browser Modules
+---
 
-Make sure your behavior files use browser-compatible imports:
+### Option 2: Core + Individual Behaviors (Optimized)
 
-```typescript
-// behaviors/behavior-registry.ts
-// (Ensure all imports use relative paths with .js extensions)
-export const factoryRegistry = new Map();
-export const loaderRegistry = new Map();
-export const loadingStates = new Map();
+Load only what you need:
 
-export function registerBehavior(name, factory) {
-  if (factoryRegistry.has(name)) {
-    console.warn(`Behavior "${name}" is already registered.`);
-    return;
-  }
-  factoryRegistry.set(name, factory);
-}
+```html
+<!-- Load core runtime first (~5KB gzipped) -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
 
-export function getBehavior(name) {
-  return factoryRegistry.get(name);
-}
+<!-- Load specific behaviors you need -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/logger.js"></script>
+
+<script>
+  // Behaviors auto-register when loaded
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', []);
+</script>
 ```
 
-### Step 2: Create Registration Script
+**Pros:**
+- ✅ Smaller file size
+- ✅ Only load what you need
+- ✅ Better performance
 
-```typescript
-// behaviors/register-all.js
-import { registerBehavior } from "./behavior-registry.js";
-import { defineBehavioralHost } from "./behavioral-host.js";
+**Cons:**
+- ⚠️ Multiple script tags
 
-// Inline simple behaviors
-const clickCounterFactory = (el) => {
-  let count = 0;
-  return {
-    connectedCallback() {
-      el.textContent = `Clicks: ${count}`;
-    },
-    onClick() {
-      count++;
-      el.textContent = `Clicks: ${count}`;
-    },
-  };
-};
+---
 
-// Register
-registerBehavior("click-counter", clickCounterFactory);
-defineBehavioralHost("div", "behavioral-click-counter", []);
+### Option 3: ES Modules from CDN
+
+Use modern ES modules:
+
+```html
+<script type="module">
+  import { 
+    registerBehavior, 
+    defineBehavioralHost 
+  } from 'https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
+  
+  import { revealBehaviorFactory } from 'https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.esm.js';
+  
+  registerBehavior('reveal', revealBehaviorFactory);
+  defineBehavioralHost('dialog', 'behavioral-reveal', []);
+</script>
 ```
 
-### Step 3: Use in HTML
+**Pros:**
+- ✅ Modern standard
+- ✅ Tree-shakeable
+- ✅ Works with import maps
+
+**Cons:**
+- ⚠️ Requires module support (all modern browsers)
+
+---
+
+## 🎯 Complete Examples
+
+### Example 1: Modal Dialog
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <script type="module" src="./behaviors/register-all.js"></script>
+  <meta charset="UTF-8">
+  <title>Modal Dialog Example</title>
+  <style>
+    dialog {
+      padding: 30px;
+      border: 2px solid #2563eb;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-  <div is="behavioral-click-counter" behavior="click-counter">
-    Click me!
-  </div>
+  <h1>Modal Dialog with Reveal Behavior</h1>
+  
+  <button commandfor="my-modal" command="--toggle">
+    Open Modal
+  </button>
+  
+  <dialog is="behavioral-reveal" id="my-modal" behavior="reveal">
+    <h2>🎉 Success!</h2>
+    <p>This modal is powered by BehaviorFN loaded from CDN.</p>
+    <button commandfor="my-modal" command="--hide">Close</button>
+  </dialog>
+
+  <!-- Load from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  
+  <script>
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  </script>
 </body>
 </html>
 ```
 
-## Understanding the System
+---
 
-### The Registry Pattern
+### Example 2: Popover Menu
 
-BehaviorFN uses three registries:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Popover Menu Example</title>
+  <style>
+    [popover] {
+      padding: 20px;
+      border: 2px solid #2563eb;
+      border-radius: 8px;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Popover Menu</h1>
+  
+  <button commandfor="menu" command="--toggle">
+    Show Menu
+  </button>
+  
+  <div is="behavioral-reveal" 
+       id="menu" 
+       behavior="reveal" 
+       popover="auto">
+    <h3>Menu</h3>
+    <ul>
+      <li>📄 New Document</li>
+      <li>💾 Save</li>
+      <li>⚙️ Settings</li>
+    </ul>
+  </div>
 
-```typescript
-// Registered behavior factories
-const factoryRegistry = new Map<string, BehaviorFactory>();
-
-// Lazy loaders (for code splitting)
-const loaderRegistry = new Map<string, BehaviorLoader>();
-
-// In-progress loading states
-const loadingStates = new Map<string, Promise<void>>();
+  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  
+  <script>
+    BehaviorFN.defineBehavioralHost('div', 'behavioral-reveal', []);
+  </script>
+</body>
+</html>
 ```
 
-### The Behavioral Host System
+---
 
-The `defineBehavioralHost` function creates custom built-in elements that can host behaviors:
+### Example 3: HTMX-Style Requests
 
-```typescript
-defineBehavioralHost(
-  "dialog",              // Base HTML element
-  "behavioral-reveal",   // Custom element name
-  ["reveal-delay"]       // Observed attributes
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Request Behavior Example</title>
+</head>
+<body>
+  <h1>Search with Request Behavior</h1>
+  
+  <input 
+    is="behavioral-request"
+    behavior="request"
+    type="search"
+    placeholder="Search..."
+    request-url="/api/search"
+    request-trigger="input"
+    request-target="#results"
+    request-debounce="300"
+  >
+  
+  <div id="results"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  
+  <script>
+    BehaviorFN.defineBehavioralHost('input', 'behavioral-request', [
+      'request-url',
+      'request-method',
+      'request-trigger',
+      'request-target',
+      'request-debounce',
+    ]);
+  </script>
+</body>
+</html>
+```
+
+---
+
+### Example 4: Multiple Behaviors
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multiple Behaviors Example</title>
+</head>
+<body>
+  <h1>Dialog with Multiple Behaviors</h1>
+  
+  <button commandfor="logged-modal" command="--toggle">
+    Open Modal
+  </button>
+  
+  <!-- Multiple behaviors: reveal + logger -->
+  <dialog is="behavioral-logger-reveal" 
+          id="logged-modal" 
+          behavior="reveal logger"
+          log-events="command,click"
+          log-prefix="[Modal]">
+    <h2>Logged Modal</h2>
+    <p>This modal has both reveal and logger behaviors.</p>
+    <p>Check your browser console to see logged events!</p>
+    <button commandfor="logged-modal" command="--hide">Close</button>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  
+  <script>
+    // Note: behaviors sorted alphabetically in is="behavioral-logger-reveal"
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', [
+      'log-events',
+      'log-prefix',
+      'log-attrs',
+    ]);
+  </script>
+</body>
+</html>
+```
+
+---
+
+## 🧩 Available CDN Bundles
+
+All bundles are available on jsdelivr and unpkg:
+
+### Core Runtime
+```html
+<!-- UMD/IIFE bundle -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+
+<!-- ES Module -->
+<script type="module">
+  import * as BehaviorFN from 'https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
+</script>
+```
+
+### Individual Behaviors
+```html
+<!-- reveal -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
+
+<!-- logger -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/logger.js"></script>
+
+<!-- request -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/request.js"></script>
+
+<!-- input-watcher -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/input-watcher.js"></script>
+
+<!-- compute -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/compute.js"></script>
+
+<!-- element-counter -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/element-counter.js"></script>
+```
+
+### All-in-One
+```html
+<!-- Everything -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+```
+
+---
+
+## 📚 API Reference
+
+When loaded via CDN, BehaviorFN exposes a global `BehaviorFN` object:
+
+### `BehaviorFN.registerBehavior(name, factory)`
+
+Register a behavior factory function:
+
+```javascript
+BehaviorFN.registerBehavior('my-behavior', (el) => {
+  return {
+    connectedCallback() {
+      console.log('Connected!');
+    },
+    onClick() {
+      console.log('Clicked!');
+    },
+  };
+});
+```
+
+### `BehaviorFN.getBehavior(name)`
+
+Get a registered behavior factory:
+
+```javascript
+const factory = BehaviorFN.getBehavior('reveal');
+if (factory) {
+  console.log('Reveal behavior is registered');
+}
+```
+
+### `BehaviorFN.defineBehavioralHost(tagName, customElementName, observedAttributes)`
+
+Define a custom element that can host behaviors:
+
+```javascript
+BehaviorFN.defineBehavioralHost(
+  'dialog',              // Base HTML element
+  'behavioral-reveal',   // Custom element name
+  []                     // Observed attributes (optional)
 );
 ```
 
-This registers a custom element that:
-1. Extends the native `<dialog>` element
-2. Can be used via `is="behavioral-reveal"`
-3. Loads behaviors specified in the `behavior` attribute
-4. Observes the specified attributes
+**Parameters:**
+- `tagName` - HTML element to extend (`dialog`, `div`, `button`, etc.)
+- `customElementName` - Name for the custom element (must match `is` attribute)
+- `observedAttributes` - Array of attribute names to observe (optional)
 
-### The Behavior Instance
+### `BehaviorFN.behaviors`
 
-A behavior factory returns an instance object with lifecycle hooks and event handlers:
+(All-in-one bundle only) Access to all behavior factories:
 
-```typescript
-const behaviorFactory = (el: HTMLElement) => {
-  // Private state
-  let count = 0;
-  
-  // Return instance with hooks
-  return {
-    // Lifecycle hooks
-    connectedCallback() {
-      // Called when element connects to DOM
-    },
-    disconnectedCallback() {
-      // Called when element disconnects from DOM
-    },
-    attributeChangedCallback(name, oldValue, newValue) {
-      // Called when observed attributes change
-    },
-    
-    // Event handlers (automatically wired up via addEventListener)
-    onClick(e: MouseEvent) {
-      // Handles click events
-    },
-    onCommand(e: CommandEvent) {
-      // Handles command events from Invoker Commands API
-    },
-    onMouseenter(e: MouseEvent) {
-      // Handles mouseenter events
-    },
-  };
-};
+```javascript
+console.log(BehaviorFN.behaviors);
+// {
+//   reveal: Function,
+//   logger: Function,
+//   request: Function,
+//   ...
+// }
 ```
 
-**Event Handler Convention:**
-- Methods starting with `on` followed by a capital letter are event handlers
-- `onCommand` → `command` event
-- `onClick` → `click` event  
-- `onMouseenter` → `mouseenter` event
+---
+
+## 🎨 Important Concepts
 
 ### The `is` Attribute Requirement
 
 The `is` attribute is **required** for behaviors to load:
 
 ```html
-<!-- ❌ Won't work - no is attribute -->
+<!-- ❌ Won't work - missing is attribute -->
 <dialog behavior="reveal">Content</dialog>
 
 <!-- ✅ Works - has is attribute -->
 <dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
 ```
 
-The `is` value format for multiple behaviors is `behavioral-{sorted-names}`:
+**For multiple behaviors**, sort alphabetically:
 
 ```html
 <!-- Multiple behaviors - names sorted alphabetically -->
-<div is="behavioral-logger-reveal" behavior="reveal logger">
+<dialog is="behavioral-logger-reveal" behavior="reveal logger">
 ```
 
-### The Invoker Commands API
+### Invoker Commands API
 
-BehaviorFN leverages the native **Invoker Commands API** for declarative control:
+BehaviorFN uses the native [Invoker Commands API](https://open-ui.org/components/invokers.explainer/):
 
 ```html
-<!-- Trigger button (no is attribute needed) -->
+<!-- Trigger button (no behavior needed) -->
 <button commandfor="modal" command="--toggle">
   Toggle Modal
 </button>
 
-<!-- Target element (needs is + behavior) -->
+<!-- Target element (has behavior) -->
 <dialog is="behavioral-reveal" id="modal" behavior="reveal">
   Content
 </dialog>
 ```
 
-Commands are handled via the `onCommand` event handler in behaviors:
+**Available commands** (behavior-specific):
 
-```typescript
-const behaviorFactory = (el: HTMLElement) => {
-  return {
-    onCommand(e: CommandEvent) {
-      switch (e.command) {
-        case "--show":
-          el.showModal();
-          break;
-        case "--hide":
-          el.close();
-          break;
-        case "--toggle":
-          el.open ? el.close() : el.showModal();
-          break;
-      }
-    },
-  };
-};
-```
+**Reveal behavior:**
+- `--show` - Show the element
+- `--hide` - Hide the element
+- `--toggle` - Toggle visibility
 
-## Common Patterns
+**Request behavior:**
+- `--trigger` - Trigger the HTTP request
+- `--close-sse` - Close SSE connection
 
-### Pattern 1: Central Registration File
+### Event Handlers
 
-Create a single file to register all behaviors:
+Behaviors can define event handlers that are automatically wired:
 
-```typescript
-// behaviors/index.ts
-import { registerBehavior } from "./behavior-registry";
-import { defineBehavioralHost } from "./behavioral-host";
-import { getObservedAttributes } from "./behavior-utils";
-
-// Import all behaviors
-import { revealBehaviorFactory } from "./reveal/behavior";
-import REVEAL_DEFINITION from "./reveal/_behavior-definition";
-
-import { loggerBehaviorFactory } from "./logger/behavior";
-import LOGGER_DEFINITION from "./logger/_behavior-definition";
-
-// Register all
-const behaviors = [
-  { name: REVEAL_DEFINITION.name, factory: revealBehaviorFactory, def: REVEAL_DEFINITION },
-  { name: LOGGER_DEFINITION.name, factory: loggerBehaviorFactory, def: LOGGER_DEFINITION },
-];
-
-behaviors.forEach(({ name, factory }) => {
-  registerBehavior(name, factory);
-});
-
-// Define common hosts
-defineBehavioralHost("div", "behavioral-div", []);
-defineBehavioralHost("button", "behavioral-button", []);
-defineBehavioralHost("dialog", "behavioral-dialog", []);
-```
-
-```typescript
-// app.ts
-import "./behaviors/index"; // Register everything
-
-// Now you can use behaviors in your app
-```
-
-### Pattern 2: Lazy Loading
-
-For code splitting, you can register loaders instead of behaviors:
-
-```typescript
-import { registerLoader } from "./behaviors/behavior-registry";
-
-// Register a loader function
-registerLoader("reveal", async () => {
-  const { revealBehaviorFactory } = await import("./behaviors/reveal/behavior");
-  const REVEAL_DEFINITION = await import("./behaviors/reveal/_behavior-definition");
-  registerBehavior(REVEAL_DEFINITION.default.name, revealBehaviorFactory);
-});
-```
-
-When the behavior is needed, it will be loaded automatically.
-
-### Pattern 3: Behavior Composition
-
-Create wrapper behaviors that combine multiple behaviors:
-
-```typescript
-const composedBehaviorFactory = (el: HTMLElement) => {
-  // Get other behaviors
-  const reveal = revealBehaviorFactory(el);
-  const logger = loggerBehaviorFactory(el);
+```javascript
+BehaviorFN.registerBehavior('click-counter', (el) => {
+  let count = 0;
   
   return {
     connectedCallback() {
-      reveal.connectedCallback?.();
-      logger.connectedCallback?.();
+      el.textContent = `Clicks: ${count}`;
     },
     
-    onCommand(e: CommandEvent) {
-      logger.onCommand?.(e); // Log first
-      reveal.onCommand?.(e); // Then execute
+    // onClick -> 'click' event
+    onClick() {
+      count++;
+      el.textContent = `Clicks: ${count}`;
+    },
+    
+    // onCommand -> 'command' event
+    onCommand(e) {
+      if (e.detail.command === '--reset') {
+        count = 0;
+        el.textContent = `Clicks: ${count}`;
+      }
     },
   };
-};
-```
-
-## TypeScript Support
-
-### Behavior Factory Type
-
-```typescript
-import type { BehaviorFactory, BehaviorInstance } from "./behavior-registry";
-
-const myBehaviorFactory: BehaviorFactory = (el: HTMLElement): BehaviorInstance => {
-  return {
-    connectedCallback() {},
-    onClick(e: MouseEvent) {},
-  };
-};
-```
-
-### Typed Element Reference
-
-```typescript
-const myBehaviorFactory = (el: HTMLElement) => {
-  // Type assertion for specific elements
-  const dialog = el as HTMLDialogElement;
-  
-  return {
-    onCommand(e: CommandEvent) {
-      dialog.showModal(); // Now type-safe
-    },
-  };
-};
-```
-
-### Schema Types
-
-If using TypeBox or Zod schemas, you can extract types:
-
-```typescript
-import { Type, Static } from "@sinclair/typebox";
-
-const schema = Type.Object({
-  "reveal-delay": Type.Optional(Type.String()),
-  "reveal-duration": Type.Optional(Type.String()),
 });
-
-type RevealProps = Static<typeof schema>;
-// { "reveal-delay"?: string; "reveal-duration"?: string; }
 ```
 
-## Debugging Tips
+**Naming convention:**
+- `onCommand` → `command` event
+- `onClick` → `click` event
+- `onMouseenter` → `mouseenter` event
+- `onInput` → `input` event
 
-### Check Registration
+---
 
-```typescript
-import { getBehavior } from "./behaviors/behavior-registry";
+## 🛠️ Advanced Usage
 
-// Check if behavior is registered
-const factory = getBehavior("reveal");
-console.log("Reveal registered:", !!factory);
-```
+### Creating Custom Behaviors
 
-### Check Custom Elements
-
-```typescript
-// Check if behavioral host is defined
-const isRegistered = customElements.get("behavioral-reveal");
-console.log("Host registered:", !!isRegistered);
-```
-
-### Verify Element Setup
+You can define custom behaviors inline:
 
 ```html
-<dialog is="behavioral-reveal" id="modal" behavior="reveal">
-  Content
-</dialog>
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+
+<script>
+  // Define a custom click counter behavior
+  BehaviorFN.registerBehavior('click-counter', (el) => {
+    let count = 0;
+    
+    return {
+      connectedCallback() {
+        el.textContent = `Clicks: ${count}`;
+      },
+      
+      onClick() {
+        count++;
+        el.textContent = `Clicks: ${count}`;
+      },
+    };
+  });
+  
+  // Define host
+  BehaviorFN.defineBehavioralHost('div', 'behavioral-click-counter', []);
+</script>
+
+<!-- Use it -->
+<div is="behavioral-click-counter" behavior="click-counter">
+  Click me!
+</div>
+```
+
+### Using with Import Maps
+
+For better control over CDN URLs:
+
+```html
+<script type="importmap">
+{
+  "imports": {
+    "behavior-fn": "https://cdn.jsdelivr.net/npm/behavior-fn@0.1.0/dist/cdn/behavior-fn.esm.js",
+    "behavior-fn/reveal": "https://cdn.jsdelivr.net/npm/behavior-fn@0.1.0/dist/cdn/reveal.esm.js"
+  }
+}
+</script>
 
 <script type="module">
-  const el = document.getElementById("modal");
-  console.log("Element:", el);
-  console.log("Is custom element:", el.constructor.name);
-  console.log("Has behavior attr:", el.getAttribute("behavior"));
-  console.log("Has is attr:", el.getAttribute("is"));
+  import { registerBehavior, defineBehavioralHost } from 'behavior-fn';
+  import { revealBehaviorFactory } from 'behavior-fn/reveal';
+  
+  registerBehavior('reveal', revealBehaviorFactory);
+  defineBehavioralHost('dialog', 'behavioral-reveal', []);
 </script>
 ```
 
-### Listen to Events
+### Auto-Loader with CDN
 
-```typescript
-const el = document.getElementById("modal");
+Use the auto-loader to avoid specifying `is` attributes:
 
-// Listen to command events
-el.addEventListener("command", (e) => {
-  console.log("Command received:", e.detail.command);
-});
+```html
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
 
-// Listen to lifecycle
-el.addEventListener("connected", () => {
-  console.log("Behavior connected");
-});
+<script>
+  // Enable auto-loader
+  BehaviorFN.enableAutoLoader();
+</script>
+
+<!-- No is attribute needed! -->
+<dialog id="modal" behavior="reveal">
+  Content here
+</dialog>
+
+<button commandfor="modal" command="--toggle">Toggle</button>
 ```
 
-## Limitations
+**Note:** Auto-loader adds ~2KB and uses MutationObserver. See [Auto-Loader Guide](./auto-loader.md) for details.
 
-When manually loading without the CLI:
+---
 
-1. **No automatic transformations** - You're responsible for schema compatibility (TypeBox, Zod, etc.)
-2. **No project detection** - You must manually specify paths and configurations
-3. **No updates** - You must manually update behavior files when the registry changes
-4. **Manual attribute tracking** - You must call `getObservedAttributes` yourself
+## 🌐 Browser Compatibility
 
-## When to Use the CLI
+### ES Modules (Option 3)
+✅ All modern browsers support ES modules
 
-Consider using the CLI (`behavior-fn add`) if:
+### Custom Built-in Elements (Required for `is` attribute)
+⚠️ **Safari doesn't support `is` attribute**
 
-- You want automatic schema transformation (TypeBox → Zod/Valibot)
-- You need project-specific configurations
-- You want automatic updates to behaviors
-- You prefer a managed installation process
+**Workaround:** Use the polyfill:
 
-The CLI handles all the registration boilerplate and transformations automatically.
+```html
+<!-- Load polyfill before BehaviorFN -->
+<script src="https://unpkg.com/@ungap/custom-elements"></script>
 
-## Summary
+<!-- Then load BehaviorFN -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+```
 
-Manual loading workflow:
+### Invoker Commands API
+⚠️ Limited support (Chrome 114+, experimental)
 
-1. **Copy core files** (`behavior-registry.ts`, `behavioral-host.ts`, `behavior-utils.ts`)
-2. **Copy or create behaviors** (factory functions)
-3. **Register behaviors** via `registerBehavior(name, factory)`
-4. **Define hosts** via `defineBehavioralHost(tagName, customElementName, observedAttributes)`
-5. **Use in HTML** with `is` and `behavior` attributes
+**Workaround:** Manual command dispatching:
 
-Key requirements:
-- ✅ The `is` attribute is **required** on elements with behaviors
-- ✅ Behavioral hosts must be defined before use
-- ✅ Behaviors must be registered before elements connect to DOM
-- ✅ Trigger buttons using Invoker Commands API don't need `is` attribute
+```html
+<button id="trigger">Open Modal</button>
+<dialog is="behavioral-reveal" id="modal" behavior="reveal">Content</dialog>
 
-This gives you full control over behavior loading while maintaining the same API as the CLI-installed version.
+<script>
+  document.getElementById('trigger').addEventListener('click', () => {
+    const modal = document.getElementById('modal');
+    modal.dispatchEvent(new CustomEvent('command', {
+      bubbles: true,
+      detail: { command: '--toggle' }
+    }));
+  });
+</script>
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Behaviors Not Working
+
+**Check:**
+1. ✅ Is the `is` attribute present?
+2. ✅ Did you call `defineBehavioralHost()`?
+3. ✅ Is the script loaded before the element?
+4. ✅ Check browser console for errors
+
+**Solution:** Initialize after DOM is ready:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  });
+</script>
+```
+
+### Commands Not Working
+
+**Check:**
+1. ✅ Does `commandfor` match the element `id`?
+2. ✅ Is the `command` attribute correct (e.g., `--toggle`)?
+3. ✅ Does the browser support Invoker Commands API?
+
+**Solution:** Use manual dispatching (see Browser Compatibility above)
+
+### `BehaviorFN is not defined`
+
+**Cause:** Script not loaded or script tag order is wrong
+
+**Solution:** Ensure the core script loads first:
+
+```html
+<!-- Load core first -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+
+<!-- Then load behaviors -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
+
+<!-- Then initialize -->
+<script>
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+</script>
+```
+
+---
+
+## 📊 Bundle Sizes
+
+Approximate gzipped sizes:
+
+| Bundle | Size (gzipped) |
+|--------|----------------|
+| `behavior-fn.js` (core) | ~5 KB |
+| `reveal.js` | ~2 KB |
+| `logger.js` | ~1 KB |
+| `request.js` | ~3 KB |
+| `input-watcher.js` | ~2 KB |
+| `compute.js` | ~2 KB |
+| `element-counter.js` | ~1 KB |
+| `behavior-fn.all.js` (everything) | ~18 KB |
+
+---
+
+## 🚀 CDN Providers
+
+BehaviorFN is available on multiple CDNs:
+
+### unpkg (Recommended)
+```html
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+```
+
+**Why unpkg:**
+- Official npm CDN
+- Automatic updates from npm registry  
+- Reliable and fast
+- Simple URL structure
+
+### jsdelivr (Alternative)
+```html
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+```
+
+**Why jsdelivr:**
+- Global CDN with edge nodes
+- Bundle size analytics
+- Automatic minification
+
+### Versioning
+
+**Recommended:** Pin to a specific version in production:
+
+```html
+<!-- unpkg: Pin to exact version -->
+<script src="https://unpkg.com/behavior-fn@0.1.0/dist/cdn/behavior-fn.all.js"></script>
+
+<!-- jsdelivr: Pin to exact version -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@0.1.0/dist/cdn/behavior-fn.all.js"></script>
+
+<!-- Use semver range (both CDNs support this) -->
+<script src="https://unpkg.com/behavior-fn@0/dist/cdn/behavior-fn.all.js"></script>
+```
+
+---
+
+## 💡 When to Use CDN vs CLI
+
+### Use CDN (Manual Loading) When:
+- ✅ Simple HTML projects without build tools
+- ✅ Quick prototypes and demos
+- ✅ Learning and experimenting
+- ✅ CodePen, JSFiddle, or similar platforms
+- ✅ You want zero configuration
+
+### Use CLI When:
+- ✅ You have a build tool (Vite, Webpack, etc.)
+- ✅ You want customization and control
+- ✅ You need TypeScript support
+- ✅ You want schema transformation (TypeBox → Zod)
+- ✅ Production applications
+
+---
+
+## 📖 Next Steps
+
+- **[Using Behaviors Guide](./using-behaviors.md)** - Learn more about behaviors
+- **[Auto-Loader Guide](./auto-loader.md)** - Skip the `is` attribute
+- **[Architecture Overview](../architecture/behavior-system.md)** - How it works
+- **[Contributing Guide](./contributing-behaviors.md)** - Create your own behaviors
+
+---
+
+**Happy coding with CDN! 🎉**

@@ -44,19 +44,19 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Align Behavior Attributes and Documentation](docs/tasks/20260224-125849-align-behavior-attributes/LOG.md)
-- [-] [Fix Behavior Parsing Inconsistency Between Auto-Loader and Behavioral Host](docs/tasks/fix-behavior-parsing-inconsistency/task.md)
-- [-] [Opt-In Auto-Loader for Behavioral Hosts](docs/tasks/opt-in-auto-loader/task.md)
-- [-] [Replace @standard-schema/spec with auto-wc in Core Dependencies](docs/tasks/replace-standard-schema-with-auto-wc/task.md)
+- [x] [Align Behavior Attributes and Documentation](docs/tasks/20260224-125849-align-behavior-attributes/LOG.md)
+- [x] [Fix Behavior Parsing Inconsistency Between Auto-Loader and Behavioral Host](docs/tasks/fix-behavior-parsing-inconsistency/task.md)
+- [x] [Opt-In Auto-Loader for Behavioral Hosts](docs/tasks/opt-in-auto-loader/task.md)
+- [x] [Replace @standard-schema/spec with auto-wc in Core Dependencies](docs/tasks/replace-standard-schema-with-auto-wc/task.md)
 - [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
 - [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
 - [ ] [Registry Discovery and Directory](docs/tasks/registry-discovery-directory/task.md) 🔒 Blocked by: [Multi-Registry Support]
 - [ ] [Consolidated Registry Format Support](docs/tasks/consolidated-registry-format/task.md) 🔒 Blocked by: [Multi-Registry Support]
 - [ ] [Security Hardening for Multi-Registry](docs/tasks/security-hardening-registries/task.md) 🔒 Blocked by: [Multi-Registry Support]
-- [-] [Add Test Files Import Option](docs/tasks/add-test-files-option/task.md)
-- [-] [Refactor Strategies to Validators with Directory Structure](docs/tasks/refactor-strategies-to-validators/task.md)
-- [-] [Remove Jiti Dependency - Build Registry Instead](docs/tasks/remove-jiti-build-registry/task.md)
-- [-] [Simplify Init Flow](docs/tasks/simplify-init-flow/task.md)
+- [x] [Add Test Files Import Option](docs/tasks/add-test-files-option/task.md)
+- [x] [Refactor Strategies to Validators with Directory Structure](docs/tasks/refactor-strategies-to-validators/task.md)
+- [x] [Remove Jiti Dependency - Build Registry Instead](docs/tasks/remove-jiti-build-registry/task.md)
+- [x] [Simplify Init Flow](docs/tasks/simplify-init-flow/task.md)
 - [x] [Create Platform Interface](docs/tasks/create-platform-interface/task.md)
 - [x] [Type Safety Review and Refactor](docs/tasks/type-safety-review-refactor/task.md)
 - [x] [Refactor CLI to Validator Strategy](docs/tasks/refactor-cli-validator-strategy/task.md)

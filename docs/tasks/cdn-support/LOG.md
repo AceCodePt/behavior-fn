@@ -110,10 +110,15 @@ After exploring three options, we chose **Option 3: Dual Package** which maintai
 ```typescript
 // In build-cdn.ts
 await build({
-  entryPoints: ['registry/behaviors/behavior-registry.ts'],
+  entryPoints: ['registry/behaviors/reveal/behavior.ts'],
   bundle: true,
+  // auto-wc will be bundled automatically (not external)
   external: [], // Don't mark auto-wc as external
-  // auto-wc will be bundled automatically
+  format: "iife",
+  globalName: "BehaviorFN",
+  minify: true,  // All CDN bundles are minified
+  sourcemap: true,  // Sourcemaps for debugging
+  // ...
 });
 ```
 
@@ -155,7 +160,45 @@ await build({
 └─────────────────────────────────────────────┘
 ```
 
-### 5. Output Both IIFE and ESM Formats
+### 5. Expose Functions Both Namespaced and Globally
+
+**Decision:** Expose BehaviorFN functions in **two ways**
+
+```javascript
+// 1. Namespaced under window.BehaviorFN (explicit)
+window.BehaviorFN = {
+  registerBehavior,
+  getBehavior,
+  defineBehavioralHost,
+  behaviors: { /* ... */ }
+};
+
+// 2. Also directly on window (convenient)
+window.registerBehavior = window.BehaviorFN.registerBehavior;
+window.getBehavior = window.BehaviorFN.getBehavior;
+window.defineBehavioralHost = window.BehaviorFN.defineBehavioralHost;
+```
+
+**Both usage styles work:**
+```javascript
+// Direct global (cleaner, less typing)
+defineBehavioralHost('dialog', 'behavioral-reveal', []);
+
+// Namespaced (explicit, clear ownership)
+BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+```
+
+**Rationale:**
+- **Namespaced:** Avoids global pollution, clear ownership (`BehaviorFN.*`)
+- **Direct global:** Better DX, familiar pattern (like `fetch()`, `setTimeout()`)
+- **Support both:** Let users choose their preference
+- **Common in CDN libraries:** jQuery (`$` and `jQuery`), Lodash (`_`), etc.
+
+**Alternative Considered:** Only namespaced
+- ❌ More verbose: `BehaviorFN.defineBehavioralHost()` every time
+- ❌ Unfamiliar for CDN users expecting global functions
+
+### 6. Output Both IIFE and ESM Formats
 
 **Decision:** Generate both IIFE (`.js`) and ESM (`.esm.js`) versions
 
@@ -301,7 +344,11 @@ Individual behavior bundles auto-register when loaded:
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <!-- unpkg (recommended) -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  
+  <!-- or jsdelivr -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script> -->
 </head>
 <body>
   <dialog is="behavioral-reveal" id="modal" behavior="reveal">
@@ -399,9 +446,9 @@ Individual behavior bundles auto-register when loaded:
 ## Documentation Updates
 
 ### Files to Create
-1. `docs/guides/manual-loading.md` - Complete CDN guide
-2. `examples/cdn-usage/index.html` - Working examples
-3. `examples/cdn-usage/README.md` - Example documentation
+1. `docs/guides/manual-loading.md` - Complete CDN guide (already created, needs minor updates)
+2. `docs/examples/cdn-usage/index.html` - Working examples (docs-versioned)
+3. `docs/examples/cdn-usage/README.md` - Example documentation
 
 ### Files to Update
 1. `README.md` - Add CDN quick start

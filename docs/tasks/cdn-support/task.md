@@ -147,21 +147,23 @@ if (typeof window !== 'undefined' && window.BehaviorFN) {
 
 ### 4. Global API Surface
 
-When loaded via CDN, expose:
+When loaded via CDN, expose functions **both namespaced and globally**:
 
 ```typescript
+// Namespaced under window.BehaviorFN
 window.BehaviorFN = {
   // Core registry functions
   registerBehavior(name: string, factory: BehaviorFactory): void;
   getBehavior(name: string): BehaviorFactory | undefined;
   ensureBehavior(name: string): Promise<void> | void;
-  
-  // Host definition
   defineBehavioralHost(
     tagName: string, 
     customElementName: string, 
     observedAttributes?: string[]
   ): void;
+  
+  // Auto-loader (optional DX enhancement)
+  enableAutoLoader(): () => void;
   
   // All-in-one bundle includes:
   behaviors: {
@@ -171,7 +173,44 @@ window.BehaviorFN = {
     // ... etc
   }
 };
+
+// ALSO expose directly on window for convenience
+window.registerBehavior = window.BehaviorFN.registerBehavior;
+window.getBehavior = window.BehaviorFN.getBehavior;
+window.defineBehavioralHost = window.BehaviorFN.defineBehavioralHost;
+window.enableAutoLoader = window.BehaviorFN.enableAutoLoader;
 ```
+
+**Usage - Both styles work:**
+```javascript
+// Namespaced (explicit)
+BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+
+// Direct global (cleaner)
+defineBehavioralHost('dialog', 'behavioral-reveal', []);
+```
+
+**Auto-loader usage (skip `is` attributes):**
+```html
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+
+<script>
+  // Enable auto-loader - no need for is attributes or defineBehavioralHost!
+  enableAutoLoader();
+</script>
+
+<!-- Now just use behavior attribute -->
+<dialog id="modal" behavior="reveal">
+  Content
+</dialog>
+<button commandfor="modal" command="--toggle">Toggle</button>
+```
+
+**Rationale:**
+- Namespaced: Avoids global pollution, clear ownership
+- Direct global: Better DX, less typing, familiar pattern
+- Auto-loader: Ultimate simplicity, no `is` attributes needed
+- Support all three: Users choose their preference
 
 ### 5. Package.json Updates
 
@@ -242,14 +281,17 @@ Create/update documentation:
 2. **`README.md`** (updated)
    - Add CDN quick start at top
    - Link to manual loading guide
+   - Show both unpkg and jsdelivr URLs
 
-3. **`examples/cdn-usage/`** (new)
+3. **`docs/examples/cdn-usage/`** (new)
    - `index.html` - Working demo
    - Multiple examples (modal, popover, request, etc.)
+   - Examples stay versioned with docs
 
-4. **`dist/cdn/index.html`** (auto-generated)
+4. **`dist/cdn/index.html`** (auto-generated during build)
    - Live examples using CDN bundles
    - Copy-paste ready code snippets
+   - Not committed to git (build artifact)
 
 ### 7. TypeScript Handling
 
@@ -483,31 +525,35 @@ core.registerBehavior('logger', loggerBehaviorFactory);
 
 ### Phase 5: Documentation
 
-1. **Create `docs/guides/manual-loading.md`:**
-   - Quick start with CDN
-   - IIFE vs ESM comparison
-   - Option 1: All-in-one bundle
-   - Option 2: Core + individual behaviors
-   - Option 3: ES modules with import maps
-   - Browser compatibility
-   - Troubleshooting
-   - Complete examples
+1. **Update `docs/guides/manual-loading.md`:**
+   - Already created, needs minor updates
+   - Show both API styles (global and namespaced)
+   - Update examples to use `defineBehavioralHost()` directly
+   - Add note about both styles being supported
+   - Example:
+     ```javascript
+     // Both work - user's choice:
+     defineBehavioralHost('dialog', 'behavioral-reveal', []);
+     // OR
+     BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+     ```
 
 2. **Update `README.md`:**
    - Add CDN section at top of Quick Start
-   - Show one-liner example
+   - Show one-liner example with direct global usage
    - Link to detailed guide
 
-3. **Create `examples/cdn-usage/index.html`:**
+3. **Create `docs/examples/cdn-usage/index.html`:**
    - Working modal dialog example
    - Popover example
    - Multiple behaviors example
    - Custom inline behavior example
+   - Show both API styles in comments
 
 4. **Generate `dist/cdn/index.html`:**
    - Auto-generated during build
    - Lists all available bundles
-   - Shows usage examples
+   - Shows usage examples (both styles)
    - Includes live demos
 
 ### Phase 6: Testing
@@ -535,9 +581,9 @@ core.registerBehavior('logger', loggerBehaviorFactory);
 ### New Files
 
 - `scripts/build-cdn.ts` - CDN build script
-- `docs/guides/manual-loading.md` - CDN usage guide
-- `examples/cdn-usage/index.html` - CDN examples
-- `examples/cdn-usage/README.md` - Example documentation
+- `docs/guides/manual-loading.md` - CDN usage guide (already created, needs updates)
+- `docs/examples/cdn-usage/index.html` - CDN working examples (versioned with docs)
+- `docs/examples/cdn-usage/README.md` - Example documentation
 
 ### Modified Files
 
@@ -770,8 +816,10 @@ grep -r "z\." src/behaviors/reveal/
 ## References
 
 - **esbuild documentation:** https://esbuild.github.io/
+- **auto-wc repository:** https://github.com/AceCodePt/auto-wc
 - **Custom built-in elements polyfill:** https://github.com/ungap/custom-elements
 - **Invoker Commands API:** https://open-ui.org/components/invokers.explainer/
+- **unpkg CDN:** https://unpkg.com/
 - **jsdelivr CDN:** https://www.jsdelivr.com/
 - **Import maps specification:** https://github.com/WICG/import-maps
 
@@ -789,9 +837,11 @@ grep -r "z\." src/behaviors/reveal/
    - Would significantly increase bundle size
    - Decision: No, ES2020 minimum (2026 standard)
 
-4. **Should we publish to unpkg separately?**
-   - jsdelivr and unpkg both mirror npm automatically
-   - Decision: No extra work needed
+2. **Should we create minified + non-minified versions?**
+   - ✅ **Decision: Yes, already implemented**
+   - `minify: true` in esbuild config
+   - All CDN bundles are minified
+   - Sourcemaps provided for debugging
 
 ## Success Metrics
 
