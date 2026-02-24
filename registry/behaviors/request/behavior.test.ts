@@ -835,4 +835,467 @@ describe("Request Behavior", () => {
       expect(el.getAttribute("aria-busy")).toBe("false");
     });
   });
+
+  describe("JSON Script Tag Updates", () => {
+    beforeEach(() => {
+      // Override fetch to return JSON responses
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('{"count": 5}'),
+          } as unknown as Response),
+        ),
+      );
+    });
+
+    it("should replace JSON content with replace strategy", async () => {
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '{"count": 1}';
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      expect(updatedScript.textContent).toBe(JSON.stringify({ count: 5 }, null, 2));
+    });
+
+    it("should append to array with appendArray strategy", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('[{"id": 2}, {"id": 3}]'),
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '[{"id": 1}]';
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      const expected = [{ id: 1 }, { id: 2 }, { id: 3 }];
+      expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
+    });
+
+    it("should prepend to array with prependArray strategy", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('[{"id": 1}]'),
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '[{"id": 2}]';
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "prependArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      const expected = [{ id: 1 }, { id: 2 }];
+      expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
+    });
+
+    it("should append to empty array with appendArray strategy", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('[{"id": 1}, {"id": 2}]'),
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '[]'; // Start with empty array
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      const expected = [{ id: 1 }, { id: 2 }];
+      expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
+    });
+
+    it("should prepend to empty array with prependArray strategy", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('[{"id": 1}, {"id": 2}]'),
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '[]'; // Start with empty array
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "prependArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      const expected = [{ id: 1 }, { id: 2 }];
+      expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
+    });
+
+    it("should handle completely empty script tag with appendArray", async () => {
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('[{"id": 1}]'),
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      // Completely empty - no textContent set
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      // Should warn because empty defaults to {} which is not an array
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("appendArray requires both existing and response to be arrays"),
+      );
+    });
+
+    it("should warn when existing content is invalid JSON", async () => {
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = "not valid json";
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Invalid existing JSON"),
+        expect.anything(),
+      );
+
+      // Should still update with response data
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      expect(updatedScript.textContent).toBe(JSON.stringify({ count: 5 }, null, 2));
+    });
+
+    it("should warn when response is invalid JSON", async () => {
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve("not valid json"),
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '{"count": 1}';
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Invalid JSON in response"),
+        expect.anything(),
+      );
+
+      // Content should remain unchanged
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      expect(updatedScript.textContent).toBe('{"count": 1}');
+    });
+
+    it("should warn when appendArray is used on non-array data", async () => {
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '{"count": 1}'; // Object, not array
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("appendArray requires both existing and response to be arrays"),
+      );
+
+      // Content should remain unchanged
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      expect(updatedScript.textContent).toBe('{"count": 1}');
+    });
+
+    it("should warn when prependArray is used on non-array data", async () => {
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('{"count": 5}'), // Object, not array
+          } as unknown as Response),
+        ),
+      );
+
+      const scriptEl = document.createElement("script");
+      scriptEl.type = "application/json";
+      scriptEl.id = "data-store";
+      scriptEl.textContent = '[{"id": 1}]'; // Array in existing
+      document.body.appendChild(scriptEl);
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "prependArray");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("prependArray requires both existing and response to be arrays"),
+      );
+
+      // Content should remain unchanged
+      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+      expect(updatedScript.textContent).toBe('[{"id": 1}]');
+    });
+
+    it("should not apply JSON strategy to non-script elements", async () => {
+      const divEl = document.createElement("div");
+      divEl.id = "target-div";
+      divEl.textContent = "Original content";
+      document.body.appendChild(divEl);
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve('{"count": 5}'),
+          } as unknown as Response),
+        ),
+      );
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
+      el.setAttribute(REQUEST_ATTRS.TARGET, "target-div");
+      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      // Should use default innerHTML swap, not JSON strategy
+      const updatedDiv = document.getElementById("target-div");
+      expect(updatedDiv?.innerHTML).toBe('{"count": 5}');
+    });
+
+    it("should maintain backward compatibility with HTML swap strategies", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: {
+              get: () => null,
+            },
+            text: () => Promise.resolve("<p>HTML Response</p>"),
+          } as unknown as Response),
+        ),
+      );
+
+      const el = document.createElement("button", {
+        is: TEST_TAGS.button,
+      }) as HTMLElement;
+      el.setAttribute("behavior", name);
+      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(REQUEST_ATTRS.SWAP, "innerHTML");
+      document.body.appendChild(el);
+
+      await vi.runAllTimersAsync();
+      el.click();
+      await vi.runAllTimersAsync();
+
+      expect(el.innerHTML).toBe("<p>HTML Response</p>");
+    });
+  });
 });

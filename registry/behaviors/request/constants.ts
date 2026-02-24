@@ -33,4 +33,7 @@ export const REQUEST_ATTRS = {
   
   /** JSON values to include with request */
   VALS: "request-vals",
+  
+  /** Strategy for merging JSON responses into script tags */
+  JSON_STRATEGY: "request-json-strategy",
 } as const;

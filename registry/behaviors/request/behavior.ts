@@ -193,37 +193,106 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         }
       }
 
-      const swap = getAttr(REQUEST_ATTRS.SWAP) || "innerHTML";
+      // Track focus for restoration after swap
       const activeElement = document.activeElement;
       const hadFocus = el.contains(activeElement) || el === activeElement;
       const activeId = activeElement?.id;
 
-      switch (swap) {
-        case "innerHTML":
-          target.innerHTML = html;
-          break;
-        case "outerHTML":
-          target.outerHTML = html;
-          break;
-        case "beforebegin":
-          target.insertAdjacentHTML("beforebegin", html);
-          break;
-        case "afterbegin":
-          target.insertAdjacentHTML("afterbegin", html);
-          break;
-        case "beforeend":
-          target.insertAdjacentHTML("beforeend", html);
-          break;
-        case "afterend":
-          target.insertAdjacentHTML("afterend", html);
-          break;
-        case "delete":
-          target.remove();
-          break;
-        case "none":
-          break;
+      // Check for JSON script tag update strategy
+      const jsonStrategy = getAttr(REQUEST_ATTRS.JSON_STRATEGY);
+      const isScriptTag =
+        target instanceof HTMLScriptElement &&
+        target.type === "application/json";
+
+      if (jsonStrategy && isScriptTag) {
+        try {
+          // Parse existing JSON
+          const existingText = target.textContent?.trim() || "{}";
+          let existingData: unknown;
+          try {
+            existingData = JSON.parse(existingText);
+          } catch (err) {
+            console.warn("[Request] Invalid existing JSON in script tag", err);
+            existingData = null;
+          }
+
+          // Parse response JSON
+          let responseData: unknown;
+          try {
+            responseData = JSON.parse(html);
+          } catch (err) {
+            console.warn("[Request] Invalid JSON in response", err);
+            return; // Cannot proceed without valid response
+          }
+
+          // Apply strategy
+          let finalData: unknown;
+          switch (jsonStrategy) {
+            case "replace":
+              finalData = responseData;
+              break;
+
+            case "appendArray":
+              if (!Array.isArray(existingData) || !Array.isArray(responseData)) {
+                console.warn(
+                  "[Request] appendArray requires both existing and response to be arrays",
+                );
+                return;
+              }
+              finalData = [...existingData, ...responseData];
+              break;
+
+            case "prependArray":
+              if (!Array.isArray(existingData) || !Array.isArray(responseData)) {
+                console.warn(
+                  "[Request] prependArray requires both existing and response to be arrays",
+                );
+                return;
+              }
+              finalData = [...responseData, ...existingData];
+              break;
+
+            default:
+              finalData = responseData;
+          }
+
+          // Update script content with formatted JSON
+          target.textContent = JSON.stringify(finalData, null, 2);
+        } catch (err) {
+          console.error("[Request] Error processing JSON strategy", err);
+        }
+      } else {
+        // Existing HTML swap logic
+        const swap = getAttr(REQUEST_ATTRS.SWAP) || "innerHTML";
+
+        switch (swap) {
+          case "innerHTML":
+            target.innerHTML = html;
+            break;
+          case "outerHTML":
+            target.outerHTML = html;
+            break;
+          case "beforebegin":
+            target.insertAdjacentHTML("beforebegin", html);
+            break;
+          case "afterbegin":
+            target.insertAdjacentHTML("afterbegin", html);
+            break;
+          case "beforeend":
+            target.insertAdjacentHTML("beforeend", html);
+            break;
+          case "afterend":
+            target.insertAdjacentHTML("afterend", html);
+            break;
+          case "delete":
+            target.remove();
+            break;
+          case "none":
+            break;
+        }
       }
 
+      // Restore focus if needed
       if (hadFocus && activeId) {
         const newEl = document.getElementById(activeId);
         newEl?.focus();
