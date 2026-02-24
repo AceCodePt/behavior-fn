@@ -46,7 +46,13 @@ While this is explicit and predictable, it adds ceremony that some developers ma
 1. **Opt-In Utility**: Create `registry/behaviors/auto-loader.ts` that:
    - Exports a single function: `enableAutoLoader()`
    - Uses MutationObserver to watch for elements with `behavior` attribute
-   - Automatically adds `is="behavioral-{tagName}"` if missing
+   - **Behavior-Based Host Pattern:** For each element with a `behavior` attribute:
+     1. Parse the `behavior` attribute (space-separated list of behaviors)
+     2. Sort behaviors alphabetically for consistency
+     3. Create host name: `behavioral-{behavior1}-{behavior2}-...` (e.g., `behavioral-logger-reveal`)
+     4. Register the behavioral host if not already registered: `defineBehavioralHost(tagName, customElementName)`
+     5. Add `is="behavioral-{behaviors}"` to the element
+   - **Rationale:** The `is` attribute should describe the **behaviors**, not the tag type. This makes the contract explicit: `is="behavioral-reveal-logger"` tells you exactly what behaviors are attached. Multiple different tag types (button, div, dialog) can share the same behavioral host if they use the same behavior combination.
    - Handles edge cases (existing `is` attributes, invalid tags)
    - Provides cleanup mechanism (returns a `disconnect()` function)
 
@@ -124,18 +130,87 @@ const disconnect = enableAutoLoader();
 disconnect();
 ```
 
+### Auto-Discovery Algorithm
+```typescript
+// Pseudocode for auto-loader logic
+function processElement(el: HTMLElement) {
+  const behaviorAttr = el.getAttribute('behavior');
+  if (!behaviorAttr) return;
+  
+  // Parse and sort behaviors for consistent naming
+  const behaviors = behaviorAttr
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort(); // Sort alphabetically: "reveal logger" becomes "logger reveal"
+  
+  // Create custom element name from behaviors
+  const customElementName = `behavioral-${behaviors.join('-')}`;
+  // Example: "reveal logger" → "behavioral-logger-reveal"
+  
+  const tagName = el.tagName.toLowerCase();
+  
+  // Check if this behavioral host is already registered
+  if (!customElements.get(customElementName)) {
+    // Collect observed attributes from all behaviors
+    const observedAttributes = behaviors.flatMap(behaviorName => {
+      const behavior = getBehavior(behaviorName);
+      return behavior ? getObservedAttributes(behavior.schema) : [];
+    });
+    
+    // Register the behavioral host with the custom name
+    defineBehavioralHost(tagName, customElementName, observedAttributes);
+  }
+  
+  // Add is attribute if missing
+  if (!el.hasAttribute('is')) {
+    el.setAttribute('is', customElementName);
+  }
+}
+```
+
 ### Edge Cases to Handle
 1. **Existing `is` attribute**: Don't overwrite, skip element
 2. **Invalid tag names**: Only process standard HTML tags
 3. **Custom elements**: Skip elements that are already custom elements
 4. **Timing**: Handle elements added before AND after enableAutoLoader() call
 5. **Cleanup**: Ensure observer can be disconnected without memory leaks
+6. **Multiple Behaviors on Same Element**: Handle `behavior="reveal logger"` (space-separated)
+7. **Behavior Order Consistency**: Always sort behaviors alphabetically so `"reveal logger"` and `"logger reveal"` produce the same `is="behavioral-logger-reveal"`
+8. **Race Conditions**: Ensure behavioral hosts are registered before upgrading elements
+9. **Observed Attributes**: Collect all observed attributes from all behaviors in the combination and pass to `defineBehavioralHost()`
+10. **Empty Behavior Attribute**: Handle `behavior=""` gracefully (skip element)
 
 ### Performance Considerations
 - MutationObserver overhead is minimal for most apps
 - Consider debouncing if processing many elements
 - Document that this is a tradeoff: DX vs. explicit control
 - Recommend explicit `is` for high-performance scenarios
+
+### Example Scenario
+```html
+<!-- Before auto-loader -->
+<button behavior="reveal">Toggle A</button>
+<dialog behavior="reveal">Content A</dialog>
+<div behavior="reveal logger">Content B</div>
+<button behavior="logger">Log Me</button>
+<input behavior="request">Search</input>
+
+<!-- After enableAutoLoader() processes the DOM -->
+<!-- Auto-loader discovers unique behavior combinations: -->
+<!-- - "reveal" → registers behavioral-reveal for button, dialog -->
+<!-- - "logger reveal" → sorted to "logger reveal" → behavioral-logger-reveal for div -->
+<!-- - "logger" → registers behavioral-logger for button -->
+<!-- - "request" → registers behavioral-request for input -->
+
+<button is="behavioral-reveal" behavior="reveal">Toggle A</button>
+<dialog is="behavioral-reveal" behavior="reveal">Content A</dialog>
+<div is="behavioral-logger-reveal" behavior="reveal logger">Content B</div>
+<button is="behavioral-logger" behavior="logger">Log Me</button>
+<input is="behavioral-request" behavior="request">Search</input>
+
+<!-- Note: Different tags can share the same behavioral host -->
+<!-- button and dialog both use behavioral-reveal -->
+```
 
 ## References
 

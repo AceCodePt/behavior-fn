@@ -68,25 +68,80 @@ This copies the `reveal` behavior into your project at the configured path.
 import { defineBehavioralHost } from "./behaviors/behavioral-host";
 import { registerBehavior } from "./behaviors/behavior-registry";
 import { revealBehaviorFactory } from "./behaviors/reveal/behavior";
-
-// Register button as a behavioral host
-defineBehavioralHost("button");
+import { getObservedAttributes } from "./behaviors/utils";
 
 // Register the reveal behavior
 registerBehavior("reveal", revealBehaviorFactory);
+
+// Register dialog as a behavioral host for the "reveal" behavior
+defineBehavioralHost("dialog", "behavioral-reveal", getObservedAttributes(revealSchema));
 ```
 
 Then in your HTML:
 
 ```html
-<button is="behavioral-button" behavior="reveal">
-  Click to reveal
+<!-- Button uses Invoker Commands API to trigger dialog -->
+<button commandfor="modal" command="--toggle">
+  Toggle Modal
 </button>
 
-<div behavior="reveal" hidden>
+<!-- Dialog has the reveal behavior (needs is attribute with behavior names) -->
+<dialog is="behavioral-reveal" id="modal" behavior="reveal">
   This content will be revealed!
-</div>
+</dialog>
 ```
+
+> **⚠️ Important:** The `is` attribute is **required** on elements with the `behavior` attribute to activate behavior loading. The `is` value should be `behavioral-{behavior-names}` where behavior names are sorted alphabetically and joined with hyphens.
+>
+> **Examples:**
+> - `behavior="reveal"` → `is="behavioral-reveal"`
+> - `behavior="reveal logger"` → `is="behavioral-logger-reveal"` (sorted alphabetically)
+> - `behavior="request"` → `is="behavioral-request"`
+>
+> **Invoker Commands:** Trigger buttons use the native `commandfor` and `command` attributes (Invoker Commands API) and do NOT need the `is` attribute.
+
+### Optional: Auto-Loader
+
+Prefer cleaner HTML without the `is` attribute? You can enable the **auto-loader**:
+
+```typescript
+import { enableAutoLoader } from "./behaviors/auto-loader";
+
+// Automatically discovers behaviors and registers behavioral hosts
+// Then adds is="behavioral-*" to elements with behavior attribute
+enableAutoLoader();
+```
+
+Now you can write:
+
+```html
+<!-- Trigger (no is needed - uses Invoker Commands) -->
+<button commandfor="modal" command="--toggle">Toggle</button>
+
+<!-- Target with auto-loader (adds is="behavioral-reveal" automatically) -->
+<dialog id="modal" behavior="reveal">Content here</dialog>
+```
+
+**How it works:**
+1. Scans DOM for all elements with `behavior` attribute
+2. Parses and sorts behaviors alphabetically for each element
+3. Creates custom element name: `behavioral-{sorted-behaviors}` (e.g., `behavioral-logger-reveal`)
+4. Registers the behavioral host if not already registered: `defineBehavioralHost(tagName, customElementName)`
+5. Adds appropriate `is` attribute to the element
+
+**Examples:**
+- `<div behavior="reveal">` → `<div is="behavioral-reveal" behavior="reveal">`
+- `<button behavior="reveal logger">` → `<button is="behavioral-logger-reveal" behavior="reveal logger">`
+- Multiple tags can share the same host: both `<button>` and `<dialog>` with `behavior="reveal"` use `is="behavioral-reveal"`
+
+**Tradeoffs:**
+- ✅ Cleaner HTML syntax
+- ✅ Closer to Alpine.js/HTMX patterns
+- ⚠️ Adds ~2KB + MutationObserver overhead
+- ⚠️ Less explicit (harder to debug)
+- ⚠️ May have timing issues with dynamic UIs
+
+**Recommendation:** Use explicit `is` attributes for production apps. Use auto-loader for prototypes or content-heavy sites where DX > explicitness.
 
 ---
 
@@ -96,11 +151,16 @@ Then in your HTML:
 Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus management and animations.
 
 **Attributes:**
-- `reveal-trigger` — Event that triggers reveal (default: `click`)
-- `reveal-delay` — Delay before showing (ms)
-- `reveal-duration` — Animation duration (ms)
-- `popover` — Use native Popover API
+- `reveal-delay` — CSS time value for delay before showing
+- `reveal-duration` — CSS time value for animation duration
+- `reveal-anchor` — ID of anchor element for positioning
+- `reveal-auto` — Auto-handle popover/dialog states
+- `reveal-when-target` — Selector for target element to watch
+- `reveal-when-attribute` — Attribute name on target to watch
+- `reveal-when-value` — Value that triggers reveal
+- `popover` — Use native Popover API (`auto` or `manual`)
 - `hidden` — Standard hidden attribute
+- `open` — For dialog/details elements
 
 **Commands:**
 - `--show` — Show the element
@@ -109,20 +169,22 @@ Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus m
 
 **Example:**
 ```html
-<button is="behavioral-button" behavior="reveal" reveal-target="#modal">
+<!-- Trigger button (uses Invoker Commands API - no is needed) -->
+<button commandfor="modal" command="--toggle">
   Open Modal
 </button>
 
-<dialog id="modal" behavior="reveal" hidden>
+<!-- Dialog with reveal behavior (needs is="behavioral-reveal") -->
+<dialog is="behavioral-reveal" id="modal" behavior="reveal">
   <p>Modal content here</p>
-  <button behavior="reveal" reveal-command="--hide">Close</button>
+  <button commandfor="modal" command="--hide">Close</button>
 </dialog>
 ```
 
 ---
 
 ### 📡 **request**
-Declarative HTTP requests with loading states, error handling, and Server-Sent Events (SSE).
+Declarative HTTP requests with loading states, error handling, and Server-Sent Events (SSE) [HTMX].
 
 **Attributes:**
 - `request-url` — Target URL for the request
@@ -143,6 +205,7 @@ Declarative HTTP requests with loading states, error handling, and Server-Sent E
 **Example:**
 ```html
 <input 
+  is="behavioral-request"
   behavior="request" 
   request-url="/api/search" 
   request-trigger="input" 
@@ -169,6 +232,7 @@ Watch form inputs and synchronize their values across multiple elements.
 <input type="text" id="username" placeholder="Enter username">
 
 <p 
+  is="behavioral-input-watcher"
   behavior="input-watcher" 
   watch-selector="#username" 
   watch-property="textContent"
@@ -194,6 +258,7 @@ Reactive computed values from watched inputs with custom expressions.
 <input type="number" id="quantity" value="2">
 
 <p 
+  is="behavioral-compute"
   behavior="compute" 
   compute-expr="price * quantity" 
   compute-watch="price,quantity"
@@ -222,6 +287,7 @@ Count matching elements in the DOM and display the count.
 </ul>
 
 <span 
+  is="behavioral-element-counter"
   behavior="element-counter" 
   counter-selector="#todo-list li"
   counter-target="textContent"
@@ -243,6 +309,7 @@ Debug helper that logs events and attribute changes to the console.
 **Example:**
 ```html
 <button 
+  is="behavioral-logger"
   behavior="logger" 
   log-events="click,dblclick"
   log-prefix="[Debug Button]"
@@ -377,6 +444,32 @@ Modern frameworks force you to rewrite your UI every 2-3 years. JOHF behaviors a
 ---
 
 ## 🏗️ Architecture
+
+### Behavioral Host Activation
+
+Behaviors **do not load automatically**. To activate behaviors on an element, you must:
+
+1. **Register the element as a behavioral host** using `defineBehavioralHost()`:
+   ```typescript
+   // Register a dialog that can use the "reveal" behavior
+   defineBehavioralHost("dialog", "behavioral-reveal", observedAttributes);
+   ```
+
+2. **Use the `is` attribute** in your HTML to activate the host:
+   ```html
+   <dialog is="behavioral-reveal" behavior="reveal">
+   ```
+
+**Important:** The `is` attribute value is based on the **behavior names**, not the tag name:
+- Single behavior: `is="behavioral-{behaviorName}"` (e.g., `is="behavioral-reveal"`)
+- Multiple behaviors: `is="behavioral-{sorted-behaviors}"` (e.g., `is="behavioral-logger-reveal"`)
+- Behaviors are sorted alphabetically to ensure consistency
+
+Without the `is` attribute, the `behavior` attribute will be ignored. This is by design—behavioral hosts must be explicitly activated to ensure predictable behavior loading.
+
+**Alternative: Auto-Loader**
+
+If you prefer automatic activation, use the opt-in `enableAutoLoader()` utility. It watches for elements with `behavior` attributes and adds the `is` attribute automatically using MutationObserver. See the [Auto-Loader section](#optional-auto-loader) for details.
 
 ### Behavior Structure
 
