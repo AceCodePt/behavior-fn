@@ -30,44 +30,68 @@ Currently, the Invoker Commands API implementation supports a single command tar
 
 ### Syntax
 
-Support comma-separated values in both attributes:
+Support comma-separated values with strict validation rules:
 
 ```html
-<!-- Multiple commands to multiple targets (1:1 mapping) -->
-<button commandfor="modal, form" command="--toggle, --clear">
-  Toggle & Clear
-</button>
-
-<!-- Single command to multiple targets (broadcast) -->
+<!-- ✅ VALID: Single command to multiple targets (broadcast) -->
 <button commandfor="modal, panel" command="--hide">
   Hide Both
 </button>
 
-<!-- Multiple commands to single target -->
+<!-- ✅ VALID: Multiple commands to single target -->
 <button commandfor="modal" command="--show, --focus">
   Show & Focus
+</button>
+
+<!-- ✅ VALID: Single command to single target (existing behavior) -->
+<button commandfor="modal" command="--toggle">
+  Toggle Modal
+</button>
+
+<!-- ❌ INVALID: Multiple commands to multiple targets -->
+<button commandfor="modal, form" command="--toggle, --clear">
+  <!-- This is NOT allowed -->
 </button>
 ```
 
 ### Behavior
 
-1. **Paired Mapping:** When both attributes have multiple values, map them 1:1 by index:
-   - `commandfor="modal, form"` + `command="--toggle, --clear"` 
-   - → `modal` receives `--toggle`, `form` receives `--clear`
+**Valid Patterns:**
 
-2. **Broadcast:** When `commandfor` has multiple values but `command` is single:
-   - `commandfor="modal, panel"` + `command="--hide"`
-   - → Both `modal` and `panel` receive `--hide`
+1. **Single Target → Single Command (1→1):**
+   - `commandfor="modal"` + `command="--toggle"`
+   - → Standard behavior, `modal` receives `--toggle`
 
-3. **Multi-command Single Target:** When `commandfor` is single but `command` has multiple values:
+2. **Single Target → Multiple Commands (1→N):**
    - `commandfor="modal"` + `command="--show, --focus"`
-   - → `modal` receives both `--show` and `--focus` commands sequentially
+   - → `modal` receives `--show` command, then `--focus` command (sequentially)
 
-4. **Whitespace Handling:** Trim whitespace around comma-separated values
+3. **Multiple Targets → Single Command (N→1, Broadcast):**
+   - `commandfor="modal, panel"` + `command="--hide"`
+   - → `modal` receives `--hide`, then `panel` receives `--hide`
 
-5. **Error Handling:** 
-   - If paired mapping has mismatched counts, log warning and use broadcast mode
-   - If a target element is not found, log warning but continue processing others
+**Invalid Pattern:**
+
+4. **Multiple Targets → Multiple Commands (N→M where N>1 and M>1):**
+   - `commandfor="modal, form"` + `command="--toggle, --clear"`
+   - → **ERROR:** This is ambiguous and not supported
+   - **Rationale:** It's unclear if this means:
+     - Paired mapping (modal gets --toggle, form gets --clear)?
+     - All commands to all targets (both get both commands)?
+     - This creates confusion, so we reject it entirely
+
+**Implementation Rules:**
+
+1. **Whitespace Handling:** Trim whitespace around comma-separated values
+
+2. **Validation:** 
+   - If both `command` AND `commandfor` have multiple (>1) values, log an error and **do nothing**
+   - If a target element is not found, log warning but continue processing other targets
+
+3. **Event Sequencing:** 
+   - Commands are dispatched synchronously in the order specified
+   - For broadcast (N→1), iterate through targets in order
+   - For multi-command (1→N), iterate through commands in order
 
 ### Technical Considerations
 
@@ -81,9 +105,10 @@ Support comma-separated values in both attributes:
 ### In Scope
 - Parsing comma-separated `command` and `commandfor` attributes
 - Dispatching multiple CommandEvents from a single button click
-- Supporting 1:1 mapping, broadcast, and multi-command modes
-- Error handling for edge cases
-- Tests covering all scenarios
+- Supporting 1→1, 1→N (multi-command), and N→1 (broadcast) modes
+- Validation to reject invalid N→M patterns (where N>1 and M>1)
+- Error handling for edge cases (missing targets, invalid patterns)
+- Tests covering all valid scenarios and invalid pattern rejection
 
 ### Out of Scope
 - Polyfilling the native Invoker Commands API (if it exists)
@@ -112,12 +137,13 @@ None (independent feature)
 ## Success Criteria
 
 - [ ] Comma-separated `command` and `commandfor` attributes parse correctly
-- [ ] 1:1 mapping works when both have equal counts
-- [ ] Broadcast mode works when `command` is single, `commandfor` is multiple
-- [ ] Multi-command works when `commandfor` is single, `command` is multiple
-- [ ] Edge cases handled gracefully (missing targets, mismatched counts)
-- [ ] Existing single command/single target behavior remains unchanged
-- [ ] All tests pass
+- [ ] Single command to single target (1→1) works (existing behavior unchanged)
+- [ ] Broadcast mode (N→1) works when `commandfor` has multiple values, `command` is single
+- [ ] Multi-command mode (1→N) works when `commandfor` is single, `command` has multiple values
+- [ ] **Invalid pattern (N→M)** is rejected with clear error when both attributes have multiple values
+- [ ] Missing target elements log warnings but don't break other dispatches
+- [ ] Commands are dispatched in the correct order
+- [ ] All tests pass (including tests for invalid patterns)
 - [ ] Documentation updated
 
 ## Protocol Checklist
