@@ -10,7 +10,10 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
     if (!selector) return [];
 
     const result: Element[] = [];
-    const parts = selector.split(",").map((s) => s.trim()).filter(Boolean);
+    const parts = selector
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     for (const part of parts) {
       try {
@@ -63,9 +66,9 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
 
   const setup = () => {
     // Cleanup old listeners
-      cleanupFns.forEach((fn) => {
-        fn();
-      });
+    cleanupFns.forEach((fn) => {
+      fn();
+    });
 
     cleanupFns = [];
     targets = [];
@@ -94,17 +97,17 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
   };
 
   return {
-    connectedCallback: () => {
+    connectedCallback() {
       setup();
     },
-    disconnectedCallback: () => {
-    cleanupFns.forEach((fn) => {
-      fn();
-    });
+    disconnectedCallback() {
+      cleanupFns.forEach((fn) => {
+        fn();
+      });
 
       cleanupFns = [];
     },
-    attributeChangedCallback: (name) => {
+    attributeChangedCallback(name) {
       if (name.startsWith("input-watcher-")) {
         setup();
       }
