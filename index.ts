@@ -5,14 +5,28 @@ import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { detectValidatorFromPackageJson } from "./src/utils/detect-validator";
+import { detectEnvironment } from "./src/utils/detect";
+import { validateBehaviorName, behaviorExists } from "./src/utils/validation";
+import {
+  generateBehaviorDefinition,
+  generateSchema,
+  generateBehavior,
+  generateTest,
+} from "./src/templates/behavior-templates";
+import { getStrategy, strategies } from "./src/strategies/index";
+import { detectPlatform } from "./src/platforms/index";
+import type { PlatformStrategy } from "./src/platforms/platform-strategy";
 import { getValidator, validators, type ValidatorId } from "./src/validators/index";
 import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
 import type { BehaviorRegistry } from "./src/types/registry";
 import type { AttributeSchema } from "./src/types/schema";
+import type { InitConfig, Validator } from "./src/types/init";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-let jiti: any = null;
+let jiti: {
+  import: <T>(id: string) => Promise<T>;
+} | null = null;
 
 // Load registry
 const registryPath = path.join(__dirname, "registry/behaviors-registry.json");
@@ -33,6 +47,7 @@ interface Config {
 }
 
 const CONFIG_FILE = "behavior.json";
+const NEW_CONFIG_FILE = "behavior.config.json";
 
 function loadConfig(): Config | null {
   const configPath = path.join(process.cwd(), CONFIG_FILE);
@@ -391,71 +406,115 @@ export async function main() {
   }
 
   if (command === "init") {
-    const response = await prompts([
-      {
-        type: "text",
-        name: "behaviors",
-        message: "Where should behaviors be installed?",
-        initial: "src/components/html/behaviors",
-      },
-      {
-        type: "text",
-        name: "utils",
-        message: "Where should behavior utils be installed?",
-        initial: "src/components/html/behavior-utils.ts",
-      },
-      {
-        type: "text",
-        name: "registry",
-        message: "Where should the behavior registry be installed?",
-        initial: "src/components/html/behaviors/behavior-registry.ts",
-      },
-      {
-        type: "text",
-        name: "testUtils",
-        message: "Where should test utils be installed?",
-        initial: "tests/utils/command-test-harness.ts",
-      },
-      {
-        type: "text",
-        name: "aliasUtils",
-        message: "What is the import alias for behavior utils?",
-        initial: "@/components/html/behavior-utils",
-      },
-      {
-        type: "text",
-        name: "aliasRegistry",
-        message: "What is the import alias for behavior registry?",
-        initial: "@/components/html/behaviors/behavior-registry",
-      },
-      {
-        type: "text",
-        name: "aliasTestUtils",
-        message: "What is the import alias for test utils?",
-        initial: "@/tests/utils/command-test-harness",
-      },
-    ]);
-
-    const config: Config = {
+    const flags = parseFlags();
+    
+    // Detect environment
+    const detected = detectEnvironment();
+    
+    // Log detection results
+    console.log("┌─────────────────────────────────────────┐");
+    console.log("│  Welcome to BehaviorCN! 🎯              │");
+    console.log("└─────────────────────────────────────────┘");
+    console.log("");
+    console.log(`✓ Detected: ${detected.typescript ? "TypeScript" : "JavaScript"}, ${detected.packageManager}`);
+    console.log("");
+    
+    let validatorChoice: Validator;
+    let pathChoice: string;
+    
+    // Check for --defaults flag
+    if (flags.defaults || flags.d) {
+      // Use defaults
+      validatorChoice = flags.validator ? flags.validator as Validator : "zod";
+      pathChoice = flags.path ? flags.path as string : detected.suggestedPath;
+      
+      console.log(`✓ Using defaults: ${validatorChoice}, ${pathChoice}`);
+    } else {
+      // Interactive mode - ask 2 questions
+      const validatorChoices = [
+        { title: "Zod (recommended)", value: "zod" },
+        { title: "Valibot (smallest)", value: "valibot" },
+        { title: "ArkType (advanced)", value: "arktype" },
+        { title: "TypeBox (fastest)", value: "typebox" },
+        { title: "Zod Mini (lightweight)", value: "zod-mini" },
+      ];
+      
+      const response = await prompts([
+        {
+          type: "select",
+          name: "validator",
+          message: "Which schema validator would you like to use?",
+          choices: validatorChoices,
+          initial: 0,
+        },
+        {
+          type: "text",
+          name: "path",
+          message: "Where would you like to install behaviors?",
+          initial: detected.suggestedPath,
+        },
+      ]);
+      
+      // Handle user cancellation
+      if (!response.validator || !response.path) {
+        console.log("Init cancelled.");
+        process.exit(1);
+      }
+      
+      validatorChoice = flags.validator ? flags.validator as Validator : response.validator;
+      pathChoice = flags.path ? flags.path as string : response.path;
+    }
+    
+    // Override TypeScript detection if --no-ts flag is present
+    const useTypeScript = flags["no-ts"] ? false : detected.typescript;
+    
+    // Override package manager if --pm flag is present
+    const packageManager = flags.pm ? flags.pm as string : detected.packageManager;
+    
+    // Create new config format
+    const newConfig: InitConfig = {
+      validator: validatorChoice,
+      typescript: useTypeScript,
+      behaviorsPath: pathChoice,
+      packageManager: packageManager as "pnpm" | "bun" | "npm" | "yarn",
+    };
+    
+    // Also create old format for backward compatibility
+    const legacyConfig: Config = {
       paths: {
-        behaviors: response.behaviors,
-        utils: response.utils,
-        registry: response.registry,
-        testUtils: response.testUtils,
+        behaviors: pathChoice,
+        utils: path.join(pathChoice, "../behavior-utils.ts"),
+        registry: path.join(pathChoice, "behavior-registry.ts"),
+        testUtils: "tests/utils/command-test-harness.ts",
       },
       aliases: {
-        utils: response.aliasUtils,
-        registry: response.aliasRegistry,
-        testUtils: response.aliasTestUtils,
+        utils: "@/behavior-utils",
+        registry: "@/behavior-registry",
+        testUtils: "@/test-utils",
       },
     };
-
+    
+    // Write new config
+    fs.writeFileSync(
+      path.join(process.cwd(), NEW_CONFIG_FILE),
+      JSON.stringify(newConfig, null, 2),
+    );
+    
+    // Write legacy config for backward compatibility
     fs.writeFileSync(
       path.join(process.cwd(), CONFIG_FILE),
-      JSON.stringify(config, null, 2),
+      JSON.stringify(legacyConfig, null, 2),
     );
-    console.log(`Configuration saved to ${CONFIG_FILE}`);
-
+    
+    console.log(`✓ Created ${NEW_CONFIG_FILE}`);
+    
+    // Create behaviors directory
+    const behaviorsDir = path.resolve(process.cwd(), pathChoice);
+    if (!fs.existsSync(behaviorsDir)) {
+      fs.mkdirSync(behaviorsDir, { recursive: true });
+      console.log(`✓ Created ${pathChoice}/`);
+    }
+    
     // Detect platform once
     const platform = detectAndValidatePlatform();
     await installBehavior("core", config, 0 as const, platform);

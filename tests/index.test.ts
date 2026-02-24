@@ -59,22 +59,24 @@ describe("CLI (index.ts)", () => {
     vi.restoreAllMocks();
   });
 
-  it('should initialize configuration with "init"', async () => {
+  it('should initialize configuration with "init" in interactive mode', async () => {
     process.argv = ["node", "behavior-fn", "init"];
 
-    // Mock prompts response
+    // Mock prompts response (new format - only 2 questions)
     mocks.prompts.mockResolvedValue({
-      behaviors: "src/behaviors",
-      utils: "src/utils.ts",
-      registry: "src/registry.ts",
-      testUtils: "src/test-utils.ts",
-      aliasUtils: "@/utils",
-      aliasRegistry: "@/registry",
-      aliasTestUtils: "@/test-utils",
+      validator: "zod",
+      path: "./src/behaviors",
     });
 
     // Setup FS mocks
-    mocks.fs.existsSync.mockReturnValue(false);
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      // Simulate TypeScript project with pnpm
+      if (p.toString().endsWith("tsconfig.json")) return true;
+      if (p.toString().endsWith("pnpm-lock.yaml")) return true;
+      if (p.toString().endsWith("/src")) return true;
+      return false;
+    });
+    
     mocks.fs.readFileSync.mockImplementation((p: string) => {
       if (p.includes("behaviors-registry.json")) {
         return JSON.stringify([
@@ -102,16 +104,255 @@ describe("CLI (index.ts)", () => {
       if (!e.message.includes("Process.exit")) throw e;
     }
 
-    // Verify config was written
+    // Verify new config was written
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringContaining('"validator": "zod"'),
+    );
+    
+    // Verify legacy config was also written (backward compatibility)
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("behavior.json"),
-      expect.stringContaining('"behaviors": "src/behaviors"'),
+      expect.anything(),
     );
 
+    // Verify detection message was logged
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Detected: TypeScript, pnpm"),
+    );
+    
     // Verify core was installed
     expect(console.log).toHaveBeenCalledWith(
       expect.stringContaining("Installing behavior: core"),
     );
+  });
+
+  it('should initialize with --defaults flag', async () => {
+    process.argv = ["node", "behavior-fn", "init", "--defaults"];
+
+    // Setup FS mocks for TypeScript project with src/
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      if (p.toString().endsWith("tsconfig.json")) return true;
+      if (p.toString().endsWith("pnpm-lock.yaml")) return true;
+      if (p.toString().endsWith("/src")) return true;
+      return false;
+    });
+    
+    mocks.fs.readFileSync.mockImplementation((p: string) => {
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [{ path: "behavior-registry.ts" }],
+          },
+        ]);
+      }
+      return "";
+    });
+    mocks.fs.readdirSync.mockReturnValue([]);
+
+    const { main } = await import("../index");
+    try {
+      await main();
+    } catch (e: any) {
+      if (!e.message.includes("Process.exit")) throw e;
+    }
+
+    // Verify prompts was NOT called (zero-question mode)
+    expect(mocks.prompts).not.toHaveBeenCalled();
+    
+    // Verify defaults were used
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(/"validator": "zod"/),
+    );
+    
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(/"behaviorsPath": ".\/src\/behaviors"/),
+    );
+    
+    // Verify default message was logged
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Using defaults: zod, ./src/behaviors"),
+    );
+  });
+
+  it('should support --validator override flag', async () => {
+    process.argv = ["node", "behavior-fn", "init", "--defaults", "--validator=typebox"];
+
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      if (p.toString().endsWith("tsconfig.json")) return true;
+      if (p.toString().endsWith("pnpm-lock.yaml")) return true;
+      if (p.toString().endsWith("/src")) return true;
+      return false;
+    });
+    
+    mocks.fs.readFileSync.mockImplementation((p: string) => {
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [{ path: "behavior-registry.ts" }],
+          },
+        ]);
+      }
+      return "";
+    });
+    mocks.fs.readdirSync.mockReturnValue([]);
+
+    const { main } = await import("../index");
+    try {
+      await main();
+    } catch (e: any) {
+      if (!e.message.includes("Process.exit")) throw e;
+    }
+
+    // Verify typebox was used instead of zod
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(/"validator": "typebox"/),
+    );
+    
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Using defaults: typebox"),
+    );
+  });
+
+  it('should support --path override flag', async () => {
+    process.argv = ["node", "behavior-fn", "init", "--defaults", "--path=./custom/path"];
+
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      if (p.toString().endsWith("tsconfig.json")) return true;
+      if (p.toString().endsWith("pnpm-lock.yaml")) return true;
+      return false;
+    });
+    
+    mocks.fs.readFileSync.mockImplementation((p: string) => {
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [{ path: "behavior-registry.ts" }],
+          },
+        ]);
+      }
+      return "";
+    });
+    mocks.fs.readdirSync.mockReturnValue([]);
+
+    const { main } = await import("../index");
+    try {
+      await main();
+    } catch (e: any) {
+      if (!e.message.includes("Process.exit")) throw e;
+    }
+
+    // Verify custom path was used
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(/"behaviorsPath": ".\/custom\/path"/),
+    );
+    
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("./custom/path"),
+    );
+  });
+
+  it('should detect JavaScript project (no tsconfig)', async () => {
+    process.argv = ["node", "behavior-fn", "init", "--defaults"];
+
+    // No tsconfig.json
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      if (p.toString().endsWith("package-lock.json")) return true;
+      if (p.toString().endsWith("/src")) return true;
+      return false;
+    });
+    
+    mocks.fs.readFileSync.mockImplementation((p: string) => {
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [{ path: "behavior-registry.ts" }],
+          },
+        ]);
+      }
+      return "";
+    });
+    mocks.fs.readdirSync.mockReturnValue([]);
+
+    const { main } = await import("../index");
+    try {
+      await main();
+    } catch (e: any) {
+      if (!e.message.includes("Process.exit")) throw e;
+    }
+
+    // Verify JavaScript was detected
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(/"typescript": false/),
+    );
+    
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Detected: JavaScript, npm"),
+    );
+  });
+
+  it('should support all validator options (zod, valibot, arktype, typebox, zod-mini)', async () => {
+    const validators = [
+      { name: "zod", id: 0 },
+      { name: "valibot", id: 1 },
+      { name: "arktype", id: 2 },
+      { name: "typebox", id: 3 },
+      { name: "zod-mini", id: 4 },
+    ];
+
+    for (const { name } of validators) {
+      vi.resetModules();
+      vi.clearAllMocks();
+      
+      process.argv = ["node", "behavior-fn", "init", "--defaults", `--validator=${name}`];
+
+      mocks.fs.existsSync.mockImplementation((p: string) => {
+        if (p.toString().endsWith("tsconfig.json")) return true;
+        if (p.toString().endsWith("pnpm-lock.yaml")) return true;
+        if (p.toString().endsWith("/src")) return true;
+        return false;
+      });
+      
+      mocks.fs.readFileSync.mockImplementation((p: string) => {
+        if (p.includes("behaviors-registry.json")) {
+          return JSON.stringify([
+            {
+              name: "core",
+              dependencies: [],
+              files: [{ path: "behavior-registry.ts" }],
+            },
+          ]);
+        }
+        return "";
+      });
+      mocks.fs.readdirSync.mockReturnValue([]);
+
+      const { main } = await import("../index");
+      try {
+        await main();
+      } catch (e: any) {
+        if (!e.message.includes("Process.exit")) throw e;
+      }
+
+      // Verify the validator was used
+      expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining("behavior.config.json"),
+        expect.stringMatching(new RegExp(`"validator": "${name}"`)),
+      );
+    }
   });
 
   it('should add a behavior with "add"', async () => {
