@@ -67,7 +67,7 @@ export function enableAutoLoader(): () => void {
     if (processedElements.has(element)) {
       return;
     }
-    
+
     // Only process HTMLElements (not SVGElement, etc.)
     if (!(element instanceof HTMLElement)) {
       return;
@@ -156,19 +156,67 @@ export function enableAutoLoader(): () => void {
       }
     }
 
-    // Add the `is` attribute to activate the behavioral host
+    // Replace the element with a properly upgraded custom element
+    // This is necessary because the `is` attribute must be present at element creation time
+    // to properly upgrade customized built-in elements.
+    //
+    // Note: This will break JavaScript references captured before auto-loader runs.
+    // For CDN usage, either:
+    // 1. Don't reference elements in JavaScript (use pure declarative approach)
+    // 2. Query elements AFTER window load event (after auto-loader completes)
     try {
-      element.setAttribute("is", customElementName);
+      // Create a new element with the `is` attribute from the start
+      const newElement = document.createElement(tagName, {
+        is: customElementName,
+      });
+
+      // Preserve ALL attributes from the original element
+      for (let i = 0; i < element.attributes.length; i++) {
+        const attr = element.attributes[i];
+        // Copy all attributes including behavior, id, class, data-*, etc.
+        // The `is` attribute is already set via createElement options
+        if (attr.name !== "is") {
+          newElement.setAttribute(attr.name, attr.value);
+        }
+      }
+
+      // Move all child nodes (preserves event listeners on children)
+      while (element.firstChild) {
+        newElement.appendChild(element.firstChild);
+      }
+
+      // Replace the old element with the upgraded element in the DOM
+      if (element.parentNode) {
+        element.parentNode.replaceChild(newElement, element);
+
+        // Mark the NEW element as processed (not the old one)
+        processedElements.add(newElement);
+
+        console.log(
+          `[AutoLoader] ✅ Upgraded <${tagName}#${newElement.id || "(no id)"}> to ${customElementName}`,
+        );
+      } else {
+        // Element is not in the DOM yet, just mark it as processed
+        // and set the is attribute (fallback, shouldn't normally happen)
+        element.setAttribute("is", customElementName);
+        processedElements.add(element);
+
+        console.warn(
+          `[AutoLoader] Element not in DOM, falling back to setAttribute:`,
+          element,
+        );
+      }
     } catch (error) {
       console.error(
-        `[AutoLoader] Failed to set "is" attribute on element:`,
+        `[AutoLoader] ❌ Failed to upgrade element:`,
         element,
         error,
       );
-    }
 
-    // Mark as processed
-    processedElements.add(element);
+      // Fallback: just set the attribute (won't properly upgrade, but better than nothing)
+      element.setAttribute("is", customElementName);
+      processedElements.add(element);
+    }
   }
 
   /**
