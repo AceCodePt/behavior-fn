@@ -37,7 +37,7 @@ window.BehaviorFN = {
 };
 ```
 
-**Size:** ~4KB minified (~1.5KB gzipped)
+**Size:** 4.0KB minified (1.6KB gzipped)
 
 **Usage:**
 ```html
@@ -66,11 +66,19 @@ if (!window.BehaviorFN) {
 }
 ```
 
-**Size:** Varies by behavior
-- `logger.js`: ~750 bytes
-- `element-counter.js`: ~1.2KB
-- `reveal.js`: ~50KB (includes Popper.js for positioning)
-- `request.js`: ~53KB (includes validation logic)
+**Size:** Varies by behavior (all include core runtime + JSON Schema)
+
+| Behavior | Minified | Gzipped |
+|----------|----------|---------|
+| `logger.js` | 4.7KB | 1.9KB |
+| `element-counter.js` | 5.1KB | 2.0KB |
+| `compound-commands.js` | 5.6KB | 2.2KB |
+| `input-watcher.js` | 6.0KB | 2.4KB |
+| `content-setter.js` | 6.3KB | 2.4KB |
+| `json-template.js` | 7.6KB | 3.0KB |
+| `compute.js` | 7.9KB | 3.0KB |
+| `reveal.js` | 8.7KB | 3.2KB |
+| `request.js` | 14KB | 4.6KB |
 
 **Usage:**
 ```html
@@ -96,7 +104,7 @@ if (!window.BehaviorFN) {
 
 **Important:** Automatically enables itself when loaded via `<script>` tag.
 
-**Size:** ~5.4KB minified (~2KB gzipped)
+**Size:** 5.7KB minified (2.3KB gzipped)
 
 **Usage:**
 ```html
@@ -479,13 +487,19 @@ import { revealBehaviorFactory } from 'behavior-fn/dist/cdn/reveal.esm.js';
 
 ### Q: What's the total size for a typical setup?
 
-**A:** Example: Core + Reveal + Request (no auto-loader)
-- Core: ~4KB
-- Reveal: ~50KB
-- Request: ~53KB
-- **Total: ~107KB (~30KB gzipped)**
+**A:** Common configurations (all include core runtime + JSON Schema):
 
-Compare to v0.1.6 all-in-one: ~72KB (~20KB gzipped) but includes ALL behaviors.
+| Use Case | Bundles | Minified | Gzipped |
+|----------|---------|----------|---------|
+| Simple logger | logger.js | 4.7KB | **1.9KB** |
+| Modal dialog | reveal.js | 8.7KB | **3.2KB** |
+| Modal + auto-loader | reveal + auto-loader | 14.4KB | **5.5KB** |
+| Form handling | request.js | 14KB | **4.6KB** |
+| Complex app | reveal + request + auto-loader | 28.4KB | **10.1KB** |
+
+**v0.1.6 all-in-one:** 72KB minified (20KB gzipped) but includes ALL 9 behaviors whether you use them or not.
+
+**v0.2.0 savings:** Up to 97% reduction for typical use cases!
 
 ---
 
