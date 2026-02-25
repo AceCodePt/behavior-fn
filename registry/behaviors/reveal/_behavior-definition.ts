@@ -1,12 +1,22 @@
 import { uniqueBehaviorDef } from "~utils";
 import { schema } from "./schema";
-import { REVEAL_COMMANDS } from "./commands";
 
-// Full definition with schema (for CLI and type inference)
-const REVEAL_DEFINITION = uniqueBehaviorDef({
+/**
+ * Reveal behavior definition.
+ * 
+ * uniqueBehaviorDef automatically extracts:
+ * - ATTRS: From schema keys (e.g., { "reveal-delay": "reveal-delay", ... })
+ * - COMMANDS: From command object (e.g., { "--show": "--show", ... })
+ * - OBSERVED_ATTRIBUTES: Array of schema keys
+ */
+const definition = uniqueBehaviorDef({
   name: "reveal",
   schema,
-  command: REVEAL_COMMANDS,
+  command: {
+    "--show": "--show",
+    "--hide": "--hide",
+    "--toggle": "--toggle",
+  },
 });
 
-export default REVEAL_DEFINITION;
+export default definition;

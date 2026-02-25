@@ -5,7 +5,6 @@ import { loggerBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
-import { LOGGER_ATTRS } from "./schema";
 
 const { name } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
@@ -28,7 +27,7 @@ describe("Logger Behavior", () => {
       is: webcomponentTag,
     }) as HTMLElement;
     el.setAttribute("behavior", "logger");
-    el.setAttribute(LOGGER_ATTRS.TRIGGER, "click");
+    el.setAttribute(definition.ATTRS["logger-trigger"], "click");
     document.body.appendChild(el);
 
     await vi.waitFor(() => {
@@ -49,7 +48,7 @@ describe("Logger Behavior", () => {
       is: webcomponentTag,
     });
     el.setAttribute("behavior", "logger");
-    el.setAttribute(LOGGER_ATTRS.TRIGGER, "mouseenter");
+    el.setAttribute(definition.ATTRS["logger-trigger"], "mouseenter");
     document.body.appendChild(el);
 
     await vi.waitFor(() => {

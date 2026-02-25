@@ -27,9 +27,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   };
 
   const applyStyles = () => {
-    const revealDelay = el.getAttribute(ATTRS["reveal-delay"]);
-    const revealDuration = el.getAttribute(ATTRS["reveal-duration"]);
-    const revealAnchor = el.getAttribute(ATTRS["reveal-anchor"]);
+    const revealDelay = el.getAttribute(ATTRS["DELAY);
+    const revealDuration = el.getAttribute(ATTRS["DURATION);
+    const revealAnchor = el.getAttribute(ATTRS["ANCHOR);
     if (revealDelay) {
       el.style.setProperty("--reveal-delay", revealDelay);
     }
@@ -138,9 +138,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   let attributeObserver: MutationObserver | null = null;
 
   const setupAttributeWatcher = () => {
-    const targetSelector = el.getAttribute(ATTRS["reveal-when-target"]);
-    const attribute = el.getAttribute(ATTRS["reveal-when-attribute"]);
-    const value = el.getAttribute(ATTRS["reveal-when-value"]);
+    const targetSelector = el.getAttribute(ATTRS["WHEN_TARGET);
+    const attribute = el.getAttribute(ATTRS["WHEN_ATTRIBUTE);
+    const value = el.getAttribute(ATTRS["WHEN_VALUE);
 
     // Only set up if all three are provided
     if (!targetSelector || !attribute || !value) return;
@@ -246,8 +246,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
         setupAttributeWatcher();
       }
     },
-    onCommand(e: CommandEvent<string>) {
-      if (!COMMANDS) return;
+    onCommand(e: CommandEvent<keyof typeof COMMANDS>) {
       const cmd = COMMANDS;
       const popover = isPopover();
       const dialog = isDialog();

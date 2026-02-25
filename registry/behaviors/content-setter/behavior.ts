@@ -1,8 +1,7 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
-import { CONTENT_SETTER_ATTRS } from "./constants";
 
-const { command: CONTENT_SETTER_COMMANDS } = definition;
+const { ATTRS: CONTENT_SETTER_ATTRS, COMMANDS: CONTENT_SETTER_COMMANDS } = definition;
 
 export const contentSetterBehaviorFactory = (el: HTMLElement) => {
   // Store original values for toggle mode

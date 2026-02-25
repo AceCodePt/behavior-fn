@@ -28,17 +28,43 @@ export function hasValue(el: Element): el is Element & { value: string | number 
 
 // --- Behavior Definition ---
 
+/**
+ * Extract strongly-typed attribute keys from a TypeBox schema.
+ * Creates an object where each key-value pair is identical: { "attr-name": "attr-name" }
+ * 
+ * @example
+ * Schema with keys: "reveal-delay", "reveal-duration"
+ * Result: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
+ */
+type ExtractSchemaKeys<S extends BehaviorSchema> = 
+  S extends { properties: infer P } 
+    ? { readonly [K in keyof P & string]: K }
+    : Record<string, never>;
+
+/**
+ * Extract strongly-typed command keys from a command object.
+ * Creates an object where each key-value pair is identical: { "--cmd": "--cmd" }
+ * 
+ * @example
+ * Commands: { "--show": "--show", "--hide": "--hide" }
+ * Result: { "--show": "--show", "--hide": "--hide" }
+ */
+type ExtractCommandKeys<C> = 
+  C extends Record<string, any>
+    ? { readonly [K in keyof C & string]: K }
+    : never;
+
 export interface BehaviorDef<
   S extends BehaviorSchema = BehaviorSchema,
-  C extends string = string,
+  C extends Record<string, string> = Record<string, string>,
 > {
   name: string;
   schema: S;
-  command?: { [K in C]: K };
+  command?: C;
 }
 
 export type ValidateBehaviorDef<
-  Def extends BehaviorDef<BehaviorSchema, string>,
+  Def extends BehaviorDef<BehaviorSchema, Record<string, string>>,
 > = {
   name: Def["name"];
   schema: Def["schema"];
@@ -49,13 +75,43 @@ export type ValidateBehaviorDef<
   };
 };
 
+/**
+ * Create a behavior definition with auto-extracted metadata.
+ * 
+ * This function automatically extracts and creates strongly-typed objects for:
+ * - **ATTRS**: Extracted from schema keys (e.g., { "reveal-delay": "reveal-delay" })
+ * - **COMMANDS**: Extracted from command object (e.g., { "--show": "--show" })
+ * - **OBSERVED_ATTRIBUTES**: Array of attribute names from schema keys
+ * 
+ * @example
+ * const definition = uniqueBehaviorDef({
+ *   name: "reveal",
+ *   schema: Type.Object({
+ *     "reveal-delay": Type.Optional(Type.String()),
+ *     "reveal-duration": Type.Optional(Type.String()),
+ *   }),
+ *   command: {
+ *     "--show": "--show",
+ *     "--hide": "--hide",
+ *   },
+ * });
+ * 
+ * // Auto-created:
+ * // definition.ATTRS = { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
+ * // definition.COMMANDS = { "--show": "--show", "--hide": "--hide" }
+ * // definition.OBSERVED_ATTRIBUTES = ["reveal-delay", "reveal-duration"]
+ * 
+ * @param def - The behavior definition with name, schema, and optional commands
+ * @returns Extended definition with ATTRS, COMMANDS, and OBSERVED_ATTRIBUTES
+ */
 export const uniqueBehaviorDef = <
   const S extends BehaviorSchema,
-  const C extends string,
+  const C extends Record<string, string>,
   const Def extends BehaviorDef<S, C>,
 >(
   def: Def & ValidateBehaviorDef<Def>,
-): Def => {
+) => {
+  // Runtime validation for commands: key must equal value
   if (def.command) {
     for (const [key, value] of Object.entries(def.command)) {
       if (key !== value) {
@@ -66,7 +122,33 @@ export const uniqueBehaviorDef = <
     }
   }
 
-  return def;
+  // Extract attribute keys from schema and create ATTRS object
+  // Pattern: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
+  const schemaKeys = "properties" in def.schema ? Object.keys(def.schema.properties) : [];
+  const ATTRS = schemaKeys.reduce((acc, key) => {
+    acc[key] = key;
+    return acc;
+  }, {} as Record<string, string>) as ExtractSchemaKeys<S>;
+
+  // Extract command keys from command object and create COMMANDS object
+  // Pattern: { "--show": "--show", "--hide": "--hide" }
+  const commandKeys = def.command ? Object.keys(def.command) : [];
+  const COMMANDS = commandKeys.length > 0 
+    ? commandKeys.reduce((acc, key) => {
+        acc[key] = key;
+        return acc;
+      }, {} as Record<string, string>) as ExtractCommandKeys<C>
+    : undefined;
+
+  // Create observed attributes array from schema keys
+  const OBSERVED_ATTRIBUTES = schemaKeys as readonly string[];
+
+  return {
+    ...def,
+    ATTRS,
+    COMMANDS,
+    OBSERVED_ATTRIBUTES,
+  } as const;
 };
 
 export const isServer = () => typeof window === "undefined";

@@ -1,4 +1,6 @@
-import { JSON_TEMPLATE_ATTRS } from "./constants";
+import definition from "./_behavior-definition";
+
+const { ATTRS: JSON_TEMPLATE_ATTRS } = definition;
 
 /**
  * Resolves a path in a data object using dot notation and bracket notation.

@@ -1,11 +1,14 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
-import { LOGGER_ATTRS } from "./constants";
 
-export { LOGGER_ATTRS };
-
+/**
+ * Schema for logger behavior.
+ * 
+ * uniqueBehaviorDef automatically extracts attribute keys to create definition.ATTRS.
+ */
 export const schema = Type.Object({
-  [LOGGER_ATTRS.TRIGGER]: Type.Optional(
+  /** Event that triggers logging (e.g., "click", "mouseenter") */
+  "logger-trigger": Type.Optional(
     Type.Union([
       Type.Literal("click"),
       Type.Literal("mouseenter"),

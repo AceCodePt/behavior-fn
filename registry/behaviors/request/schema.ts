@@ -1,8 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
-import { REQUEST_ATTRS } from "./constants";
-
-export { REQUEST_ATTRS };
 
 export const TriggerSchema = Type.Object({
   event: Type.String(),
@@ -16,9 +13,18 @@ export const TriggerSchema = Type.Object({
   consume: Type.Optional(Type.Boolean()),
 });
 
+/**
+ * Schema for request behavior.
+ * 
+ * The request behavior provides HTMX-style declarative HTTP requests.
+ * uniqueBehaviorDef automatically extracts attribute keys to create definition.ATTRS.
+ */
 export const schema = Type.Object({
-  [REQUEST_ATTRS.URL]: Type.Optional(Type.String()),
-  [REQUEST_ATTRS.METHOD]: Type.Optional(
+  /** URL to send the request to */
+  "request-url": Type.Optional(Type.String()),
+  
+  /** HTTP method (GET, POST, PUT, DELETE, PATCH) */
+  "request-method": Type.Optional(
     Type.Union([
       Type.Literal("GET"),
       Type.Literal("POST"),
@@ -27,15 +33,21 @@ export const schema = Type.Object({
       Type.Literal("PATCH"),
     ]),
   ),
-  [REQUEST_ATTRS.TRIGGER]: Type.Optional(
+  
+  /** Event that triggers the request (e.g., "click", "input") */
+  "request-trigger": Type.Optional(
     Type.Union([
       Type.String(),
       Type.Array(Type.Union([Type.String(), TriggerSchema])),
       TriggerSchema,
     ]),
   ),
-  [REQUEST_ATTRS.TARGET]: Type.Optional(Type.String()),
-  [REQUEST_ATTRS.SWAP]: Type.Optional(
+  
+  /** Selector for element to update with response */
+  "request-target": Type.Optional(Type.String()),
+  
+  /** How to swap content (innerHTML, outerHTML, beforebegin, etc.) */
+  "request-swap": Type.Optional(
     Type.Union([
       Type.Literal("none"),
       Type.Literal("afterbegin"),
@@ -47,13 +59,23 @@ export const schema = Type.Object({
       Type.Literal("delete"),
     ]),
   ),
-  [REQUEST_ATTRS.INDICATOR]: Type.Optional(Type.String()),
-  [REQUEST_ATTRS.CONFIRM]: Type.Optional(Type.String()),
-  [REQUEST_ATTRS.PUSH_URL]: Type.Optional(
+  
+  /** Selector for loading indicator element */
+  "request-indicator": Type.Optional(Type.String()),
+  
+  /** Confirmation message before sending request */
+  "request-confirm": Type.Optional(Type.String()),
+  
+  /** Whether to push URL to browser history */
+  "request-push-url": Type.Optional(
     Type.Union([Type.String(), Type.Boolean()]),
   ),
-  [REQUEST_ATTRS.VALS]: Type.Optional(Type.String()),
-  [REQUEST_ATTRS.JSON_STRATEGY]: Type.Optional(
+  
+  /** JSON values to include with request */
+  "request-vals": Type.Optional(Type.String()),
+  
+  /** Strategy for merging JSON responses into script tags */
+  "request-json-strategy": Type.Optional(
     Type.Union([
       Type.Literal("replace"),
       Type.Literal("appendArray"),

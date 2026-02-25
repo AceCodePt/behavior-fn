@@ -1,9 +1,13 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
-import { JSON_TEMPLATE_ATTRS } from "./constants";
 
-// Re-export constants for convenience
-export { JSON_TEMPLATE_ATTRS };
+/**
+ * Attribute name constants for the json-template behavior.
+ */
+export const JSON_TEMPLATE_ATTRS = {
+  /** ID of the <script type="application/json"> element containing the data (like "for" in label) */
+  FOR: "json-template-for",
+} as const;
 
 export const schema = Type.Object({
   [JSON_TEMPLATE_ATTRS.FOR]: Type.String({ 

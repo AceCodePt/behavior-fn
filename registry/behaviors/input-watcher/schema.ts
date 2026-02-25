@@ -1,8 +1,22 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "../types";
-import { INPUT_WATCHER_ATTRS } from "./constants";
 
-export { INPUT_WATCHER_ATTRS };
+/**
+ * Attribute name constants for the input-watcher behavior.
+ */
+export const INPUT_WATCHER_ATTRS = {
+  /** Selector or ID list of input elements to watch */
+  TARGET: "input-watcher-target",
+  
+  /** Format string with placeholders (e.g., "Value: {value}") */
+  FORMAT: "input-watcher-format",
+  
+  /** Events to listen to (comma-separated, default: "input,change") */
+  EVENTS: "input-watcher-events",
+  
+  /** Attribute to read from target (default: value property) */
+  ATTR: "input-watcher-attr",
+} as const;
 
 export const schema = Type.Object({
   [INPUT_WATCHER_ATTRS.TARGET]: Type.Optional(

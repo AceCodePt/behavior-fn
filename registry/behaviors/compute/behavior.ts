@@ -153,7 +153,9 @@ export class MathParser {
 
 // --- Behavior Implementation ---
 
-import { COMPUTE_ATTRS } from "./constants";
+import definition from "./_behavior-definition";
+
+const { ATTRS: COMPUTE_ATTRS } = definition;
 
 const evaluatingElements = new Set<HTMLElement>();
 

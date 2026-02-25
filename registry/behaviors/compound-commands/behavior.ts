@@ -1,4 +1,6 @@
-import { COMPOUND_COMMANDS_ATTRS } from "./constants";
+import definition from "./_behavior-definition";
+
+const { ATTRS: COMPOUND_COMMANDS_ATTRS } = definition;
 
 /**
  * Parse a comma-separated attribute value into an array of trimmed strings.

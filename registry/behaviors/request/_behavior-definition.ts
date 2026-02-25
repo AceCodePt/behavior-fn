@@ -1,7 +1,15 @@
 import { uniqueBehaviorDef } from "~utils";
 import { schema } from "./schema";
 
-const REQUEST_DEFINITION = uniqueBehaviorDef({
+/**
+ * Request behavior definition.
+ * 
+ * uniqueBehaviorDef automatically extracts:
+ * - ATTRS: From schema keys (e.g., { "request-url": "request-url", ... })
+ * - COMMANDS: From command object (e.g., { "--trigger": "--trigger", ... })
+ * - OBSERVED_ATTRIBUTES: Array of schema keys
+ */
+const definition = uniqueBehaviorDef({
   name: "request",
   schema,
   command: {
@@ -10,4 +18,4 @@ const REQUEST_DEFINITION = uniqueBehaviorDef({
   },
 });
 
-export default REQUEST_DEFINITION;
+export default definition;
