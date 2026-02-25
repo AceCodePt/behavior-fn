@@ -260,8 +260,10 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
     // Create behavior entry as ESM module with auto-registration
     const behaviorEntry = join(cdnOutDir, `_${behaviorName}-entry.js`);
     const behaviorCode = `
-// Import core and behavior (will be bundled)
-import { registerBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+// Import core from built bundle (external - not bundled)
+import { registerBehavior } from "./behavior-fn-core.js";
+
+// Import behavior (will be bundled)
 import { ${exportName} } from "${behaviorPath}";
 
 // Export factory function
@@ -292,6 +294,10 @@ console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
       target: "es2020",
       minify: true,
       sourcemap: true,
+      external: [
+        // Don't bundle core - it's imported from behavior-fn-core.js
+        "./behavior-fn-core.js",
+      ],
       plugins: [inlineTypeBoxPlugin],
     });
 
@@ -307,11 +313,136 @@ async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
   
   const autoLoaderCode = `
-// Import auto-loader (will be bundled)
-import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
+// Import ALL dependencies from core bundle (external - not bundled)
+import { getBehavior, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
 
-// Export auto-loader function
-export { enableAutoLoader };
+// Inline auto-loader logic (don't import auto-loader.ts - it imports registry which gets bundled!)
+export function enableAutoLoader() {
+  const upgraded = new WeakSet();
+  const registeredHosts = new Set();
+
+  function upgradeElement(el) {
+    if (upgraded.has(el) || !(el instanceof HTMLElement)) return;
+    
+    if (el.hasAttribute('is')) {
+      upgraded.add(el);
+      return;
+    }
+    
+    if (!el.hasAttribute('behavior')) {
+      upgraded.add(el);
+      return;
+    }
+    
+    const behaviorAttr = el.getAttribute('behavior');
+    const behaviorNames = parseBehaviorNames(behaviorAttr);
+    
+    if (behaviorNames.length === 0) {
+      upgraded.add(el);
+      return;
+    }
+    
+    const hostName = \`behavioral-\${behaviorNames.join('-')}\`;
+    const tagName = el.tagName.toLowerCase();
+    
+    if (!registeredHosts.has(hostName)) {
+      if (customElements.get(hostName)) {
+        registeredHosts.add(hostName);
+      } else {
+        const observedAttrs = [];
+        let hasUnknown = false;
+        
+        for (const name of behaviorNames) {
+          if (!getBehavior(name)) {
+            console.warn(\`[AutoLoader] Unknown behavior "\${name}" on element:\`, el);
+            hasUnknown = true;
+            continue;
+          }
+          
+          const metadata = window.BehaviorFN?.behaviorMetadata?.[name];
+          if (metadata?.observedAttributes) {
+            for (const attr of metadata.observedAttributes) {
+              if (!observedAttrs.includes(attr)) {
+                observedAttrs.push(attr);
+              }
+            }
+          }
+        }
+        
+        try {
+          defineBehavioralHost(tagName, hostName, observedAttrs);
+          registeredHosts.add(hostName);
+        } catch (err) {
+          console.error(\`[AutoLoader] Failed to register behavioral host "\${hostName}":\`, err);
+          upgraded.add(el);
+          return;
+        }
+      }
+    }
+    
+    try {
+      const newEl = document.createElement(tagName, { is: hostName });
+      
+      if (!newEl.hasAttribute('is')) {
+        newEl.setAttribute('is', hostName);
+      }
+      
+      for (let i = 0; i < el.attributes.length; i++) {
+        const attr = el.attributes[i];
+        if (attr.name !== 'is') {
+          newEl.setAttribute(attr.name, attr.value);
+        }
+      }
+      
+      while (el.firstChild) {
+        newEl.appendChild(el.firstChild);
+      }
+      
+      if (el.parentNode) {
+        el.parentNode.replaceChild(newEl, el);
+        upgraded.add(newEl);
+        console.log(\`[AutoLoader] ✅ Upgraded <\${tagName}#\${newEl.id || '(no id)'}> to \${hostName}\`);
+      } else {
+        el.setAttribute('is', hostName);
+        upgraded.add(el);
+        console.warn('[AutoLoader] Element not in DOM, falling back to setAttribute:', el);
+      }
+    } catch (err) {
+      console.error('[AutoLoader] ❌ Failed to upgrade element:', el, err);
+      el.setAttribute('is', hostName);
+      upgraded.add(el);
+    }
+  }
+  
+  function scanSubtree(root) {
+    if (!(root instanceof Element)) return;
+    
+    upgradeElement(root);
+    const elements = root.querySelectorAll('[behavior]');
+    for (let i = 0; i < elements.length; i++) {
+      upgradeElement(elements[i]);
+    }
+  }
+  
+  scanSubtree(document.documentElement);
+  
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (let i = 0; i < mutation.addedNodes.length; i++) {
+        scanSubtree(mutation.addedNodes[i]);
+      }
+    }
+  });
+  
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+  
+  return () => {
+    observer.disconnect();
+  };
+}
 
 // Auto-enable when imported (side-effect)
 enableAutoLoader();
@@ -332,6 +463,10 @@ console.log('✅ BehaviorFN: Auto-loader enabled automatically');
     target: "es2020",
     minify: true,
     sourcemap: true,
+    external: [
+      // Don't bundle core - it's imported from behavior-fn-core.js
+      "./behavior-fn-core.js",
+    ],
     plugins: [inlineTypeBoxPlugin],
   });
 
