@@ -124,18 +124,20 @@ export function enableAutoLoader(): () => void {
             continue;
           }
 
-          // Try to get the behavior definition to extract schema
-          // Note: We need to create a temporary element to get the factory
-          // But we can't call the factory without an element
-          // So we'll try to import the schema directly if available
-
-          // For now, we'll register without observed attributes
-          // The behavioral host will handle attribute observation through withBehaviors
+          // Get observed attributes from behavior metadata (stored by individual bundles)
+          // @ts-ignore - behaviorMetadata is added by CDN build script
+          const metadata = window.BehaviorFN?.behaviorMetadata?.[behaviorName];
+          if (metadata?.observedAttributes) {
+            // Merge observed attributes from all behaviors
+            for (const attr of metadata.observedAttributes) {
+              if (!observedAttributes.includes(attr)) {
+                observedAttributes.push(attr);
+              }
+            }
+          }
         }
 
-        // Register the behavioral host
-        // Note: We pass an empty array for observedAttributes since withBehaviors
-        // will handle attribute observation dynamically
+        // Register the behavioral host with collected observed attributes
         try {
           defineBehavioralHost(
             tagName as any,

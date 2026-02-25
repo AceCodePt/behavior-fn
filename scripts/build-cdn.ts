@@ -3,22 +3,26 @@
  * Build CDN bundles for BehaviorFN
  * 
  * Opt-In Loading Architecture:
- * 1. Core runtime bundle (behavior-fn-core.js) - Required foundation
- * 2. Individual behavior bundles (reveal.js, request.js, etc.) - Load what you need
- * 3. Optional auto-loader (auto-loader.js) - Opt-in convenience feature
+ * 1. Individual behavior bundles (reveal.js, request.js, etc.) - Self-contained
+ * 2. Optional auto-loader (auto-loader.js) - Opt-in convenience feature
  * 
- * No all-in-one bundle - users explicitly choose what to load.
+ * Key Strategy: Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
  */
 
 import { build } from "esbuild";
 import { readdir, mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createJiti } from "jiti";
 
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const rootDir = join(__dirname, "..");
 const registryDir = join(rootDir, "registry", "behaviors");
 const cdnOutDir = join(rootDir, "dist", "cdn");
+
+// Initialize jiti for runtime TypeScript imports
+const jiti = createJiti(__filename);
 
 interface BuildTarget {
   name: string;
@@ -26,6 +30,40 @@ interface BuildTarget {
   outfile: string;
   globalName: string;
   exportName?: string;
+}
+
+/**
+ * Load a TypeBox schema and convert it to plain JSON Schema.
+ * Also extracts observed attributes.
+ * This avoids bundling TypeBox (~40KB) in CDN builds.
+ */
+async function extractSchemaMetadata(behaviorName: string): Promise<{
+  observedAttributes: string[];
+  jsonSchema: any;
+} | null> {
+  try {
+    const schemaPath = join(registryDir, behaviorName, "schema.ts");
+    const mod = await jiti.import(schemaPath) as { schema?: any };
+    
+    if (!mod.schema) return null;
+    
+    const schema = mod.schema;
+    
+    // Extract observed attributes from TypeBox schema
+    // TypeBox schemas have a 'properties' object
+    const observedAttributes = schema.properties 
+      ? Object.keys(schema.properties)
+      : [];
+    
+    // Convert TypeBox schema to plain JSON Schema object
+    // TypeBox schemas are already JSON Schema compatible
+    const jsonSchema = JSON.parse(JSON.stringify(schema));
+    
+    return { observedAttributes, jsonSchema };
+  } catch (error) {
+    console.warn(`  ⚠️  Could not extract schema for ${behaviorName}:`, error);
+    return null;
+  }
 }
 
 async function buildCDNBundles() {
@@ -159,16 +197,36 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
       continue;
     }
 
+    // Extract schema metadata (converts TypeBox to JSON Schema, extracts observedAttributes)
+    const schemaMeta = await extractSchemaMetadata(behaviorName);
+    const observedAttributes = schemaMeta?.observedAttributes || [];
+    const jsonSchema = schemaMeta?.jsonSchema || {};
+
     // Create standalone entry that includes core runtime
     const standaloneEntry = join(cdnOutDir, `_${behaviorName}-standalone.js`);
     const standaloneCode = `
 // Import core runtime (will be bundled)
 import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
 import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
-import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
+import { parseBehaviorNames } from "${join(registryDir, "behavior-utils.ts")}";
 
 // Import behavior
 import { ${exportName} } from "${behaviorPath}";
+
+// Observed attributes extracted from TypeBox schema (plain array, no TypeBox needed)
+const observedAttributes = ${JSON.stringify(observedAttributes)};
+
+// JSON Schema (plain object, converted from TypeBox)
+const jsonSchema = ${JSON.stringify(jsonSchema, null, 2)};
+
+// getObservedAttributes for JSON Schema (no TypeBox dependency)
+const getObservedAttributes = (schema) => {
+  if (!schema) return [];
+  if ("properties" in schema && typeof schema.properties === "object") {
+    return Object.keys(schema.properties);
+  }
+  return [];
+};
 
 // Setup global namespace if not already exists
 if (typeof window !== 'undefined') {
@@ -189,8 +247,18 @@ if (typeof window !== 'undefined') {
     window.defineBehavioralHost = defineBehavioralHost;
   }
   
-  // Auto-register this behavior
+  // Auto-register this behavior with its observed attributes
   window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
+  
+  // Store metadata for this behavior
+  if (!window.BehaviorFN.behaviorMetadata) {
+    window.BehaviorFN.behaviorMetadata = {};
+  }
+  window.BehaviorFN.behaviorMetadata['${behaviorName}'] = {
+    observedAttributes,
+    schema: jsonSchema,
+  };
+  
   console.log('✅ BehaviorFN: Loaded "${behaviorName}" behavior');
 }
 `;

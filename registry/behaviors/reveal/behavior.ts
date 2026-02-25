@@ -1,5 +1,5 @@
 import { type CommandEvent } from "~registry";
-import { REVEAL_COMMANDS } from "./commands";
+import { REVEAL_COMMANDS, REVEAL_OBSERVED_ATTRIBUTES } from "./commands";
 import { REVEAL_ATTRS } from "./constants";
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
@@ -303,3 +303,6 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
+
+// Attach observed attributes as a static property for auto-loader
+revealBehaviorFactory.observedAttributes = REVEAL_OBSERVED_ATTRIBUTES;
