@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BehaviorFN v0.2.0 - Explicit Pattern (Recommended)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 { color: #2563eb; }
+    h2 { margin-top: 30px; color: #1e40af; }
+    .card {
+      background: #f3f4f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #2563eb;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    dialog {
+      padding: 30px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      min-width: 400px;
+    }
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #dcfce7;
+      color: #166534;
+      margin-left: 10px;
+    }
+    pre {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 BehaviorFN v0.2.0 <span class="badge">Explicit Pattern</span></h1>
+  
+  <div class="info">
+    <strong>This is the recommended pattern for production apps.</strong>
+    <ul>
+      <li>✅ Smallest bundle size</li>
+      <li>✅ No MutationObserver overhead</li>
+      <li>✅ Most predictable and debuggable</li>
+      <li>✅ Best performance</li>
+    </ul>
+  </div>
+
+  <h2>How It Works</h2>
+  <p>The explicit pattern uses the <code>is</code> attribute to tell the browser which custom element to use. No JavaScript magic, no auto-loader, just standard Web Components.</p>
+
+  <div class="card">
+    <h3>Step 1: Load Core Runtime</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;</code></pre>
+    <p>The core runtime (~4KB) provides the foundation: behavior registry, host management, and utilities.</p>
+  </div>
+
+  <div class="card">
+    <h3>Step 2: Load Behaviors You Need</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
+    <p>Each behavior auto-registers when loaded. Load only what you need!</p>
+  </div>
+
+  <div class="card">
+    <h3>Step 3: Use Explicit <code>is</code> Attributes</h3>
+    <pre><code>&lt;dialog is="behavioral-reveal" behavior="reveal" id="my-modal"&gt;
+  Content here
+&lt;/dialog&gt;
+
+&lt;button commandfor="my-modal" command="--toggle"&gt;
+  Open Modal
+&lt;/button&gt;</code></pre>
+    <p>The <code>is="behavioral-reveal"</code> attribute tells the browser to upgrade the element. The <code>behavior="reveal"</code> attribute tells which behavior to apply.</p>
+  </div>
+
+  <h2>Live Demo</h2>
+
+  <div style="margin: 30px 0;">
+    <button commandfor="demo-modal" command="--show">
+      Show Modal
+    </button>
+    <button commandfor="demo-modal" command="--hide">
+      Hide Modal
+    </button>
+    <button commandfor="demo-modal" command="--toggle">
+      Toggle Modal
+    </button>
+  </div>
+
+  <!-- 
+    Note the explicit is="behavioral-reveal" attribute!
+    This is what makes the explicit pattern work.
+  -->
+  <dialog is="behavioral-reveal" behavior="reveal" id="demo-modal">
+    <h2>🎉 Success!</h2>
+    <p>This modal uses the <code>reveal</code> behavior with the explicit pattern.</p>
+    <p><strong>Key points:</strong></p>
+    <ul>
+      <li>No auto-loader needed</li>
+      <li>No MutationObserver overhead</li>
+      <li>Standard Web Components</li>
+      <li>Works immediately on page load</li>
+    </ul>
+    <button commandfor="demo-modal" command="--hide">Close</button>
+  </dialog>
+
+  <h2>Multiple Behaviors</h2>
+  <p>You can combine multiple behaviors on a single element by sorting them alphabetically and joining with hyphens:</p>
+
+  <div style="margin: 30px 0;">
+    <button commandfor="demo-multi" command="--toggle">
+      Toggle Multi-Behavior Element
+    </button>
+  </div>
+
+  <!-- Multiple behaviors: logger + reveal -->
+  <dialog is="behavioral-logger-reveal" behavior="reveal logger" id="demo-multi">
+    <h2>Multiple Behaviors</h2>
+    <p>This element has both <code>reveal</code> and <code>logger</code> behaviors.</p>
+    <p>Check the console to see logger output!</p>
+    <button commandfor="demo-multi" command="--hide">Close</button>
+  </dialog>
+
+  <h2>Complete Source</h2>
+  <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Explicit Pattern Example&lt;/title&gt;
+  
+  &lt;!-- 1. Load core runtime --&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
+  
+  &lt;!-- 2. Load behaviors --&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- 3. Use explicit is attributes --&gt;
+  &lt;dialog is="behavioral-reveal" behavior="reveal" id="my-modal"&gt;
+    &lt;h2&gt;Hello!&lt;/h2&gt;
+    &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+  &lt;/dialog&gt;
+  
+  &lt;button commandfor="my-modal" command="--toggle"&gt;
+    Open Modal
+  &lt;/button&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Why Explicit?</h2>
+  <ul>
+    <li><strong>Performance:</strong> No MutationObserver watching the DOM</li>
+    <li><strong>Predictability:</strong> Element behavior is visible in HTML</li>
+    <li><strong>Debugging:</strong> Easy to see what's applied where</li>
+    <li><strong>Standard:</strong> Uses standard Web Components API</li>
+    <li><strong>Simple:</strong> No magic, no surprises</li>
+  </ul>
+
+  <h2>Other Patterns</h2>
+  <ul>
+    <li><a href="02-auto-loader-pattern.html">Auto-Loader Pattern</a> - Convenience for prototypes</li>
+    <li><a href="03-esm-pattern.html">ESM Pattern</a> - For bundlers</li>
+  </ul>
+
+  <!-- Load BehaviorFN -->
+  <script src="../../dist/cdn/behavior-fn-core.js"></script>
+  <script src="../../dist/cdn/reveal.js"></script>
+  <script src="../../dist/cdn/logger.js"></script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BehaviorFN v0.2.0 - Auto-Loader Pattern (Convenience)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 { color: #2563eb; }
+    h2 { margin-top: 30px; color: #1e40af; }
+    .card {
+      background: #f3f4f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #2563eb;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    dialog {
+      padding: 30px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      min-width: 400px;
+    }
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #fef3c7;
+      color: #92400e;
+      margin-left: 10px;
+    }
+    pre {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 BehaviorFN v0.2.0 <span class="badge">Auto-Loader Pattern</span></h1>
+  
+  <div class="warning">
+    <strong>⚠️ This pattern is for prototypes and content-heavy sites.</strong>
+    <p>For production apps, use the <a href="01-explicit-pattern.html">explicit pattern</a> instead.</p>
+  </div>
+
+  <div class="info">
+    <strong>When to use this pattern:</strong>
+    <ul>
+      <li>✅ Rapid prototyping</li>
+      <li>✅ Content-heavy sites (blogs, documentation)</li>
+      <li>✅ When DX > explicitness</li>
+      <li>⚠️ Adds ~5KB + MutationObserver overhead</li>
+    </ul>
+  </div>
+
+  <h2>How It Works</h2>
+  <p>The auto-loader pattern automatically adds <code>is="behavioral-*"</code> attributes to elements with <code>behavior</code> attributes. This gives you cleaner HTML at the cost of some performance overhead.</p>
+
+  <div class="card">
+    <h3>Step 1: Load Core Runtime</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;</code></pre>
+    <p>Same as the explicit pattern.</p>
+  </div>
+
+  <div class="card">
+    <h3>Step 2: Load Behaviors You Need</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
+    <p>Same as the explicit pattern.</p>
+  </div>
+
+  <div class="card">
+    <h3>Step 3: Load and Enable Auto-Loader</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  // Explicit enablement required!
+  BehaviorFN.enableAutoLoader();
+&lt;/script&gt;</code></pre>
+    <p><strong>Important:</strong> You must explicitly call <code>enableAutoLoader()</code>. It doesn't activate automatically.</p>
+  </div>
+
+  <div class="card">
+    <h3>Step 4: Omit <code>is</code> Attributes</h3>
+    <pre><code>&lt;!-- No is attribute needed! --&gt;
+&lt;dialog behavior="reveal" id="my-modal"&gt;
+  Content here
+&lt;/dialog&gt;
+
+&lt;button commandfor="my-modal" command="--toggle"&gt;
+  Open Modal
+&lt;/button&gt;</code></pre>
+    <p>The auto-loader automatically adds <code>is="behavioral-reveal"</code> when it detects <code>behavior="reveal"</code>.</p>
+  </div>
+
+  <h2>Live Demo</h2>
+
+  <div style="margin: 30px 0;">
+    <button commandfor="demo-modal" command="--show">
+      Show Modal
+    </button>
+    <button commandfor="demo-modal" command="--hide">
+      Hide Modal
+    </button>
+    <button commandfor="demo-modal" command="--toggle">
+      Toggle Modal
+    </button>
+  </div>
+
+  <!-- 
+    Note: No is attribute!
+    The auto-loader adds it automatically.
+  -->
+  <dialog behavior="reveal" id="demo-modal">
+    <h2>🎉 Auto-Loader Works!</h2>
+    <p>This modal uses the <code>reveal</code> behavior with the auto-loader pattern.</p>
+    <p><strong>Notice:</strong></p>
+    <ul>
+      <li>No <code>is</code> attribute in the source HTML</li>
+      <li>Auto-loader adds it automatically</li>
+      <li>Cleaner HTML, but adds overhead</li>
+    </ul>
+    <p>Open DevTools and inspect this element - you'll see <code>is="behavioral-reveal"</code> was added!</p>
+    <button commandfor="demo-modal" command="--hide">Close</button>
+  </dialog>
+
+  <h2>Multiple Behaviors</h2>
+  <p>Works the same as explicit pattern - auto-loader handles sorting:</p>
+
+  <div style="margin: 30px 0;">
+    <button commandfor="demo-multi" command="--toggle">
+      Toggle Multi-Behavior Element
+    </button>
+  </div>
+
+  <!-- Auto-loader will add is="behavioral-logger-reveal" -->
+  <dialog behavior="reveal logger" id="demo-multi">
+    <h2>Multiple Behaviors</h2>
+    <p>Auto-loader automatically sorts and creates <code>is="behavioral-logger-reveal"</code>.</p>
+    <p>Check the console to see logger output!</p>
+    <button commandfor="demo-multi" command="--hide">Close</button>
+  </dialog>
+
+  <h2>Dynamic Elements</h2>
+  <p>The auto-loader watches for new elements using MutationObserver:</p>
+
+  <div style="margin: 30px 0;">
+    <button onclick="addDynamicModal()">Add Dynamic Modal</button>
+  </div>
+
+  <div id="dynamic-container"></div>
+
+  <script>
+    let dynamicCount = 0;
+    function addDynamicModal() {
+      dynamicCount++;
+      const container = document.getElementById('dynamic-container');
+      
+      const html = `
+        <div style="margin: 20px 0;">
+          <button commandfor="dynamic-${dynamicCount}" command="--toggle">
+            Open Dynamic Modal ${dynamicCount}
+          </button>
+          
+          <dialog behavior="reveal" id="dynamic-${dynamicCount}">
+            <h3>Dynamic Modal ${dynamicCount}</h3>
+            <p>This was added after page load!</p>
+            <p>Auto-loader detected it and added the is attribute automatically.</p>
+            <button commandfor="dynamic-${dynamicCount}" command="--hide">Close</button>
+          </dialog>
+        </div>
+      `;
+      
+      container.insertAdjacentHTML('beforeend', html);
+    }
+  </script>
+
+  <h2>Complete Source</h2>
+  <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Auto-Loader Pattern Example&lt;/title&gt;
+  
+  &lt;!-- 1. Load core runtime --&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
+  
+  &lt;!-- 2. Load behaviors --&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js"&gt;&lt;/script&gt;
+  
+  &lt;!-- 3. Load and enable auto-loader --&gt;
+  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
+  &lt;script&gt;
+    BehaviorFN.enableAutoLoader();
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- 4. Omit is attributes (auto-loader adds them) --&gt;
+  &lt;dialog behavior="reveal" id="my-modal"&gt;
+    &lt;h2&gt;Hello!&lt;/h2&gt;
+    &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+  &lt;/dialog&gt;
+  
+  &lt;button commandfor="my-modal" command="--toggle"&gt;
+    Open Modal
+  &lt;/button&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Tradeoffs</h2>
+  
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background: #f3f4f6;">
+        <th style="padding: 10px; text-align: left; border: 1px solid #e5e7eb;">Aspect</th>
+        <th style="padding: 10px; text-align: left; border: 1px solid #e5e7eb;">Explicit Pattern</th>
+        <th style="padding: 10px; text-align: left; border: 1px solid #e5e7eb;">Auto-Loader Pattern</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>HTML</strong></td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">More verbose (is attribute)</td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Cleaner (no is attribute)</td>
+      </tr>
+      <tr style="background: #f9fafb;">
+        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Bundle Size</strong></td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Smaller (no auto-loader)</td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">+5.4KB</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Performance</strong></td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Best (no observer)</td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">MutationObserver overhead</td>
+      </tr>
+      <tr style="background: #f9fafb;">
+        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Debugging</strong></td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Easy (explicit)</td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Harder (implicit)</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Dynamic Content</strong></td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Manual is attributes</td>
+        <td style="padding: 10px; border: 1px solid #e5e7eb;">Automatic detection</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>When to Use Auto-Loader?</h2>
+  <ul>
+    <li><strong>Prototypes:</strong> Speed of development > performance</li>
+    <li><strong>Content sites:</strong> Lots of dynamic content</li>
+    <li><strong>CMS integrations:</strong> Can't control HTML output</li>
+    <li><strong>Quick demos:</strong> Cleaner HTML for examples</li>
+  </ul>
+
+  <h2>When NOT to Use Auto-Loader?</h2>
+  <ul>
+    <li><strong>Production apps:</strong> Use explicit pattern for best performance</li>
+    <li><strong>Performance-critical:</strong> Every KB matters</li>
+    <li><strong>Large DOM:</strong> MutationObserver overhead increases with DOM size</li>
+  </ul>
+
+  <h2>Other Patterns</h2>
+  <ul>
+    <li><a href="01-explicit-pattern.html">Explicit Pattern</a> - Recommended for production</li>
+    <li><a href="03-esm-pattern.html">ESM Pattern</a> - For bundlers</li>
+  </ul>
+
+  <!-- Load BehaviorFN with auto-loader -->
+  <script src="../../dist/cdn/behavior-fn-core.js"></script>
+  <script src="../../dist/cdn/reveal.js"></script>
+  <script src="../../dist/cdn/logger.js"></script>
+  <script src="../../dist/cdn/auto-loader.js"></script>
+  <script>
+    // Explicit enablement required!
+    BehaviorFN.enableAutoLoader();
+    console.log('✅ Auto-loader enabled');
+  </script>
+</body>
+</html>

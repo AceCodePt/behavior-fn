@@ -2,8 +2,9 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9%2B-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-green)
 
-**Copy-paste behavior mixins for Web Components.** Own your code, not your dependencies.
+**Copy-paste behavior mixins for Web Components.** Own your code, not your dependencies. Opt-in loading for better performance.
 
 Part of the **JOHF (JavaScript Once, HTML Forever)** philosophy—write logic once, reuse it everywhere with zero runtime overhead.
 
@@ -18,20 +19,56 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 3. **🛡️ Type-Safe** — Every behavior exports a runtime schema (Zod, Valibot, TypeBox, etc.) that drives validation and TypeScript intellisense.
 4. **🎨 Headless** — Pure logic. No styles. No opinions. Bring your own design system.
 5. **⚡ Zero Runtime** — Behaviors compile away. No framework tax. Just vanilla JavaScript.
+6. **🎯 Opt-In Loading** — Load only what you need. From 4KB to 100KB, you decide.
 
 ---
 
 ## 🚀 Quick Start
 
-### CDN Usage
+### CDN Usage (v0.2.0+)
+
+**Option 1: Explicit Pattern (Recommended)**
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  <!-- 1. Load core runtime (~4KB) -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+  
+  <!-- 2. Load behaviors you need -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 </head>
 <body>
+  <!-- 3. Use explicit is attributes -->
+  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
+    <h2>Hello World!</h2>
+    <button commandfor="modal" command="--hide">Close</button>
+  </dialog>
+  
+  <button commandfor="modal" command="--toggle">Open Modal</button>
+</body>
+</html>
+```
+
+**Option 2: Auto-Loader Pattern (Convenience)**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- 1. Load core runtime -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+  
+  <!-- 2. Load behaviors -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+  
+  <!-- 3. Load and enable auto-loader -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+  <script>BehaviorFN.enableAutoLoader();</script>
+</head>
+<body>
+  <!-- 4. Omit is attribute (auto-loader adds it) -->
   <dialog behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -42,7 +79,26 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 </html>
 ```
 
-See the **[CDN Loading Guide](docs/guides/manual-loading.md)** for more examples.
+**📚 [View Complete CDN Examples](examples/cdn/)** | **📖 [CDN Architecture Guide](CDN-ARCHITECTURE.md)**
+
+---
+
+## 🆕 What's New in v0.2.0?
+
+### Breaking Changes
+
+- **Removed All-in-One Bundle:** `behavior-fn.all.js` has been removed
+- **Opt-In Loading:** Load core runtime + individual behaviors
+- **Explicit Auto-Loader:** Must call `enableAutoLoader()` to activate
+
+### Benefits
+
+- **Better Performance:** Load only what you need (4KB to 100KB, you decide)
+- **Smaller Bundles:** Core runtime is only 4KB (~1.5KB gzipped)
+- **Clearer Dependencies:** Explicit core → behaviors → auto-loader
+- **Reduced Magic:** Auto-loader is opt-in, not automatic
+
+**📋 [Migration Guide](CHANGELOG.md)** | **🔄 [Full Changelog](CHANGELOG.md)**
 
 ---
 

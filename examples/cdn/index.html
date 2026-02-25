@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BehaviorFN v0.2.0 - CDN Examples</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      background: white;
+      color: #1f2937;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    h1 { 
+      color: #2563eb; 
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #6b7280;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+    .card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    }
+    .card h3 {
+      margin: 0 0 10px 0;
+      font-size: 20px;
+    }
+    .card p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .info-box {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 4px;
+    }
+    .info-box h3 {
+      margin-top: 0;
+      color: #1e40af;
+    }
+    ul {
+      margin: 10px 0;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #be123c;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .feature {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 3px solid #2563eb;
+    }
+    .feature strong {
+      color: #2563eb;
+    }
+    a {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 BehaviorFN v0.2.0</h1>
+    <p class="subtitle">Opt-In Loading Architecture - CDN Examples</p>
+
+    <div class="info-box">
+      <h3>What's New in v0.2.0?</h3>
+      <ul>
+        <li><strong>Opt-In Loading:</strong> Load only the behaviors you need</li>
+        <li><strong>Core Runtime:</strong> Minimal 4KB foundation (~1.5KB gzipped)</li>
+        <li><strong>Breaking Change:</strong> No more all-in-one bundle</li>
+        <li><strong>Better Performance:</strong> Reduced bundle sizes by up to 94%</li>
+        <li><strong>Explicit Dependencies:</strong> Clearer mental model</li>
+      </ul>
+    </div>
+
+    <h2>Choose Your Pattern</h2>
+
+    <div class="grid">
+      <a href="01-explicit-pattern.html" class="card">
+        <h3>1. Explicit Pattern <span class="badge">RECOMMENDED</span></h3>
+        <p>Use <code>is</code> attributes for best performance. Ideal for production apps.</p>
+        <ul style="font-size: 13px; margin-top: 10px;">
+          <li>✅ Smallest size</li>
+          <li>✅ No MutationObserver</li>
+          <li>✅ Most predictable</li>
+        </ul>
+      </a>
+
+      <a href="02-auto-loader-pattern.html" class="card">
+        <h3>2. Auto-Loader Pattern <span class="badge">CONVENIENCE</span></h3>
+        <p>Automatically add <code>is</code> attributes. Great for prototypes and content sites.</p>
+        <ul style="font-size: 13px; margin-top: 10px;">
+          <li>✅ Cleaner HTML</li>
+          <li>✅ Dynamic detection</li>
+          <li>⚠️ +5KB overhead</li>
+        </ul>
+      </a>
+
+      <a href="03-esm-pattern.html" class="card">
+        <h3>3. ESM Pattern <span class="badge">MODERN</span></h3>
+        <p>Use native ES modules with import/export. Modern browsers only.</p>
+        <ul style="font-size: 13px; margin-top: 10px;">
+          <li>✅ Tree-shakeable</li>
+          <li>✅ Type-safe</li>
+          <li>✅ No globals</li>
+        </ul>
+      </a>
+    </div>
+
+    <h2>Quick Start</h2>
+
+    <h3>Option 1: Explicit Pattern (Recommended)</h3>
+    <pre style="background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>&lt;!-- Load core --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
+
+&lt;!-- Load behaviors --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+
+&lt;!-- Use explicit is attributes --&gt;
+&lt;dialog is="behavioral-reveal" behavior="reveal" id="modal"&gt;
+  &lt;h2&gt;Hello!&lt;/h2&gt;
+  &lt;button commandfor="modal" command="--hide"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+
+&lt;button commandfor="modal" command="--toggle"&gt;Open&lt;/button&gt;</code></pre>
+
+    <h3>Option 2: Auto-Loader Pattern</h3>
+    <pre style="background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>&lt;!-- Load core --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
+
+&lt;!-- Load behaviors --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+
+&lt;!-- Load and enable auto-loader --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
+&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt;
+
+&lt;!-- Omit is attribute --&gt;
+&lt;dialog behavior="reveal" id="modal"&gt;
+  &lt;h2&gt;Hello!&lt;/h2&gt;
+  &lt;button commandfor="modal" command="--hide"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+
+&lt;button commandfor="modal" command="--toggle"&gt;Open&lt;/button&gt;</code></pre>
+
+    <h2>Available Behaviors</h2>
+
+    <div class="feature-grid">
+      <div class="feature">
+        <strong>reveal</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Show/hide elements with positioning (~50KB)</p>
+      </div>
+      <div class="feature">
+        <strong>request</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">HTTP requests with validation (~53KB)</p>
+      </div>
+      <div class="feature">
+        <strong>logger</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Log behavior events (~750 bytes)</p>
+      </div>
+      <div class="feature">
+        <strong>compute</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Computed properties (~4KB)</p>
+      </div>
+      <div class="feature">
+        <strong>json-template</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Render JSON data (~3.6KB)</p>
+      </div>
+      <div class="feature">
+        <strong>element-counter</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Count matching elements (~1.2KB)</p>
+      </div>
+      <div class="feature">
+        <strong>input-watcher</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Watch input changes (~1.7KB)</p>
+      </div>
+      <div class="feature">
+        <strong>compound-commands</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Execute multiple commands (~1.7KB)</p>
+      </div>
+      <div class="feature">
+        <strong>content-setter</strong>
+        <p style="font-size: 13px; margin: 5px 0 0 0;">Set element content (~47KB)</p>
+      </div>
+    </div>
+
+    <h2>Resources</h2>
+    <ul>
+      <li><a href="https://github.com/AceCodePt/behavior-fn">GitHub Repository</a></li>
+      <li><a href="https://github.com/AceCodePt/behavior-fn/blob/main/README.md">Documentation</a></li>
+      <li><a href="https://github.com/AceCodePt/behavior-fn/blob/main/CDN-ARCHITECTURE.md">CDN Architecture Guide</a></li>
+      <li><a href="https://github.com/AceCodePt/behavior-fn/blob/main/CHANGELOG.md">Changelog</a></li>
+      <li><a href="https://github.com/AceCodePt/behavior-fn/issues">Report Issues</a></li>
+    </ul>
+
+    <div class="info-box" style="margin-top: 40px;">
+      <h3>Migration from v0.1.x</h3>
+      <p>If you're upgrading from v0.1.x, see the <a href="https://github.com/AceCodePt/behavior-fn/blob/main/CHANGELOG.md">Changelog</a> and <a href="https://github.com/AceCodePt/behavior-fn/blob/main/CDN-ARCHITECTURE.md">CDN Architecture Guide</a> for complete migration instructions.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BehaviorFN v0.2.0 - ESM Pattern (Modern)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 { color: #2563eb; }
+    h2 { margin-top: 30px; color: #1e40af; }
+    .card {
+      background: #f3f4f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #2563eb;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    dialog {
+      padding: 30px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      min-width: 400px;
+    }
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+      margin-left: 10px;
+    }
+    pre {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 BehaviorFN v0.2.0 <span class="badge">ESM Pattern</span></h1>
+  
+  <div class="info">
+    <strong>This pattern uses native ES modules.</strong>
+    <ul>
+      <li>✅ Modern browsers only</li>
+      <li>✅ No bundler required (but works with them)</li>
+      <li>✅ Tree-shakeable</li>
+      <li>✅ Type-safe with TypeScript</li>
+    </ul>
+  </div>
+
+  <h2>How It Works</h2>
+  <p>Use native ES module imports with <code>type="module"</code>. All BehaviorFN bundles have <code>.esm.js</code> versions.</p>
+
+  <div class="card">
+    <h3>Import and Use</h3>
+    <pre><code>&lt;script type="module"&gt;
+  // Import core functions
+  import { 
+    registerBehavior, 
+    defineBehavioralHost 
+  } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js';
+
+  // Import behavior factory
+  import { revealBehaviorFactory } 
+    from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js';
+
+  // Register behavior
+  registerBehavior('reveal', revealBehaviorFactory);
+
+  // Define behavioral host
+  defineBehavioralHost('dialog', 'behavioral-reveal');
+
+  console.log('✅ BehaviorFN loaded via ESM');
+&lt;/script&gt;</code></pre>
+  </div>
+
+  <h2>Live Demo</h2>
+
+  <div style="margin: 30px 0;">
+    <button commandfor="demo-modal" command="--show">
+      Show Modal
+    </button>
+    <button commandfor="demo-modal" command="--hide">
+      Hide Modal
+    </button>
+    <button commandfor="demo-modal" command="--toggle">
+      Toggle Modal
+    </button>
+  </div>
+
+  <dialog is="behavioral-reveal" behavior="reveal" id="demo-modal">
+    <h2>🎉 ESM Works!</h2>
+    <p>This modal was loaded using native ES modules.</p>
+    <p><strong>Benefits:</strong></p>
+    <ul>
+      <li>Modern syntax (import/export)</li>
+      <li>Tree-shakeable (bundlers can optimize)</li>
+      <li>Type-safe (with TypeScript)</li>
+      <li>No global namespace pollution</li>
+    </ul>
+    <button commandfor="demo-modal" command="--hide">Close</button>
+  </dialog>
+
+  <h2>With Import Maps (Recommended)</h2>
+  <p>Use import maps for cleaner imports:</p>
+
+  <pre><code>&lt;script type="importmap"&gt;
+{
+  "imports": {
+    "behavior-fn/core": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js",
+    "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js",
+    "behavior-fn/request": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.esm.js"
+  }
+}
+&lt;/script&gt;
+
+&lt;script type="module"&gt;
+  import { registerBehavior, defineBehavioralHost } from 'behavior-fn/core';
+  import { revealBehaviorFactory } from 'behavior-fn/reveal';
+
+  registerBehavior('reveal', revealBehaviorFactory);
+  defineBehavioralHost('dialog', 'behavioral-reveal');
+&lt;/script&gt;</code></pre>
+
+  <h2>With a Bundler (Vite, Webpack, etc.)</h2>
+  <p>If you're using a bundler, install via npm and import directly:</p>
+
+  <pre><code># Install via npm
+npm install behavior-fn
+
+# Import in your code
+import { registerBehavior, defineBehavioralHost } from 'behavior-fn/dist/cdn/behavior-fn-core.esm.js';
+import { revealBehaviorFactory } from 'behavior-fn/dist/cdn/reveal.esm.js';
+
+registerBehavior('reveal', revealBehaviorFactory);
+defineBehavioralHost('dialog', 'behavioral-reveal');</code></pre>
+
+  <h2>With Auto-Loader (ESM)</h2>
+  <p>You can also use the auto-loader with ESM:</p>
+
+  <pre><code>&lt;script type="module"&gt;
+  import { 
+    registerBehavior, 
+    defineBehavioralHost 
+  } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js';
+  
+  import { revealBehaviorFactory } 
+    from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js';
+  
+  import { enableAutoLoader } 
+    from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.esm.js';
+
+  // Register behavior
+  registerBehavior('reveal', revealBehaviorFactory);
+
+  // Enable auto-loader
+  enableAutoLoader();
+
+  console.log('✅ BehaviorFN loaded with auto-loader');
+&lt;/script&gt;
+
+&lt;!-- Now you can omit is attributes --&gt;
+&lt;dialog behavior="reveal" id="my-modal"&gt;
+  Content
+&lt;/dialog&gt;</code></pre>
+
+  <h2>Complete Source (ESM with Import Map)</h2>
+  <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;ESM Pattern Example&lt;/title&gt;
+  
+  &lt;!-- Define import map for clean imports --&gt;
+  &lt;script type="importmap"&gt;
+  {
+    "imports": {
+      "behavior-fn/core": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js",
+      "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js"
+    }
+  }
+  &lt;/script&gt;
+  
+  &lt;!-- Import and register --&gt;
+  &lt;script type="module"&gt;
+    import { registerBehavior, defineBehavioralHost } from 'behavior-fn/core';
+    import { revealBehaviorFactory } from 'behavior-fn/reveal';
+
+    registerBehavior('reveal', revealBehaviorFactory);
+    defineBehavioralHost('dialog', 'behavioral-reveal');
+    
+    console.log('✅ BehaviorFN loaded via ESM with import map');
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;dialog is="behavioral-reveal" behavior="reveal" id="my-modal"&gt;
+    &lt;h2&gt;Hello!&lt;/h2&gt;
+    &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+  &lt;/dialog&gt;
+  
+  &lt;button commandfor="my-modal" command="--toggle"&gt;
+    Open Modal
+  &lt;/button&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Browser Support</h2>
+  <ul>
+    <li><strong>ES Modules:</strong> All modern browsers (Chrome 61+, Firefox 60+, Safari 11+, Edge 79+)</li>
+    <li><strong>Import Maps:</strong> Chrome 89+, Firefox 108+, Safari 16.4+, Edge 89+</li>
+    <li><strong>Fallback:</strong> Use the IIFE bundles (<code>.js</code> instead of <code>.esm.js</code>) for older browsers</li>
+  </ul>
+
+  <h2>Benefits of ESM Pattern</h2>
+  <ul>
+    <li><strong>Modern:</strong> Uses standard ES module syntax</li>
+    <li><strong>Tree-Shakeable:</strong> Bundlers can remove unused code</li>
+    <li><strong>Type-Safe:</strong> Works with TypeScript out of the box</li>
+    <li><strong>No Globals:</strong> Doesn't pollute <code>window</code> namespace</li>
+    <li><strong>Scoped:</strong> Module scope prevents naming conflicts</li>
+  </ul>
+
+  <h2>Other Patterns</h2>
+  <ul>
+    <li><a href="01-explicit-pattern.html">Explicit Pattern</a> - Recommended for production</li>
+    <li><a href="02-auto-loader-pattern.html">Auto-Loader Pattern</a> - Convenience for prototypes</li>
+  </ul>
+
+  <!-- Load BehaviorFN via ESM -->
+  <script type="module">
+    // Import from relative path (for local demo)
+    import { registerBehavior, defineBehavioralHost } from '../../dist/cdn/behavior-fn-core.esm.js';
+    import { revealBehaviorFactory } from '../../dist/cdn/reveal.esm.js';
+
+    // Make available globally for demo (normally wouldn't do this with ESM)
+    window.BehaviorFN = {
+      registerBehavior,
+      defineBehavioralHost,
+    };
+
+    registerBehavior('reveal', revealBehaviorFactory);
+    defineBehavioralHost('dialog', 'behavioral-reveal');
+
+    console.log('✅ BehaviorFN loaded via ESM');
+  </script>
+</body>
+</html>
