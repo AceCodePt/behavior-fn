@@ -12,9 +12,9 @@ import { MathParser, computeBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
 import definition from "./_behavior-definition";
-import { COMPUTE_ATTRS } from "./schema";
 
-const { name } = definition;
+// Extract at module level for cleaner test code (Behavior Definition Standard)
+const { name, attributes } = definition;
 
 describe("MathParser", () => {
   it("should parse and evaluate simple addition", () => {
@@ -112,7 +112,7 @@ describe("Compute Behavior Integration", () => {
       is: webcomponentTag,
     }) as HTMLOutputElement;
     el.setAttribute("behavior", "compute");
-    el.setAttribute(COMPUTE_ATTRS.FORMULA, "#price * #qty");
+    el.setAttribute(attributes["compute-formula"], "#price * #qty");
 
     // Append to container to trigger connectedCallback
     container.appendChild(el);
@@ -132,7 +132,7 @@ describe("Compute Behavior Integration", () => {
       is: webcomponentTag,
     }) as HTMLOutputElement;
     el.setAttribute("behavior", "compute");
-    el.setAttribute(COMPUTE_ATTRS.FORMULA, "#a + #b");
+    el.setAttribute(attributes["compute-formula"], "#a + #b");
     container.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -168,7 +168,7 @@ describe("Compute Behavior Integration", () => {
     }) as HTMLInputElement;
     taxInput.id = "tax";
     taxInput.setAttribute("behavior", "compute");
-    taxInput.setAttribute(COMPUTE_ATTRS.FORMULA, "#base * 0.1");
+    taxInput.setAttribute(attributes["compute-formula"], "#base * 0.1");
     container.appendChild(taxInput);
 
     // Computed Output (Total = Base + Tax)
@@ -177,7 +177,7 @@ describe("Compute Behavior Integration", () => {
     }) as HTMLOutputElement;
     totalOutput.id = "total";
     totalOutput.setAttribute("behavior", "compute");
-    totalOutput.setAttribute(COMPUTE_ATTRS.FORMULA, "#base + #tax");
+    totalOutput.setAttribute(attributes["compute-formula"], "#base + #tax");
     container.appendChild(totalOutput);
 
     // Initial check
@@ -211,14 +211,14 @@ describe("Compute Behavior Integration", () => {
     }) as HTMLInputElement;
     inputA.id = "circ-a";
     inputA.setAttribute("behavior", "compute");
-    inputA.setAttribute(COMPUTE_ATTRS.FORMULA, "#circ-b + 1");
+    inputA.setAttribute(attributes["compute-formula"], "#circ-b + 1");
 
     const inputB = document.createElement("input", {
       is: inputTag,
     }) as HTMLInputElement;
     inputB.id = "circ-b";
     inputB.setAttribute("behavior", "compute");
-    inputB.setAttribute(COMPUTE_ATTRS.FORMULA, "#circ-a + 1");
+    inputB.setAttribute(attributes["compute-formula"], "#circ-a + 1");
 
     container.appendChild(inputA);
     container.appendChild(inputB);
@@ -248,7 +248,7 @@ describe("Compute Behavior Integration", () => {
     }) as HTMLOutputElement;
     el.setAttribute("behavior", "compute");
     // Division by zero triggers error in our parser
-    el.setAttribute(COMPUTE_ATTRS.FORMULA, "#val / 0");
+    el.setAttribute(attributes["compute-formula"], "#val / 0");
     container.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -266,7 +266,7 @@ describe("Compute Behavior Integration", () => {
       is: webcomponentTag,
     }) as HTMLOutputElement;
     el.setAttribute("behavior", "compute");
-    el.setAttribute(COMPUTE_ATTRS.FORMULA, "#check-a + #check-b");
+    el.setAttribute(attributes["compute-formula"], "#check-a + #check-b");
     container.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -295,7 +295,7 @@ describe("Compute Behavior Integration", () => {
       is: webcomponentTag,
     }) as HTMLOutputElement;
     output.setAttribute("behavior", "compute");
-    output.setAttribute(COMPUTE_ATTRS.FORMULA, "#invalid-dep * 2");
+    output.setAttribute(attributes["compute-formula"], "#invalid-dep * 2");
     container.appendChild(output);
 
     await vi.runAllTimersAsync();
@@ -321,7 +321,7 @@ describe("Compute Behavior Integration", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any) as HTMLOutputElement;
     output.setAttribute("behavior", "compute");
-    output.setAttribute(COMPUTE_ATTRS.FORMULA, "#base * #multiplier");
+    output.setAttribute(attributes["compute-formula"], "#base * #multiplier");
     container.appendChild(output);
 
     await vi.runAllTimersAsync();
