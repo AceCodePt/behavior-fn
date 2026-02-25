@@ -33,6 +33,7 @@ The `json-template` behavior has been redesigned with a more intuitive and famil
 
 ### New Pattern (v1.0) - RECOMMENDED ✅
 ```html
+<!-- Simple object -->
 <div behavior="json-template" json-template-for="my-data">
   <template>
     <div>
@@ -42,7 +43,16 @@ The `json-template` behavior has been redesigned with a more intuitive and famil
   </template>
 </div>
 
-<!-- Array rendering -->
+<!-- Root array (NEW! ✨) -->
+<div behavior="json-template" json-template-for="my-data">
+  <template>
+    <div class="user">
+      {name} ({age})
+    </div>
+  </template>
+</div>
+
+<!-- Nested array -->
 <div behavior="json-template" json-template-for="my-data">
   <template>
     <ul>
@@ -102,11 +112,27 @@ The `json-template` behavior has been redesigned with a more intuitive and famil
 
 ### 4. Array Rendering
 **Before:** Used `data-key` + implicit/explicit templates with `json-template-item`
-**After:** Use `data-array="path"` attribute on nested `<template>`
+**After:** Two patterns depending on data structure
 
+#### Pattern A: Root Array (NEW! ✨)
 ```html
+<!-- JSON: [{name: "Alice"}, {name: "Bob"}] -->
+
+<!-- Before: Had to wrap in object -->
+<!-- After: Direct array support -->
+<div behavior="json-template" json-template-for="data">
+  <template>
+    <div>{name}</div>
+  </template>
+</div>
+```
+
+#### Pattern B: Nested Array
+```html
+<!-- JSON: {users: [{name: "Alice"}, {name: "Bob"}]} -->
+
 <!-- Before -->
-<ul data-key="items">
+<ul data-key="users">
   <template>
     <li data-key="name"></li>
   </template>
@@ -114,7 +140,7 @@ The `json-template` behavior has been redesigned with a more intuitive and famil
 
 <!-- After -->
 <ul>
-  <template data-array="items">
+  <template data-array="users">
     <li>{name}</li>
   </template>
 </ul>
@@ -160,8 +186,34 @@ Remove wrapper elements and use inline interpolation:
 ```
 
 ### Step 3: Update Array Rendering
-Change `data-key` on container to `data-array` on nested template:
+Choose the appropriate pattern based on your data structure:
 
+#### Option A: If root data is already an array (or can be)
+```diff
+<!-- JSON change: Unwrap from object -->
+-{
+-  "users": [
+-    {"name": "Alice"},
+-    {"name": "Bob"}
+-  ]
+-}
++[
++  {"name": "Alice"},
++  {"name": "Bob"}
++]
+
+<!-- Template simplification -->
+<template>
+-  <ul data-key="users">
+-    <template>
+-      <li data-key="name"></li>
+-    </template>
+-  </ul>
++  <div class="user">{name}</div>
+</template>
+```
+
+#### Option B: Keep nested object structure
 ```diff
 <template>
 -  <ul data-key="users">
@@ -274,7 +326,51 @@ The following attributes are no longer used:
 2. **Less Verbose:** No need for extra `<span>` wrappers
 3. **More Flexible:** Interpolate in text AND attributes
 4. **Better DX:** Mix static and dynamic content naturally
-5. **Web Component Ready:** Preserve `is=""` attributes for behavioral hosts
+5. **Root Array Support (NEW!):** Direct array rendering without wrapper objects
+6. **Web Component Ready:** Preserve `is=""` attributes for behavioral hosts
+
+## Root Array Pattern (NEW in v1.0)
+
+If your JSON is a root-level array, v1.0 supports an elegant, simplified pattern:
+
+### Example: Todo List
+
+```html
+<!-- JSON: Root array -->
+<script type="application/json" id="todos">
+[
+  { "title": "Buy groceries", "done": false },
+  { "title": "Walk the dog", "done": true },
+  { "title": "Write docs", "done": false }
+]
+</script>
+
+<!-- Template: Clean and simple -->
+<div behavior="json-template" json-template-for="todos">
+  <template>
+    <div class="todo">
+      <input type="checkbox" checked="{done}">
+      {title}
+    </div>
+  </template>
+</div>
+```
+
+**Benefits:**
+- ✅ No wrapper object needed in JSON
+- ✅ No `data-array` attribute needed
+- ✅ Template automatically repeats per item
+- ✅ Perfect for API responses that return arrays
+
+**When to use:**
+- API endpoints that return arrays: `GET /api/users` → `[{...}, {...}]`
+- Simple lists: todos, products, users
+- No metadata needed alongside the array
+
+**When NOT to use:**
+- Need metadata: `{total: 100, items: [...]}`
+- Multiple arrays: `{users: [...], posts: [...]}`
+- Static content + array: `{title: "Users", users: [...]}`
 
 ## Backward Compatibility
 

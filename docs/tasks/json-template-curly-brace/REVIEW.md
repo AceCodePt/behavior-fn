@@ -46,10 +46,13 @@ Test Files  1 passed (1)
   - Non-interpolated attribute preservation
   - Web component `is=""` attribute support
 
-- ✅ **Array Rendering** (3 tests)
-  - Basic array rendering
-  - Nested arrays
+- ✅ **Array Rendering** (5 tests)
+  - Root array (direct array support - NEW!)
+  - Root array with compact syntax (NEW!)
+  - Basic nested array rendering
+  - Nested arrays (arrays within arrays)
   - Template preservation
+  - Objects nested in arrays with deep property access
 
 - ✅ **Reactivity** (1 test)
   - MutationObserver data updates
@@ -111,15 +114,19 @@ Test Files  1 passed (1)
 - ✅ Efficient regex-based interpolation
 
 ### Testing
-- ✅ 100% test pass rate (20/20 tests)
+- ✅ 100% test pass rate (23/23 tests)
 - ✅ Edge cases covered
 - ✅ Reactivity tested
+- ✅ Root array pattern tested
 - ✅ No regressions in other behaviors (324 total tests passing)
 
 ### Documentation
-- ✅ Comprehensive migration guide (MIGRATION.md)
-- ✅ Interactive example (example.html)
-- ✅ README updated with new syntax
+- ✅ Comprehensive migration guide (MIGRATION.md) - updated with root array pattern
+- ✅ Interactive nested object example (example.html)
+- ✅ Root array pattern example (root-array-example.html) - NEW!
+- ✅ Nested objects in arrays example (nested-object-in-array-example.html)
+- ✅ Pattern clarification guide (PATTERN-CLARIFICATION.md)
+- ✅ README updated with new syntax and root array feature
 - ✅ Breaking change clearly documented
 - ✅ Task LOG complete with implementation summary
 
@@ -132,7 +139,8 @@ Test Files  1 passed (1)
 - ✅ Attribute value interpolation (`attr="{path}"`)
 - ✅ Nested path resolution (`{user.profile.name}`)
 - ✅ Bracket notation support (`{items[0].title}`)
-- ✅ Array rendering (`data-array="path"`)
+- ✅ **Root array support (NEW!)** - Template auto-repeats for root arrays
+- ✅ Nested array rendering (`data-array="path"`)
 - ✅ Nested arrays (arrays within arrays)
 - ✅ Web component support (preserves `is=""`)
 - ✅ Reactive updates (MutationObserver)
