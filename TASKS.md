@@ -44,12 +44,12 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Migrate reveal to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/reveal.md)
-- [ ] [Migrate request to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/request.md)
-- [ ] [Migrate logger to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/logger.md)
-- [ ] [Migrate json-template to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/json-template.md)
-- [ ] [Migrate input-watcher to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/input-watcher.md)
-- [ ] [Migrate compound-commands to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/compound-commands.md)
+- [-] [Migrate reveal to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/reveal.md)
+- [-] [Migrate request to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/request.md)
+- [-] [Migrate logger to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/logger.md)
+- [-] [Migrate json-template to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/json-template.md)
+- [-] [Migrate input-watcher to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/input-watcher.md)
+- [-] [Migrate compound-commands to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/compound-commands.md)
 - [-] [Migrate request behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-request.md)
 - [-] [Migrate element-counter behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-element-counter.md)
 - [-] [Migrate compute behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-compute.md)
