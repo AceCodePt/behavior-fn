@@ -495,11 +495,16 @@ Count matching elements in the DOM and display the count reactively.
 ### 🎨 **json-template**
 Data binding and template rendering for JSON data sources using intuitive curly brace interpolation.
 
+> 📚 **[Complete Guide](docs/guides/json-template-behavior.md)** - Detailed documentation with examples
+
 **Attributes:**
 - `json-template-for` — ID of the `<script type="application/json">` element containing the data (like `for` in `<label>`)
 
 **Template Syntax:**
 - `{path}` — Interpolate values in text content or attributes
+- `{path || "fallback"}` — Use fallback if value is falsy (0, false, "", null, undefined)
+- `{path ?? "fallback"}` — Use fallback only if value is nullish (null or undefined)
+- `{path && "value"}` — Use value if path is truthy
 - `data-array="path"` — Mark nested `<template>` for array rendering
 
 **Example:**
@@ -509,6 +514,7 @@ Data binding and template rendering for JSON data sources using intuitive curly 
   {
     "name": "Sagi",
     "role": "admin",
+    "verified": true,
     "projects": [
       {"title": "BehaviorFN", "stars": 100},
       {"title": "AutoWC", "stars": 50}
@@ -524,12 +530,12 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 >
   <template>
     <div data-role="{role}">
-      <h2>{name}</h2>
+      <h2>{name || "Anonymous"} {verified && "✓"}</h2>
       
       <!-- Array with data-array marker -->
       <ul>
         <template data-array="projects">
-          <li>{title}: {stars} ⭐</li>
+          <li>{title || "Untitled"}: {stars ?? 0} ⭐</li>
         </template>
       </ul>
     </div>
@@ -537,10 +543,68 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 </div>
 ```
 
+**Fallback Operator Examples:**
+```html
+<!-- || (logical OR) - fallback for ANY falsy value -->
+<p>{count || 10}</p>        <!-- 0 → "10", undefined → "10" -->
+<p>{active || "N/A"}</p>    <!-- false → "N/A", null → "N/A" -->
+<p>{message || ""}</p>       <!-- "" → "", undefined → "" -->
+
+<!-- ?? (nullish coalescing) - fallback only for null/undefined -->
+<p>{count ?? 10}</p>        <!-- 0 → "0", undefined → "10" -->
+<p>{active ?? "N/A"}</p>    <!-- false → "false", null → "N/A" -->
+<p>{message ?? "None"}</p>   <!-- "" → "", undefined → "None" -->
+
+<!-- && (logical AND) - use value if condition is truthy -->
+<p>{premium && "⭐ Pro"}</p>  <!-- true → "⭐ Pro", false → "false" -->
+<p>{verified && "✓"}</p>     <!-- true → "✓", undefined → "" -->
+<p>{count && "items"}</p>    <!-- 5 → "items", 0 → "0" -->
+
+<!-- Advanced: Literal values (quoted strings) on left side -->
+<p>{"&&" && "||"}</p>        <!-- "&&" is truthy → "||" -->
+<p>{"||" || "&&"}</p>        <!-- "||" is truthy → "||" (keeps value) -->
+<p>{"??" ?? "||"}</p>        <!-- "??" is not nullish → "??" -->
+<p>{"" || "empty"}</p>       <!-- "" is falsy → "empty" -->
+<p>{"" ?? "N/A"}</p>         <!-- "" is not nullish → "" (empty string) -->
+```
+
+**Operator Symbols as Data:**
+```html
+<!-- You can use operator symbols as literal data -->
+<p>{"&&" && "Use && for AND"}</p>    <!-- Shows "Use && for AND" -->
+<p>{"||" && "Use || for OR"}</p>     <!-- Shows "Use || for OR" -->
+<p>{"??" && "Use ?? for nullish"}</p><!-- Shows "Use ?? for nullish" -->
+```
+
+**Important: Quoted vs Unquoted Keywords:**
+```html
+<!-- Unquoted = Path (property lookup) -->
+<p>{undefined ?? "fallback"}</p>     <!-- Looks for data.undefined property -->
+<p>{null ?? "N/A"}</p>               <!-- Looks for data.null property -->
+
+<!-- Quoted = Literal string -->
+<p>{"undefined" ?? "fallback"}</p>   <!-- Literal string "undefined" (truthy) → "undefined" -->
+<p>{"null" ?? "N/A"}</p>             <!-- Literal string "null" (truthy) → "null" -->
+```
+
+**Safe Deep Path Access:**
+```html
+<!-- Safe traversal - no errors if intermediate properties missing -->
+<p>{user.profile.email || "no-email"}</p>        <!-- Safe even if profile is undefined -->
+<p>{app.settings.theme.color ?? "blue"}</p>      <!-- Safe even if settings.theme is undefined -->
+<p>{data.nested.deep.value || "default"}</p>     <!-- Safe at any depth -->
+
+<!-- Equivalent to JavaScript optional chaining: data?.nested?.deep?.value -->
+```
+
 **Features:**
 - **Text interpolation:** `{name}`, `Username: {firstName} {lastName}`
 - **Attribute interpolation:** `data-type="{type}"`, `class="user-{role}"`
 - **Nested paths:** `{user.profile.name}`, `{items[0].title}`
+- **Fallback operators:** `{name || "Guest"}`, `{count ?? 0}`, `{premium && "Pro"}`
+  - `||` (logical OR): Use fallback for falsy values (0, false, "", null, undefined)
+  - `??` (nullish coalescing): Use fallback only for null/undefined
+  - `&&` (logical AND): Use value if condition is truthy
 - **Root array support:** If root data is an array, template repeats automatically (no `data-array` needed)
 - **Nested arrays:** Use `data-array="path"` on nested `<template>` for arrays within objects
 - **Web component support:** Preserves `is=""` attributes for behavioral hosts
