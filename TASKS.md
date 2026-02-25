@@ -44,7 +44,14 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
+- [ ] [Migrate request behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-request.md)
+- [ ] [Migrate element-counter behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-element-counter.md)
+- [ ] [Migrate compute behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-compute.md)
+- [ ] [Migrate input-watcher behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-input-watcher.md)
+- [ ] [Migrate json-template behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-json-template.md)
+- [ ] [Migrate compound-commands behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-compound-commands.md)
+- [ ] [Migrate content-setter behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-content-setter.md)
+- [x] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
 - [-] [Refactor to Opt-In Loading Architecture](docs/tasks/refactor-opt-in-loading/LOG.md)
 - [-] [Implement Content Setter Behavior](docs/tasks/20260224-182306-content-setter-behavior/LOG.md)
 - [x] [JSON Template Behavior](docs/tasks/json-template-behavior/task.md)
@@ -101,3 +108,10 @@ This file is managed via **Optimistic Concurrency**.
 - [x] [Add Test Harness to Core](docs/tasks/test-harness/task.md)
 
 Goal: Track future work for the project.
+- [ ] [Migrate request behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-request.md)
+- [ ] [Migrate element-counter behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-element-counter.md)
+- [ ] [Migrate compute behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-compute.md)
+- [ ] [Migrate input-watcher behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-input-watcher.md)
+- [ ] [Migrate json-template behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-json-template.md)
+- [ ] [Migrate compound-commands behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-compound-commands.md)
+- [ ] [Migrate content-setter behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-content-setter.md)
