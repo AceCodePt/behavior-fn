@@ -5,18 +5,16 @@ import { compoundCommandsBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
-import { COMPOUND_COMMANDS_ATTRS } from "./schema";
 
-const { name } = definition;
-const observedAttributes = getObservedAttributes(definition.schema);
+const { ATTRS } = definition;
 
 describe("Compound Commands Behavior", () => {
   const tag = "button";
   const webcomponentTag = "test-compound-commands-btn";
 
   beforeAll(() => {
-    registerBehavior(name, compoundCommandsBehaviorFactory);
-    defineBehavioralHost(tag, webcomponentTag, observedAttributes);
+    registerBehavior(definition.name, compoundCommandsBehaviorFactory);
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
   });
 
   beforeEach(() => {
@@ -31,9 +29,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "target");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--show");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "target");
+    button.setAttribute(ATTRS["command"], "--show");
     document.body.appendChild(button);
 
     const target = document.createElement("div");
@@ -58,9 +56,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "target");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--show, --focus");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "target");
+    button.setAttribute(ATTRS["command"], "--show, --focus");
     document.body.appendChild(button);
 
     const target = document.createElement("div");
@@ -89,9 +87,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "target1, target2");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--hide");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "target1, target2");
+    button.setAttribute(ATTRS["command"], "--hide");
     document.body.appendChild(button);
 
     const target1 = document.createElement("div");
@@ -126,9 +124,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "target1, target2");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--toggle, --clear");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "target1, target2");
+    button.setAttribute(ATTRS["command"], "--toggle, --clear");
     document.body.appendChild(button);
 
     const target1 = document.createElement("div");
@@ -163,9 +161,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "a, b, c");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--x, --y, --z");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "a, b, c");
+    button.setAttribute(ATTRS["command"], "--x, --y, --z");
     document.body.appendChild(button);
 
     const targetA = document.createElement("div");
@@ -210,9 +208,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "missing, exists");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--hide");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "missing, exists");
+    button.setAttribute(ATTRS["command"], "--hide");
     document.body.appendChild(button);
 
     const target = document.createElement("div");
@@ -239,9 +237,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "a, b, c");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--x, --y");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "a, b, c");
+    button.setAttribute(ATTRS["command"], "--x, --y");
     document.body.appendChild(button);
 
     const target1 = document.createElement("div");
@@ -280,8 +278,8 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--show");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["command"], "--show");
     document.body.appendChild(button);
 
     const target = document.createElement("div");
@@ -300,8 +298,8 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "target");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "target");
     document.body.appendChild(button);
 
     const target = document.createElement("div");
@@ -320,9 +318,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "  target1 , target2  ");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, " --hide ");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "  target1 , target2  ");
+    button.setAttribute(ATTRS["command"], " --hide ");
     document.body.appendChild(button);
 
     const target1 = document.createElement("div");
@@ -350,9 +348,9 @@ describe("Compound Commands Behavior", () => {
       is: webcomponentTag,
     }) as HTMLButtonElement;
     button.id = "trigger-btn";
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "target");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--show");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "target");
+    button.setAttribute(ATTRS["command"], "--show");
     document.body.appendChild(button);
 
     const target = document.createElement("div");
@@ -376,9 +374,9 @@ describe("Compound Commands Behavior", () => {
     const button = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLButtonElement;
-    button.setAttribute("behavior", name);
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR, "modal");
-    button.setAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND, "--toggle");
+    button.setAttribute("behavior", definition.name);
+    button.setAttribute(ATTRS["commandfor"], "modal");
+    button.setAttribute(ATTRS["command"], "--toggle");
     document.body.appendChild(button);
 
     const modal = document.createElement("div");
