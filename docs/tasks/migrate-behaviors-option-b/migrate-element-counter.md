@@ -3,37 +3,43 @@
 ## Goal
 Migrate `element-counter` behavior to use auto-extracted ATTRS with bracket notation.
 
+## Context
+- ✅ Schema migrated to literal keys
+- ✅ Definition cleaned up
+- ✅ `behavior.ts` uses bracket notation
+- ⚠️ `behavior.test.ts` partially migrated
+
+## Status
+**Behavior Code:** ✅ Complete  
+**Test File:** ⚠️ Needs Completion
+
 ## Requirements
 
-### 1. Update `schema.ts`
-Remove `ELEMENT_COUNTER_ATTRS` constant, use literal keys:
+### Update `behavior.test.ts`
+
+**Verify import is correct:**
 ```typescript
-export const schema = Type.Object({
-  /** Root element to search within (selector or "document") */
-  "element-counter-root": Type.Optional(Type.String()),
-  
-  /** CSS selector for elements to count */
-  "element-counter-selector": Type.Optional(Type.String()),
-});
+import definition from "./_behavior-definition";
+const { name, ATTRS } = definition;
 ```
 
-### 2. Update `_behavior-definition.ts`
+**Ensure ALL attribute usages use bracket notation:**
 ```typescript
-const definition = uniqueBehaviorDef({
-  name: "element-counter",
-  schema,
-});
-```
-
-### 3. Update `behavior.ts`
-Replace:
-```
+// Replace any remaining:
 ELEMENT_COUNTER_ATTRS.ROOT → ATTRS["element-counter-root"]
 ELEMENT_COUNTER_ATTRS.SELECTOR → ATTRS["element-counter-selector"]
 ```
 
+**Check for old imports:**
+```bash
+grep -n "ELEMENT_COUNTER_ATTRS" behavior.test.ts
+```
+
 ## Success Criteria
-- [ ] Schema uses literal keys
-- [ ] Definition uses auto-extraction
-- [ ] behavior.ts uses bracket notation
-- [ ] Tests pass: `npm test -- registry/behaviors/element-counter/behavior.test.ts`
+- [ ] No imports from `./schema` for constants
+- [ ] All attribute accesses use bracket notation
+- [ ] All 2 tests pass: `npm test -- registry/behaviors/element-counter/behavior.test.ts`
+
+## Reference
+- Working example: `registry/behaviors/reveal/behavior.test.ts`
+- Working example: `registry/behaviors/logger/behavior.test.ts`

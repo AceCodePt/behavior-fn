@@ -5,10 +5,9 @@ import {
 } from "~registry";
 import { hasValue } from "~utils";
 import definition from "./_behavior-definition";
-import { REQUEST_ATTRS } from "./constants";
 import type { TriggerConfig } from "./schema";
 
-const { command, name } = definition;
+const { ATTRS, COMMANDS, name } = definition;
 
 // Global registry for collapsing concurrent GET requests
 const requestRegistry = new Map<string, Promise<string>>();
@@ -115,15 +114,15 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   const handleEvent = async (e?: Event) => {
     if (e?.cancelable) e.preventDefault();
 
-    const url = getAttr(REQUEST_ATTRS.URL);
+    const url = getAttr(ATTRS["request-url"]);
     if (!url) return;
 
-    const method = getAttr(REQUEST_ATTRS.METHOD) || "GET";
-    const confirmMsg = getAttr(REQUEST_ATTRS.CONFIRM);
+    const method = getAttr(ATTRS["request-method"]) || "GET";
+    const confirmMsg = getAttr(ATTRS["request-confirm"]);
 
     if (confirmMsg && !window.confirm(confirmMsg)) return;
 
-    const targetId = getAttr(REQUEST_ATTRS.TARGET);
+    const targetId = getAttr(ATTRS["request-target"]);
     const target = targetId ? document.getElementById(targetId) : el;
 
     if (!target) {
@@ -131,7 +130,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       return;
     }
 
-    const indicatorId = getAttr(REQUEST_ATTRS.INDICATOR);
+    const indicatorId = getAttr(ATTRS["request-indicator"]);
     const indicator = indicatorId ? document.getElementById(indicatorId) : null;
 
     if (indicator) indicator.setAttribute("data-request-loading", "");
@@ -147,7 +146,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         setState("loaded");
       } else {
         const formData = getFormData();
-        const valsStr = getAttr(REQUEST_ATTRS.VALS);
+        const valsStr = getAttr(ATTRS["request-vals"]);
         if (valsStr) {
           try {
             const vals = JSON.parse(valsStr);
@@ -181,7 +180,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         html = await executeRequest(finalUrl, options);
         setState("loaded");
 
-        const pushUrlVal = getAttr(REQUEST_ATTRS.PUSH_URL);
+        const pushUrlVal = getAttr(ATTRS["request-push-url"]);
         if (pushUrlVal) {
           const urlObj = new URL(finalUrl, window.location.origin);
           const pushUrl =
@@ -199,7 +198,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       const activeId = activeElement?.id;
 
       // Check for JSON script tag update strategy
-      const jsonStrategy = getAttr(REQUEST_ATTRS.JSON_STRATEGY);
+      const jsonStrategy = getAttr(ATTRS["request-json-strategy"]);
       const isScriptTag =
         target instanceof HTMLScriptElement &&
         target.type === "application/json";
@@ -263,7 +262,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         }
       } else {
         // Existing HTML swap logic
-        const swap = getAttr(REQUEST_ATTRS.SWAP) || "innerHTML";
+        const swap = getAttr(ATTRS["request-swap"]) || "innerHTML";
 
         switch (swap) {
           case "innerHTML":
@@ -308,7 +307,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   const setupListeners = () => {
     cleanup();
 
-    const triggerAttr = getAttr(REQUEST_ATTRS.TRIGGER);
+    const triggerAttr = getAttr(ATTRS["request-trigger"]);
     let triggers: TriggerConfig[] = [];
 
     if (triggerAttr) {
@@ -345,7 +344,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
       if (event === "load") {
         hasLoadTrigger = true;
-        const currentUrl = getAttr(REQUEST_ATTRS.URL);
+        const currentUrl = getAttr(ATTRS["request-url"]);
         if (lastLoadedUrl !== currentUrl) {
           lastLoadedUrl = currentUrl || undefined;
           if (delay) {
@@ -358,7 +357,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       }
 
       if (event === "sse") {
-        const url = getAttr(REQUEST_ATTRS.URL);
+        const url = getAttr(ATTRS["request-url"]);
         if (url && !eventSource) {
           setState("loading");
           eventSource = new EventSource(url);
@@ -415,21 +414,23 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   };
 
   return {
-    connectedCallback(this: BehaviorInstance) {
-      setupListeners();
+    observedAttributes: definition.OBSERVED_ATTRIBUTES,
+    onCommand(e: CommandEvent<string>) {
+      if (!COMMANDS) return;
+      if (e.command === COMMANDS["--trigger"]) {
+        handleEvent(e);
+      } else if (e.command === COMMANDS["--close-sse"]) {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = undefined;
+        }
+      }
     },
     disconnectedCallback() {
       cleanup();
     },
     attributeChangedCallback(this: BehaviorInstance) {
       setupListeners();
-    },
-    onCommand(this: BehaviorInstance, e: CommandEvent<keyof typeof command>) {
-      if (e.command === command["--trigger"]) handleEvent(e);
-      if (e.command === command["--close-sse"]) {
-        eventSource?.close();
-        eventSource = undefined;
-      }
     },
   };
 };

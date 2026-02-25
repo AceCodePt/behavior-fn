@@ -1,7 +1,7 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { ATTRS: CONTENT_SETTER_ATTRS, COMMANDS: CONTENT_SETTER_COMMANDS } = definition;
+const { ATTRS, COMMANDS } = definition;
 
 export const contentSetterBehaviorFactory = (el: HTMLElement) => {
   // Store original values for toggle mode
@@ -17,26 +17,26 @@ export const contentSetterBehaviorFactory = (el: HTMLElement) => {
       originalTextContent = el.textContent;
     },
 
-    onCommand(e: CommandEvent<keyof typeof CONTENT_SETTER_COMMANDS>) {
-      if (e.command !== CONTENT_SETTER_COMMANDS["--set-content"]) {
+    onCommand(e: CommandEvent<string>) {
+      if (!COMMANDS || e.command !== COMMANDS["--set-content"]) {
         return;
       }
 
-      const targetAttribute = el.getAttribute(CONTENT_SETTER_ATTRS.ATTRIBUTE);
-      const value = el.getAttribute(CONTENT_SETTER_ATTRS.VALUE);
-      const mode = el.getAttribute(CONTENT_SETTER_ATTRS.MODE) || "set";
+      const targetAttribute = el.getAttribute(ATTRS["content-setter-attribute"]);
+      const value = el.getAttribute(ATTRS["content-setter-value"]);
+      const mode = el.getAttribute(ATTRS["content-setter-mode"]) || "set";
 
       // Validation
       if (!targetAttribute) {
         console.warn(
-          `[Content Setter] Missing required attribute: ${CONTENT_SETTER_ATTRS.ATTRIBUTE}`,
+          `[Content Setter] Missing required attribute: ${ATTRS["content-setter-attribute"]}`,
         );
         return;
       }
 
       if (value === null) {
         console.warn(
-          `[Content Setter] Missing required attribute: ${CONTENT_SETTER_ATTRS.VALUE}`,
+          `[Content Setter] Missing required attribute: ${ATTRS["content-setter-value"]}`,
         );
         return;
       }

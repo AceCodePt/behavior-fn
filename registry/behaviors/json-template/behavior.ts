@@ -1,6 +1,6 @@
 import definition from "./_behavior-definition";
 
-const { ATTRS: JSON_TEMPLATE_ATTRS } = definition;
+const { ATTRS } = definition;
 
 /**
  * Resolves a path in a data object using dot notation and bracket notation.
@@ -238,7 +238,7 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
 
   const render = () => {
     // Get the data source ID (like "for" attribute in label)
-    const dataSourceId = el.getAttribute(JSON_TEMPLATE_ATTRS.FOR);
+    const dataSourceId = el.getAttribute(ATTRS["json-template-for"]);
     
     if (!dataSourceId) {
       console.error("[json-template] json-template-for attribute is required");

@@ -1,6 +1,6 @@
 import definition from "./_behavior-definition";
 
-const { ATTRS: COMPOUND_COMMANDS_ATTRS } = definition;
+const { ATTRS } = definition;
 
 /**
  * Parse a comma-separated attribute value into an array of trimmed strings.
@@ -91,8 +91,8 @@ export const compoundCommandsBehaviorFactory = (el: HTMLElement) => {
     onClick(event: MouseEvent) {
       const button = el as HTMLButtonElement;
       
-      const commandForAttr = button.getAttribute(COMPOUND_COMMANDS_ATTRS.COMMANDFOR);
-      const commandAttr = button.getAttribute(COMPOUND_COMMANDS_ATTRS.COMMAND);
+      const commandForAttr = button.getAttribute(ATTRS["commandfor"]);
+      const commandAttr = button.getAttribute(ATTRS["command"]);
 
       // Both attributes must be present
       if (!commandForAttr || !commandAttr) {

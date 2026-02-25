@@ -1,6 +1,6 @@
 import definition from "./_behavior-definition";
 
-const { ATTRS: ELEMENT_COUNTER_ATTRS } = definition;
+const { ATTRS } = definition;
 
 export const elementCounterBehaviorFactory = (el: HTMLElement) => {
   let observer: MutationObserver | null = null;
@@ -22,8 +22,8 @@ export const elementCounterBehaviorFactory = (el: HTMLElement) => {
   const initObserver = () => {
     observer?.disconnect();
 
-    const rootId = el.getAttribute(ELEMENT_COUNTER_ATTRS.ROOT);
-    const selector = el.getAttribute(ELEMENT_COUNTER_ATTRS.SELECTOR);
+    const rootId = el.getAttribute(ATTRS["element-counter-root"]);
+    const selector = el.getAttribute(ATTRS["element-counter-selector"]);
 
     if (!rootId || !selector) return;
 
@@ -55,8 +55,8 @@ export const elementCounterBehaviorFactory = (el: HTMLElement) => {
     ) {
       if (
         oldValue !== newValue &&
-        (name === ELEMENT_COUNTER_ATTRS.ROOT ||
-          name === ELEMENT_COUNTER_ATTRS.SELECTOR)
+        (name === ATTRS["element-counter-root"] ||
+          name === ATTRS["element-counter-selector"])
       ) {
         initObserver();
       }

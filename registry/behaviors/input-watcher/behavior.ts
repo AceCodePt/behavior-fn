@@ -2,14 +2,14 @@ import { type BehaviorFactory } from "~registry";
 import { hasValue } from "~utils";
 import definition from "./_behavior-definition";
 
-const { ATTRS: INPUT_WATCHER_ATTRS } = definition;
+const { ATTRS } = definition;
 
 export const inputWatcherBehavior: BehaviorFactory = (host) => {
   let targets: Element[] = [];
   let cleanupFns: Array<() => void> = [];
 
   const getTargets = () => {
-    const selector = host.getAttribute(INPUT_WATCHER_ATTRS.TARGET);
+    const selector = host.getAttribute(ATTRS["input-watcher-target"]);
     if (!selector) return [];
 
     const result: Element[] = [];
@@ -32,7 +32,7 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
   };
 
   const readValue = (el: Element) => {
-    const attr = host.getAttribute(INPUT_WATCHER_ATTRS.ATTR);
+    const attr = host.getAttribute(ATTRS["input-watcher-attr"]);
     if (attr) {
       return el.getAttribute(attr) ?? "";
     }
@@ -47,7 +47,7 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
     if (targets.length === 0) return;
 
     const values = targets.map(readValue);
-    const format = host.getAttribute(INPUT_WATCHER_ATTRS.FORMAT);
+    const format = host.getAttribute(ATTRS["input-watcher-format"]);
 
     let output = "";
 
@@ -78,7 +78,7 @@ export const inputWatcherBehavior: BehaviorFactory = (host) => {
 
     targets = getTargets();
 
-    const eventsStr = host.getAttribute(INPUT_WATCHER_ATTRS.EVENTS);
+    const eventsStr = host.getAttribute(ATTRS["input-watcher-events"]);
     const events = eventsStr
       ? eventsStr.split(",").map((e) => e.trim())
       : ["input", "change"];

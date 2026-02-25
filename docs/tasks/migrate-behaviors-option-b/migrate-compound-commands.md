@@ -3,42 +3,47 @@
 ## Goal
 Migrate `compound-commands` behavior to use auto-extracted ATTRS with bracket notation.
 
+## Context
+- ✅ Schema migrated to literal keys
+- ✅ Definition cleaned up
+- ✅ `behavior.ts` uses bracket notation
+- ❌ `behavior.test.ts` still imports old constants
+
+## Status
+**Behavior Code:** ✅ Complete  
+**Test File:** ❌ Needs Migration
+
 ## Requirements
 
-### 1. Update `schema.ts`
-Remove `COMPOUND_COMMANDS_ATTRS` constant, use literal keys:
+### Update `behavior.test.ts`
+
+**Remove old import:**
 ```typescript
-/**
- * Schema for compound-commands behavior.
- * 
- * This behavior adds compound command support to buttons using the Invoker Commands API.
- */
-export const schema = Type.Object({
-  /** Target element ID(s), comma-separated for multiple targets */
-  "commandfor": Type.Optional(Type.String()),
-  
-  /** Command value(s), comma-separated for multiple commands */
-  "command": Type.Optional(Type.String()),
-});
+import { COMPOUND_COMMANDS_ATTRS } from "./schema";
 ```
 
-### 2. Update `_behavior-definition.ts`
+**Add to definition destructure:**
 ```typescript
-const definition = uniqueBehaviorDef({
-  name: "compound-commands",
-  schema,
-});
+import definition from "./_behavior-definition";
+const { name, ATTRS } = definition;
 ```
 
-### 3. Update `behavior.ts`
-Replace:
-```
+**Replace all test attribute accesses:**
+```typescript
 COMPOUND_COMMANDS_ATTRS.COMMANDFOR → ATTRS["commandfor"]
 COMPOUND_COMMANDS_ATTRS.COMMAND → ATTRS["command"]
 ```
 
+**Search pattern to verify:**
+```bash
+grep -n "COMPOUND_COMMANDS_ATTRS" behavior.test.ts
+```
+
 ## Success Criteria
-- [ ] Schema uses literal keys
-- [ ] Definition uses auto-extraction
-- [ ] behavior.ts uses bracket notation
-- [ ] Tests pass: `npm test -- registry/behaviors/compound-commands/behavior.test.ts`
+- [ ] No imports from `./schema` for constants
+- [ ] All attribute accesses use bracket notation
+- [ ] All 12 tests pass: `npm test -- registry/behaviors/compound-commands/behavior.test.ts`
+
+## Reference
+- Working example: `registry/behaviors/reveal/behavior.test.ts`
+- Working example: `registry/behaviors/logger/behavior.test.ts`

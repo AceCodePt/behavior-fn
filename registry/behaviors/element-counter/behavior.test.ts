@@ -3,11 +3,10 @@ import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import { elementCounterBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
-import { ELEMENT_COUNTER_ATTRS } from "./schema";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name } = definition;
+const { name, ATTRS } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Element Counter Behavior", () => {
@@ -35,8 +34,8 @@ describe("Element Counter Behavior", () => {
     }) as HTMLElement;
     el.setAttribute("behavior", name);
     document.body.appendChild(el);
-    el.setAttribute(ELEMENT_COUNTER_ATTRS.ROOT, "test-root");
-    el.setAttribute(ELEMENT_COUNTER_ATTRS.SELECTOR, ".item");
+    el.setAttribute(ATTRS["element-counter-root"], "test-root");
+    el.setAttribute(ATTRS["element-counter-selector"], ".item");
 
     // Initial count should be 0
     expect(el.textContent).toBe("0");
@@ -80,8 +79,8 @@ describe("Element Counter Behavior", () => {
       is: webcomponentTag,
     }) as HTMLInputElement;
     el.setAttribute("behavior", "element-counter");
-    el.setAttribute(ELEMENT_COUNTER_ATTRS.ROOT, "test-root-input");
-    el.setAttribute(ELEMENT_COUNTER_ATTRS.SELECTOR, ".item");
+    el.setAttribute(ATTRS["element-counter-root"], "test-root-input");
+    el.setAttribute(ATTRS["element-counter-selector"], ".item");
     document.body.appendChild(el);
 
     expect(el.value).toBe("0");

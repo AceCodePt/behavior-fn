@@ -3,35 +3,23 @@
 ## Goal
 Migrate `json-template` behavior to use auto-extracted ATTRS with bracket notation.
 
-## Requirements
+## Context
+- ✅ Schema migrated to literal keys
+- ✅ Definition cleaned up
+- ✅ `behavior.ts` uses bracket notation
+- ✅ Tests don't import constants (never did)
 
-### 1. Update `schema.ts`
-Remove `JSON_TEMPLATE_ATTRS` constant, use literal key:
-```typescript
-export const schema = Type.Object({
-  /** ID of the <script type="application/json"> element containing the data */
-  "json-template-for": Type.String({ 
-    description: "ID of the <script type='application/json'> element containing the data (like 'for' in label)" 
-  }),
-});
-```
-
-### 2. Update `_behavior-definition.ts`
-```typescript
-const definition = uniqueBehaviorDef({
-  name: "json-template",
-  schema,
-});
-```
-
-### 3. Update `behavior.ts`
-Replace:
-```
-JSON_TEMPLATE_ATTRS.FOR → ATTRS["json-template-for"]
-```
+## Status
+**Behavior Code:** ✅ Complete  
+**Test File:** ✅ Complete
 
 ## Success Criteria
-- [ ] Schema uses literal key
-- [ ] Definition uses auto-extraction
-- [ ] behavior.ts uses bracket notation
-- [ ] Tests pass: `npm test -- registry/behaviors/json-template/behavior.test.ts`
+- [x] Schema uses literal keys
+- [x] Definition uses auto-extraction
+- [x] behavior.ts uses bracket notation
+- [x] All 23 tests pass: `npm test -- registry/behaviors/json-template/behavior.test.ts`
+
+## Reference
+This migration is complete and serves as a working example alongside:
+- `registry/behaviors/reveal/behavior.ts`
+- `registry/behaviors/logger/behavior.ts`
