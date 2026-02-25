@@ -32,14 +32,13 @@ The `behavior-fn.all.js` bundle has been removed in favor of an opt-in loading a
 ```html
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-<script>BehaviorFN.enableAutoLoader();</script>
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script> <!-- Auto-enables itself -->
 <dialog behavior="reveal">Content</dialog>
 ```
 
-#### Auto-Loader No Longer Auto-Enables
+#### Auto-Loader Automatically Enables When Loaded
 
-The auto-loader module (`auto-loader.js`) now requires explicit activation via `BehaviorFN.enableAutoLoader()`. It does not automatically enable itself when loaded.
+The auto-loader module (`auto-loader.js`) automatically enables itself when loaded via `<script>` tag. No explicit `enableAutoLoader()` call is needed.
 
 **Before (v0.1.6):**
 ```html
@@ -48,9 +47,10 @@ The auto-loader module (`auto-loader.js`) now requires explicit activation via `
 
 **After (v0.2.0):**
 ```html
-<script src="auto-loader.js"></script>
-<script>BehaviorFN.enableAutoLoader();</script> <!-- Explicit call required -->
+<script src="auto-loader.js"></script> <!-- Still auto-enables itself -->
 ```
+
+**Note:** This maintains backward compatibility for auto-loader behavior.
 
 #### Individual Bundles No Longer Include Core
 

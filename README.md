@@ -63,9 +63,8 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
   <!-- 2. Load behaviors -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
   
-  <!-- 3. Load and enable auto-loader -->
+  <!-- 3. Load auto-loader (auto-enables itself) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-  <script>BehaviorFN.enableAutoLoader();</script>
 </head>
 <body>
   <!-- 4. Omit is attribute (auto-loader adds it) -->
@@ -89,7 +88,7 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 - **Removed All-in-One Bundle:** `behavior-fn.all.js` has been removed
 - **Opt-In Loading:** Load core runtime + individual behaviors
-- **Explicit Auto-Loader:** Must call `enableAutoLoader()` to activate
+- **Core Required:** Individual behavior bundles now require core to be loaded first
 
 ### Benefits
 

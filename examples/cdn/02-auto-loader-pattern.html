@@ -115,13 +115,9 @@
   </div>
 
   <div class="card">
-    <h3>Step 3: Load and Enable Auto-Loader</h3>
-    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
-&lt;script&gt;
-  // Explicit enablement required!
-  BehaviorFN.enableAutoLoader();
-&lt;/script&gt;</code></pre>
-    <p><strong>Important:</strong> You must explicitly call <code>enableAutoLoader()</code>. It doesn't activate automatically.</p>
+    <h3>Step 3: Load Auto-Loader</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;</code></pre>
+    <p><strong>That's it!</strong> The auto-loader automatically enables itself when loaded. No extra JavaScript needed.</p>
   </div>
 
   <div class="card">
@@ -233,11 +229,8 @@
   &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
   &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js"&gt;&lt;/script&gt;
   
-  &lt;!-- 3. Load and enable auto-loader --&gt;
+  &lt;!-- 3. Load auto-loader (auto-enables itself) --&gt;
   &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
-  &lt;script&gt;
-    BehaviorFN.enableAutoLoader();
-  &lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
   &lt;!-- 4. Omit is attributes (auto-loader adds them) --&gt;
@@ -317,10 +310,6 @@
   <script src="../../dist/cdn/reveal.js"></script>
   <script src="../../dist/cdn/logger.js"></script>
   <script src="../../dist/cdn/auto-loader.js"></script>
-  <script>
-    // Explicit enablement required!
-    BehaviorFN.enableAutoLoader();
-    console.log('✅ Auto-loader enabled');
-  </script>
+  <!-- Auto-loader enables itself automatically when loaded -->
 </body>
 </html>

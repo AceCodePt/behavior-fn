@@ -94,7 +94,7 @@ if (!window.BehaviorFN) {
 - Watches for new elements (MutationObserver)
 - Registers behavioral hosts automatically
 
-**Important:** Does NOT auto-enable itself! You must explicitly call `BehaviorFN.enableAutoLoader()`.
+**Important:** Automatically enables itself when loaded via `<script>` tag.
 
 **Size:** ~5.4KB minified (~2KB gzipped)
 
@@ -106,13 +106,8 @@ if (!window.BehaviorFN) {
 <!-- Load behaviors -->
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 
-<!-- Load auto-loader -->
+<!-- Load auto-loader (auto-enables itself) -->
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-
-<!-- Explicitly enable it -->
-<script>
-  BehaviorFN.enableAutoLoader();
-</script>
 
 <!-- Now you can omit the is attribute -->
 <dialog behavior="reveal">Content</dialog>
@@ -176,11 +171,8 @@ if (!window.BehaviorFN) {
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js"></script>
   
-  <!-- 3. Load and enable auto-loader -->
+  <!-- 3. Load auto-loader (auto-enables itself) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-  <script>
-    BehaviorFN.enableAutoLoader();
-  </script>
 </head>
 <body>
   <!-- 4. Omit is attributes (auto-loader adds them) -->

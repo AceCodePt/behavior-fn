@@ -63,7 +63,7 @@ async function buildCDNBundles() {
   console.log("  1. Load core: <script src='behavior-fn-core.js'></script>");
   console.log("  2. Load behaviors: <script src='reveal.js'></script>");
   console.log("  3. (Optional) Load auto-loader: <script src='auto-loader.js'></script>");
-  console.log("  4. (Optional) Enable: <script>BehaviorFN.enableAutoLoader();</script>");
+  console.log("     Note: Auto-loader enables itself automatically when loaded");
 }
 
 /**
@@ -220,17 +220,20 @@ async function buildAutoLoader() {
 // Import auto-loader
 import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
 
-// Check for core and expose auto-loader
+// Check for core and auto-enable
 if (typeof window !== 'undefined') {
   if (!window.BehaviorFN) {
     console.error('[BehaviorFN] Core not loaded! Load behavior-fn-core.js before auto-loader.js');
     console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
   } else {
-    // Expose enableAutoLoader function (but don't call it)
+    // Expose enableAutoLoader function
     window.BehaviorFN.enableAutoLoader = enableAutoLoader;
     window.enableAutoLoader = enableAutoLoader;
     
-    console.log('✅ BehaviorFN: Auto-loader available (call BehaviorFN.enableAutoLoader() to activate)');
+    // Automatically enable when loaded via script tag
+    enableAutoLoader();
+    
+    console.log('✅ BehaviorFN: Auto-loader enabled automatically');
   }
 }
 `;
