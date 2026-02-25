@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Render json-template When Root Data is Empty Array](docs/tasks/json-template-render-empty-arrays/task.md)
+- [-] [Render json-template When Root Data is Empty Array](docs/tasks/json-template-render-empty-arrays/task.md)
 - [x] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
 - [x] [Add Array Swap Strategies to Request Behavior](docs/tasks/add-array-swap-strategies/task.md)
 - [x] [Migrate reveal to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/reveal.md)
