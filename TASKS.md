@@ -44,8 +44,9 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
-- [-] [Add Array Swap Strategies to Request Behavior](docs/tasks/add-array-swap-strategies/task.md)
+- [ ] [Render json-template When Root Data is Empty Array](docs/tasks/json-template-render-empty-arrays/task.md)
+- [x] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
+- [x] [Add Array Swap Strategies to Request Behavior](docs/tasks/add-array-swap-strategies/task.md)
 - [x] [Migrate reveal to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/reveal.md)
 - [x] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
 - [x] [Refactor to Opt-In Loading Architecture](docs/tasks/refactor-opt-in-loading/LOG.md)
@@ -82,9 +83,6 @@ This file is managed via **Optimistic Concurrency**.
 - [x] [Migrate `compute` to TypeBox Schema](docs/tasks/migrate-behavior-compute/task.md)
 - [x] [Migrate `set-value` to TypeBox Schema](docs/tasks/migrate-behavior-set-value/task.md)
 - [x] [Migrate `request` to TypeBox Schema](docs/tasks/migrate-behavior-request/task.md)
-- [ ] [Create Documentation Site](docs/tasks/docs-site/task.md)
-
-## Completed
 
 - [x] [Test Transformers and CLI Logic](docs/tasks/test-transformers-cli/task.md)
 - [x] [Separate Standard Events](docs/tasks/separate-standard-events/task.md)
@@ -102,3 +100,5 @@ This file is managed via **Optimistic Concurrency**.
 - [x] [Add Platform Detection to Init](docs/tasks/platform-detection/task.md)
 - [x] [Implement Import Rewriting](docs/tasks/import-rewriting/task.md)
 - [x] [Add Test Harness to Core](docs/tasks/test-harness/task.md)
+
+- [ ] [Create Documentation Site](docs/tasks/docs-site/task.md)
