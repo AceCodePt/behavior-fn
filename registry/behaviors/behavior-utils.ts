@@ -19,10 +19,13 @@ export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
  * Type guard to check if an element has a 'value' property.
  * Useful for form elements (input, select, textarea).
  */
-export function hasValue(el: Element): el is Element & { value: string | number } {
-  return 'value' in el && (
-    typeof (el as { value?: unknown }).value === 'string' || 
-    typeof (el as { value?: unknown }).value === 'number'
+export function hasValue(
+  el: Element,
+): el is Element & { value: string | number } {
+  return (
+    "value" in el &&
+    (typeof (el as { value?: unknown }).value === "string" ||
+      typeof (el as { value?: unknown }).value === "number")
   );
 }
 
@@ -36,7 +39,7 @@ export function hasValue(el: Element): el is Element & { value: string | number 
  * Schema with keys: "reveal-delay", "reveal-duration"
  * Result: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
  */
-type ExtractSchemaKeys<S extends BehaviorSchema> = 
+type ExtractAttributes<S extends BehaviorSchema> = 
   S extends { properties: infer P } 
     ? { readonly [K in keyof P & string]: K }
     : Record<string, never>;
@@ -44,12 +47,12 @@ type ExtractSchemaKeys<S extends BehaviorSchema> =
 /**
  * Extract strongly-typed command keys from a command object.
  * Creates an object where each key-value pair is identical: { "--cmd": "--cmd" }
- * 
+ *
  * @example
  * Commands: { "--show": "--show", "--hide": "--hide" }
  * Result: { "--show": "--show", "--hide": "--hide" }
  */
-type ExtractCommandKeys<C> = 
+type ExtractCommandKeys<C> =
   C extends Record<string, any>
     ? { readonly [K in keyof C & string]: K }
     : never;
@@ -76,13 +79,10 @@ export type ValidateBehaviorDef<
 };
 
 /**
- * Create a behavior definition with auto-extracted metadata.
- * 
- * This function automatically extracts and creates strongly-typed objects for:
- * - **ATTRS**: Extracted from schema keys (e.g., { "reveal-delay": "reveal-delay" })
- * - **COMMANDS**: Extracted from command object (e.g., { "--show": "--show" })
- * - **OBSERVED_ATTRIBUTES**: Array of attribute names from schema keys
- * 
+ * Create a behavior definition with auto-extracted attributes.
+ *
+ * attributes is extracted from schema keys (e.g., { "reveal-delay": "reveal-delay" })
+ *
  * @example
  * const definition = uniqueBehaviorDef({
  *   name: "reveal",
@@ -95,21 +95,18 @@ export type ValidateBehaviorDef<
  *     "--hide": "--hide",
  *   },
  * });
- * 
+ *
  * // Auto-created:
- * // definition.ATTRS = { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
- * // definition.COMMANDS = { "--show": "--show", "--hide": "--hide" }
- * // definition.OBSERVED_ATTRIBUTES = ["reveal-delay", "reveal-duration"]
- * 
- * @param def - The behavior definition with name, schema, and optional commands
- * @returns Extended definition with ATTRS, COMMANDS, and OBSERVED_ATTRIBUTES
+ * // definition.attributes = { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
+ * // definition.command = { "--show": "--show", "--hide": "--hide" }
+ *
+ * @param def - The behavior definition with name, schema, and optional command
+ * @returns Extended definition with attributes
  */
 export const uniqueBehaviorDef = <
-  const S extends BehaviorSchema,
-  const C extends Record<string, string>,
-  const Def extends BehaviorDef<S, C>,
+  const T extends { name: string; schema: BehaviorSchema; command?: Record<string, string> }
 >(
-  def: Def & ValidateBehaviorDef<Def>,
+  def: T & ValidateBehaviorDef<T>,
 ) => {
   // Runtime validation for commands: key must equal value
   if (def.command) {
@@ -122,32 +119,16 @@ export const uniqueBehaviorDef = <
     }
   }
 
-  // Extract attribute keys from schema and create ATTRS object
-  // Pattern: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
+  // Extract attributes from schema properties
   const schemaKeys = "properties" in def.schema ? Object.keys(def.schema.properties) : [];
-  const ATTRS = schemaKeys.reduce((acc, key) => {
+  const attributes = schemaKeys.reduce((acc, key) => {
     acc[key] = key;
     return acc;
-  }, {} as Record<string, string>) as ExtractSchemaKeys<S>;
-
-  // Extract command keys from command object and create COMMANDS object
-  // Pattern: { "--show": "--show", "--hide": "--hide" }
-  const commandKeys = def.command ? Object.keys(def.command) : [];
-  const COMMANDS = commandKeys.length > 0 
-    ? commandKeys.reduce((acc, key) => {
-        acc[key] = key;
-        return acc;
-      }, {} as Record<string, string>) as ExtractCommandKeys<C>
-    : undefined;
-
-  // Create observed attributes array from schema keys
-  const OBSERVED_ATTRIBUTES = schemaKeys as readonly string[];
+  }, {} as Record<string, string>) as ExtractAttributes<T["schema"]>;
 
   return {
     ...def,
-    ATTRS,
-    COMMANDS,
-    OBSERVED_ATTRIBUTES,
+    attributes,
   } as const;
 };
 
@@ -155,51 +136,55 @@ export const isServer = () => typeof window === "undefined";
 
 /**
  * Parse and normalize behavior names from a behavior attribute string.
- * 
+ *
  * This is the **canonical** implementation used by both auto-loader and behavioral-host
  * to ensure consistent behavior parsing across the system.
- * 
+ *
  * **Algorithm:**
  * 1. Trim whitespace
  * 2. Convert invalid characters to spaces (creates delimiters between words)
  * 3. Split on any non-letter/non-hyphen character (preserving hyphens in names)
  * 4. Filter out empty strings
  * 5. Sort alphabetically for consistency
- * 
+ *
  * **Why convert instead of remove?**
  * - If we just remove invalid chars, "reveal123logger" becomes "reveallogger" (one word)
  * - By converting to spaces, "reveal123logger" becomes "reveal   logger" (two words)
  * - The split step then correctly separates them
- * 
+ *
  * **Examples:**
  * - `"reveal logger"` → `["logger", "reveal"]`
  * - `"reveal, logger"` → `["logger", "reveal"]`
  * - `"reveal123logger"` → `["logger", "reveal"]` (numbers become delimiters)
  * - `"input-watcher"` → `["input-watcher"]` (hyphens preserved)
  * - `"reveal logger input-watcher"` → `["input-watcher", "logger", "reveal"]`
- * 
+ *
  * @param behaviorAttr The raw behavior attribute value
  * @returns Array of sorted, normalized behavior names
  */
-export function parseBehaviorNames(behaviorAttr: string | null | undefined): string[] {
+export function parseBehaviorNames(
+  behaviorAttr: string | null | undefined,
+): string[] {
   if (!behaviorAttr || !behaviorAttr.trim()) {
     return [];
   }
 
-  return behaviorAttr
-    .trim()
-    // Convert invalid characters to spaces (global flag to convert ALL occurrences)
-    // This creates delimiters between words so "reveal123logger" → "reveal   logger"
-    // Valid characters: letters (a-zA-Z) and hyphens (-)
-    // Everything else (numbers, special chars, commas, whitespace, etc.) becomes a space
-    .replace(/[^a-zA-Z-]/g, " ")
-    // Split on whitespace (one or more) to get individual behavior names
-    // Since replace() already converted everything to spaces, this splits on those spaces
-    // Hyphens are preserved, so "input-watcher" stays as one name
-    .split(/\s+/)
-    // Remove empty strings
-    .filter(Boolean)
-    // Sort alphabetically for consistent ordering
-    // This ensures "reveal logger" and "logger reveal" produce the same result
-    .sort();
+  return (
+    behaviorAttr
+      .trim()
+      // Convert invalid characters to spaces (global flag to convert ALL occurrences)
+      // This creates delimiters between words so "reveal123logger" → "reveal   logger"
+      // Valid characters: letters (a-zA-Z) and hyphens (-)
+      // Everything else (numbers, special chars, commas, whitespace, etc.) becomes a space
+      .replace(/[^a-zA-Z-]/g, " ")
+      // Split on whitespace (one or more) to get individual behavior names
+      // Since replace() already converted everything to spaces, this splits on those spaces
+      // Hyphens are preserved, so "input-watcher" stays as one name
+      .split(/\s+/)
+      // Remove empty strings
+      .filter(Boolean)
+      // Sort alphabetically for consistent ordering
+      // This ensures "reveal logger" and "logger reveal" produce the same result
+      .sort()
+  );
 }
