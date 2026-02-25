@@ -27,17 +27,52 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ### CDN Usage (v0.2.0+)
 
-**Option 1: Explicit Pattern (Recommended)**
+**Option 1: Auto-Loader (Simplest - Recommended for CDN)**
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Load the behavior you need (includes core runtime) -->
+  <!-- 1. Load the behavior -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+  
+  <!-- 2. Load auto-loader (auto-registers hosts) -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 </head>
 <body>
-  <!-- Use explicit is attributes -->
+  <!-- Just use behavior attribute (auto-loader adds is attribute) -->
+  <dialog behavior="reveal" id="modal">
+    <h2>Hello World!</h2>
+    <button commandfor="modal" command="--hide">Close</button>
+  </dialog>
+  
+  <button commandfor="modal" command="--toggle">Open Modal</button>
+</body>
+</html>
+```
+
+**Total:** 2 script tags, 14.4KB minified (5.5KB gzipped)
+
+---
+
+**Option 2: Manual Host Definition (Most Control)**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- 1. Load the behavior -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+  
+  <!-- 2. Define behavioral host manually -->
+  <script>
+    // Get observed attributes from behavior metadata
+    const meta = BehaviorFN.behaviorMetadata['reveal'];
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  </script>
+</head>
+<body>
+  <!-- Use explicit is attribute -->
   <dialog is="behavioral-reveal" behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -48,29 +83,8 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 </html>
 ```
 
-**Option 2: Auto-Loader Pattern (Convenience)**
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <!-- Load behaviors -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  
-  <!-- Load auto-loader (auto-enables itself) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-</head>
-<body>
-  <!-- Omit is attribute (auto-loader adds it) -->
-  <dialog behavior="reveal" id="modal">
-    <h2>Hello World!</h2>
-    <button commandfor="modal" command="--hide">Close</button>
-  </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
-</body>
-</html>
-```
+**Total:** 1 script tag + 1 script block, 8.7KB minified (3.2KB gzipped)  
+**Best for:** Maximum control, smallest bundle
 
 **📚 [View Complete CDN Examples](examples/cdn/)** | **📖 [CDN Architecture Guide](CDN-ARCHITECTURE.md)**
 
