@@ -25,6 +25,44 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ### CDN Usage
 
+**Option 1: All-in-One Bundle (Easiest)**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+</head>
+<body>
+  <!-- Auto-loader enabled - no is attribute needed -->
+  <dialog behavior="reveal" id="modal">
+    <h2>Hello World!</h2>
+    <button commandfor="modal" command="--hide">Close</button>
+  </dialog>
+  
+  <button commandfor="modal" command="--toggle">Open Modal</button>
+</body>
+</html>
+```
+
+**Option 2: Individual Behaviors + Auto-Loader**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Load specific behaviors -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  <!-- Load auto-loader LAST -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
+</head>
+<body>
+  <dialog behavior="reveal" id="modal">
+    <h2>Hello World!</h2>
+  </dialog>
+</body>
+</html>
+```
+
+**Option 3: Individual Behaviors + Explicit `is`**
 ```html
 <!DOCTYPE html>
 <html>
@@ -32,12 +70,10 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 </head>
 <body>
-  <dialog behavior="reveal" id="modal">
+  <!-- Explicit is attribute - no auto-loader needed -->
+  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
     <h2>Hello World!</h2>
-    <button commandfor="modal" command="--hide">Close</button>
   </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
 </body>
 </html>
 ```
