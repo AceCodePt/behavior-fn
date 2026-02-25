@@ -9,6 +9,8 @@ const { attributes } = definition;
  * - "name" → data.name
  * - "user.profile.name" → data.user.profile.name
  * - "items[0].title" → data.items[0].title
+ * - "items[-1].title" → data.items[items.length - 1].title (last item)
+ * - "items[-2].title" → data.items[items.length - 2].title (second to last)
  * - "users[1].address.city" → data.users[1].address.city
  * - "obj['name']" → data.obj.name
  * - "obj[\"name\"]" → data.obj.name
@@ -111,10 +113,17 @@ function resolvePath(data: unknown, path: string): unknown {
           return undefined;
         }
       } else {
-        // Array index: arr[0]
+        // Array index: arr[0] or arr[-1] (negative indices count from end)
         const index = Number.parseInt(keyOrIndex, 10);
-        if (Array.isArray(current) && index >= 0 && index < current.length) {
-          current = current[index];
+        if (Array.isArray(current)) {
+          // Handle negative indices (count from end)
+          const actualIndex = index < 0 ? current.length + index : index;
+          
+          if (actualIndex >= 0 && actualIndex < current.length) {
+            current = current[actualIndex];
+          } else {
+            return undefined;
+          }
         } else {
           return undefined;
         }

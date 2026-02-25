@@ -151,6 +151,175 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(spans[1]?.textContent).toBe("20");
     });
 
+    it("should handle negative array indices (access from end)", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        items: ["a", "b", "c"],
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div>
+            <span class="last">{items[-1]}</span>
+            <span class="second-last">{items[-2]}</span>
+            <span class="third-last">{items[-3]}</span>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector(".last")?.textContent).toBe("c");
+      expect(container.querySelector(".second-last")?.textContent).toBe("b");
+      expect(container.querySelector(".third-last")?.textContent).toBe("a");
+    });
+
+    it("should return empty string for out of bounds negative index", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        items: ["a", "b"],
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div>Value: {items[-5]}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector("div")?.textContent).toBe("Value: ");
+    });
+
+    it("should return empty string for negative index on empty array", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        items: [],
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div>Last: {items[-1]}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector("div")?.textContent).toBe("Last: ");
+    });
+
+    it("should handle negative indices with nested object paths", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        session: {
+          turns: [
+            { query: { text: "first" } },
+            { query: { text: "last" } },
+          ],
+        },
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div>
+            <span class="first">{session.turns[0].query.text}</span>
+            <span class="last">{session.turns[-1].query.text}</span>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector(".first")?.textContent).toBe("first");
+      expect(container.querySelector(".last")?.textContent).toBe("last");
+    });
+
+    it("should handle negative indices with fallback operators", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        messages: ["hello", "world"],
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div>
+            <span class="valid">{messages[-1] || "no message"}</span>
+            <span class="invalid">{messages[-5] || "no message"}</span>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector(".valid")?.textContent).toBe("world");
+      expect(container.querySelector(".invalid")?.textContent).toBe("no message");
+    });
+
+    it("should handle negative indices in attribute values", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        colors: ["red", "green", "blue"],
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div 
+            data-first="{colors[0]}" 
+            data-last="{colors[-1]}"
+            class="color-{colors[-2]}">Content</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const div = container.querySelector("div");
+      expect(div?.getAttribute("data-first")).toBe("red");
+      expect(div?.getAttribute("data-last")).toBe("blue");
+      expect(div?.className).toBe("color-green");
+    });
+
     it("should handle multiple interpolations in one text node", () => {
       const script = document.createElement("script");
       script.type = "application/json";
