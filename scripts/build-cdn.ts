@@ -219,7 +219,7 @@ if (typeof window !== 'undefined') {
     entryPoints: [coreEntry],
     bundle: true,
     format: "iife",
-    globalName: "BehaviorFN",
+    // NO globalName - code manually assigns to window.BehaviorFN
     outfile: join(cdnOutDir, "behavior-fn-core.js"),
     platform: "browser",
     target: "es2020",
