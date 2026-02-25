@@ -1,12 +1,21 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
-import { elementCounterBehaviorFactory } from "./behavior";
-import { registerBehavior } from "~registry";
-import { defineBehavioralHost } from "../behavioral-host";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  beforeAll,
+  vi,
+  afterEach,
+} from "vitest";
 import { getObservedAttributes } from "~utils";
+import { defineBehavioralHost } from "../behavioral-host";
+import { registerBehavior } from "../behavior-registry";
+import { elementCounterBehaviorFactory } from "./behavior";
 import definition from "./_behavior-definition";
 
-const { name, ATTRS } = definition;
+// Extract at module level for cleaner test code
+const { name, attributes } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Element Counter Behavior", () => {
@@ -16,11 +25,17 @@ describe("Element Counter Behavior", () => {
 
   beforeEach(() => {
     document.body.innerHTML = "";
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("should count elements in the root and update textContent", async () => {
     const tag = "span";
-    const webcomponentTag = "test-element-counter";
+    const webcomponentTag = "test-element-counter-span";
     defineBehavioralHost(tag, webcomponentTag, observedAttributes);
 
     // Create root element
@@ -34,8 +49,8 @@ describe("Element Counter Behavior", () => {
     }) as HTMLElement;
     el.setAttribute("behavior", name);
     document.body.appendChild(el);
-    el.setAttribute(ATTRS["element-counter-root"], "test-root");
-    el.setAttribute(ATTRS["element-counter-selector"], ".item");
+    el.setAttribute(attributes["element-counter-root"], "test-root");
+    el.setAttribute(attributes["element-counter-selector"], ".item");
 
     // Initial count should be 0
     expect(el.textContent).toBe("0");
@@ -78,9 +93,9 @@ describe("Element Counter Behavior", () => {
     const el = document.createElement(tag, {
       is: webcomponentTag,
     }) as HTMLInputElement;
-    el.setAttribute("behavior", "element-counter");
-    el.setAttribute(ATTRS["element-counter-root"], "test-root-input");
-    el.setAttribute(ATTRS["element-counter-selector"], ".item");
+    el.setAttribute("behavior", name);
+    el.setAttribute(attributes["element-counter-root"], "test-root-input");
+    el.setAttribute(attributes["element-counter-selector"], ".item");
     document.body.appendChild(el);
 
     expect(el.value).toBe("0");
