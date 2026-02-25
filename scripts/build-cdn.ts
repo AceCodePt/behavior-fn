@@ -9,7 +9,7 @@
  * Key Strategy: Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
  */
 
-import { build } from "esbuild";
+import { build, type Plugin } from "esbuild";
 import { readdir, mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,73 @@ const cdnOutDir = join(rootDir, "dist", "cdn");
 
 // Initialize jiti for runtime TypeScript imports
 const jiti = createJiti(__filename);
+
+/**
+ * esbuild plugin to stub TypeBox imports for CDN builds.
+ * 
+ * This plugin intercepts @sinclair/typebox imports and provides a minimal
+ * stub that builds plain JSON Schema objects instead of TypeBox schemas.
+ * This eliminates the runtime TypeBox dependency (~40KB) from CDN bundles.
+ */
+const inlineTypeBoxPlugin: Plugin = {
+  name: "inline-typebox",
+  setup(build) {
+    // Intercept TypeBox imports
+    build.onResolve({ filter: /@sinclair\/typebox/ }, (args) => {
+      return { path: args.path, namespace: "typebox-stub" };
+    });
+
+    // Provide stub implementation that builds plain JSON Schema objects
+    build.onLoad({ filter: /.*/, namespace: "typebox-stub" }, async () => {
+      return {
+        contents: `
+          // Minimal TypeBox stub for CDN builds
+          // Builds plain JSON Schema objects instead of TypeBox schemas
+          export const Type = {
+            Object: (props, opts = {}) => ({ 
+              type: 'object', 
+              properties: props,
+              ...opts 
+            }),
+            String: (opts = {}) => ({ type: 'string', ...opts }),
+            Number: (opts = {}) => ({ type: 'number', ...opts }),
+            Integer: (opts = {}) => ({ type: 'integer', ...opts }),
+            Boolean: (opts = {}) => ({ type: 'boolean', ...opts }),
+            Null: (opts = {}) => ({ type: 'null', ...opts }),
+            Array: (items, opts = {}) => ({ type: 'array', items, ...opts }),
+            Tuple: (items, opts = {}) => ({ type: 'array', items, ...opts }),
+            Optional: (schema) => schema,
+            Literal: (value, opts = {}) => ({ 
+              type: typeof value, 
+              const: value,
+              ...opts 
+            }),
+            Union: (schemas, opts = {}) => ({ anyOf: schemas, ...opts }),
+            Intersect: (schemas, opts = {}) => ({ allOf: schemas, ...opts }),
+            Record: (key, value, opts = {}) => ({ 
+              type: 'object', 
+              additionalProperties: value,
+              ...opts 
+            }),
+            Any: (opts = {}) => ({ ...opts }),
+            Unknown: (opts = {}) => ({ ...opts }),
+            Never: (opts = {}) => ({ not: {}, ...opts }),
+            Enum: (values, opts = {}) => ({ 
+              enum: Object.values(values),
+              ...opts 
+            }),
+            Ref: (ref, opts = {}) => ({ $ref: ref, ...opts }),
+          };
+          
+          // Export common type utilities (no-op for stub)
+          export const Kind = Symbol.for('TypeBox.Kind');
+          export const Hint = Symbol.for('TypeBox.Hint');
+        `,
+        loader: "js",
+      };
+    });
+  },
+};
 
 interface BuildTarget {
   name: string;
@@ -153,6 +220,7 @@ if (typeof window !== 'undefined') {
     target: "es2020",
     minify: true,
     sourcemap: true,
+    plugins: [inlineTypeBoxPlugin],
   });
 
   console.log(`  ✅ behavior-fn-core.js (IIFE)`);
@@ -167,6 +235,7 @@ if (typeof window !== 'undefined') {
     target: "es2020",
     minify: true,
     sourcemap: true,
+    plugins: [inlineTypeBoxPlugin],
   });
 
   console.log(`  ✅ behavior-fn-core.esm.js (ESM)`);
@@ -276,8 +345,7 @@ if (typeof window !== 'undefined') {
       target: "es2020",
       minify: true,
       sourcemap: true,
-      // Mark TypeBox as external - schemas not needed at runtime
-      external: ['@sinclair/typebox'],
+      plugins: [inlineTypeBoxPlugin],
     });
 
     console.log(`  ✅ ${behaviorName}.js (IIFE)`);
@@ -292,8 +360,7 @@ if (typeof window !== 'undefined') {
       target: "es2020",
       minify: true,
       sourcemap: true,
-      // Mark TypeBox as external - schemas not needed at runtime
-      external: ['@sinclair/typebox'],
+      plugins: [inlineTypeBoxPlugin],
     });
 
     console.log(`  ✅ ${behaviorName}.esm.js (ESM)`);
@@ -359,6 +426,7 @@ if (typeof window !== 'undefined') {
     target: "es2020",
     minify: true,
     sourcemap: true,
+    plugins: [inlineTypeBoxPlugin],
   });
 
   console.log(`  ✅ auto-loader.js (IIFE)`);
@@ -373,6 +441,7 @@ if (typeof window !== 'undefined') {
     target: "es2020",
     minify: true,
     sourcemap: true,
+    plugins: [inlineTypeBoxPlugin],
   });
 
   console.log(`  ✅ auto-loader.esm.js (ESM)`);
