@@ -57,6 +57,10 @@ export const schema = Type.Object({
       Type.Literal("innerHTML"),
       Type.Literal("outerHTML"),
       Type.Literal("delete"),
+      Type.Literal("appendToArray"),
+      Type.Literal("appendSpreadToArray"),
+      Type.Literal("prependToArray"),
+      Type.Literal("prependSpreadToArray"),
     ]),
   ),
   
@@ -73,15 +77,6 @@ export const schema = Type.Object({
   
   /** JSON values to include with request */
   "request-vals": Type.Optional(Type.String()),
-  
-  /** Strategy for merging JSON responses into script tags */
-  "request-json-strategy": Type.Optional(
-    Type.Union([
-      Type.Literal("replace"),
-      Type.Literal("appendArray"),
-      Type.Literal("prependArray"),
-    ]),
-  ),
 });
 
 export type TriggerConfig = InferSchema<typeof TriggerSchema>;

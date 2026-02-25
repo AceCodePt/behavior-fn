@@ -193,22 +193,27 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       const hadFocus = el.contains(activeElement) || el === activeElement;
       const activeId = activeElement?.id;
 
-      // Check for JSON script tag update strategy
-      const jsonStrategy = getAttr(attributes["request-json-strategy"]);
+      // Get swap strategy
+      const swap = getAttr(attributes["request-swap"]) || "innerHTML";
+      
+      // Check if target is a JSON script tag
       const isScriptTag =
         target instanceof HTMLScriptElement &&
         target.type === "application/json";
 
-      if (jsonStrategy && isScriptTag) {
+      // Array manipulation strategies for JSON script tags
+      const arrayStrategies = ["appendToArray", "appendSpreadToArray", "prependToArray", "prependSpreadToArray"];
+      
+      if (isScriptTag && arrayStrategies.includes(swap)) {
         try {
           // Parse existing JSON
-          const existingText = target.textContent?.trim() || "{}";
+          const existingText = target.textContent?.trim() || "[]";
           let existingData: unknown;
           try {
             existingData = JSON.parse(existingText);
           } catch (err) {
             console.warn("[Request] Invalid existing JSON in script tag", err);
-            existingData = null;
+            existingData = [];
           }
 
           // Parse response JSON
@@ -220,33 +225,55 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
             return; // Cannot proceed without valid response
           }
 
-          // Apply strategy
+          // Apply array strategy
           let finalData: unknown;
-          switch (jsonStrategy) {
-            case "replace":
-              finalData = responseData;
+          switch (swap) {
+            case "appendToArray":
+              if (!Array.isArray(existingData)) {
+                console.warn(
+                  "[Request] appendToArray requires existing data to be an array",
+                );
+                return;
+              }
+              finalData = [...existingData, responseData];
               break;
 
-            case "appendArray":
-              if (
-                !Array.isArray(existingData) ||
-                !Array.isArray(responseData)
-              ) {
+            case "appendSpreadToArray":
+              if (!Array.isArray(existingData)) {
                 console.warn(
-                  "[Request] appendArray requires both existing and response to be arrays",
+                  "[Request] appendSpreadToArray requires existing data to be an array",
+                );
+                return;
+              }
+              if (!Array.isArray(responseData)) {
+                console.warn(
+                  "[Request] appendSpreadToArray requires response to be an array",
                 );
                 return;
               }
               finalData = [...existingData, ...responseData];
               break;
 
-            case "prependArray":
-              if (
-                !Array.isArray(existingData) ||
-                !Array.isArray(responseData)
-              ) {
+            case "prependToArray":
+              if (!Array.isArray(existingData)) {
                 console.warn(
-                  "[Request] prependArray requires both existing and response to be arrays",
+                  "[Request] prependToArray requires existing data to be an array",
+                );
+                return;
+              }
+              finalData = [responseData, ...existingData];
+              break;
+
+            case "prependSpreadToArray":
+              if (!Array.isArray(existingData)) {
+                console.warn(
+                  "[Request] prependSpreadToArray requires existing data to be an array",
+                );
+                return;
+              }
+              if (!Array.isArray(responseData)) {
+                console.warn(
+                  "[Request] prependSpreadToArray requires response to be an array",
                 );
                 return;
               }
@@ -260,12 +287,19 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
           // Update script content with formatted JSON
           target.textContent = JSON.stringify(finalData, null, 2);
         } catch (err) {
-          console.error("[Request] Error processing JSON strategy", err);
+          console.error("[Request] Error processing array strategy", err);
+        }
+      } else if (isScriptTag && swap === "innerHTML") {
+        // innerHTML on JSON script tag = replace content
+        try {
+          const responseData = JSON.parse(html);
+          target.textContent = JSON.stringify(responseData, null, 2);
+        } catch (err) {
+          // If not valid JSON, just set as text
+          target.textContent = html;
         }
       } else {
-        // Existing HTML swap logic
-        const swap = getAttr(attributes["request-swap"]) || "innerHTML";
-
+        // HTML swap logic
         switch (swap) {
           case "innerHTML":
             target.innerHTML = html;
@@ -289,6 +323,10 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
             target.remove();
             break;
           case "none":
+            break;
+          default:
+            // JSON strategies used on non-script elements default to innerHTML
+            target.innerHTML = html;
             break;
         }
       }
