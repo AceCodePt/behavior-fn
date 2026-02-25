@@ -219,7 +219,7 @@ When the root data is an array, the template repeats automatically for each item
 
 #### Empty Arrays
 
-Empty arrays are handled gracefully - no items are rendered but the template is preserved for future data updates.
+**Important:** Empty root-level arrays render the template **once** with an empty context (`{}`). This enables forms and UI elements to exist before data arrives.
 
 ```html
 <script type="application/json" id="items">
@@ -228,30 +228,52 @@ Empty arrays are handled gracefully - no items are rendered but the template is 
 
 <div behavior="json-template" json-template-for="items">
   <template>
-    <div class="item">{name}</div>
+    <div class="item">{name || "Guest"}</div>
   </template>
 </div>
 ```
 
-**Result:** No items rendered (empty output), but the behavior is active and will automatically render items when data is added.
+**Result:** Template renders once with fallback value: `<div class="item">Guest</div>`
+
+**Why this matters:**
+
+This pattern enables forms that need to exist before data arrives (chat interfaces, search forms, etc.):
+
+```html
+<script type="application/json" id="messages">
+  []
+</script>
+
+<div behavior="json-template" json-template-for="messages">
+  <template>
+    <form>
+      <input name="query" placeholder="{query || 'Enter message'}">
+      <input name="session" value="{session || '-'}">
+      <button type="submit">Send</button>
+    </form>
+  </template>
+</div>
+```
+
+**Result:** Form renders immediately with fallback values, allowing users to submit the first message.
 
 **Reactive behavior:** When the data changes from empty to populated (or vice versa), the template automatically re-renders:
 
 ```javascript
-// Initially empty
+// Initially empty - renders ONCE with empty context
 document.getElementById('items').textContent = '[]';
-// No items rendered
+// Result: 1 item with fallback values
 
-// Add items dynamically
+// Add items dynamically - renders ONCE PER ITEM
 document.getElementById('items').textContent = JSON.stringify([
   { name: 'Item 1' },
   { name: 'Item 2' }
 ]);
-// Automatically renders 2 items
+// Result: 2 items with actual data
 
-// Clear items
+// Clear items - back to single render with empty context
 document.getElementById('items').textContent = '[]';
-// Automatically clears rendered content
+// Result: 1 item with fallback values
 ```
 
 ### Nested Arrays with `data-array`

@@ -463,17 +463,33 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
       // Root is an array - render template once per item
       const fragment = document.createDocumentFragment();
 
-      for (const item of jsonData) {
+      // NEW: If array is empty, render template once with empty context
+      // This enables forms and UI that need to exist before data arrives
+      if (jsonData.length === 0) {
         const itemClone = templateElement.content.cloneNode(
           true,
         ) as DocumentFragment;
 
-        // Process interpolation for this item
+        // Process with empty object context (fallback operators will work)
         for (const child of Array.from(itemClone.childNodes)) {
-          processInterpolation(child, item);
+          processInterpolation(child, {});
         }
 
         fragment.appendChild(itemClone);
+      } else {
+        // Existing behavior: render once per item
+        for (const item of jsonData) {
+          const itemClone = templateElement.content.cloneNode(
+            true,
+          ) as DocumentFragment;
+
+          // Process interpolation for this item
+          for (const child of Array.from(itemClone.childNodes)) {
+            processInterpolation(child, item);
+          }
+
+          fragment.appendChild(itemClone);
+        }
       }
 
       // Clear existing rendered content (preserve template)
