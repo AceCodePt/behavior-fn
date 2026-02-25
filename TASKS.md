@@ -44,8 +44,8 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
-- [-] [Add Array Swap Strategies to Request Behavior](docs/tasks/add-array-swap-strategies/task.md)
+- [ ] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
+- [ ] [Add Array Swap Strategies to Request Behavior](docs/tasks/add-array-swap-strategies/task.md)
 - [x] [Migrate reveal to Behavior Definition Standard](docs/tasks/migrate-to-behavior-definition-standard/reveal.md)
 - [x] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
 - [x] [Refactor to Opt-In Loading Architecture](docs/tasks/refactor-opt-in-loading/LOG.md)
