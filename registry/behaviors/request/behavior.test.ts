@@ -13,9 +13,8 @@ import { requestBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
 import definition from "./_behavior-definition";
-import { REQUEST_ATTRS } from "./schema";
 
-const { name, command } = definition;
+const { name, command, ATTRS } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 const TEST_TAGS = {
@@ -64,7 +63,7 @@ describe("Request Behavior", () => {
       is: TEST_TAGS.button,
     }) as HTMLElement;
     el.setAttribute("behavior", name);
-    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+    el.setAttribute(ATTRS["request-url"], "http://example.com");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -87,8 +86,8 @@ describe("Request Behavior", () => {
       is: TEST_TAGS.button,
     }) as HTMLElement;
     el.setAttribute("behavior", name);
-    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-    el.setAttribute(REQUEST_ATTRS.METHOD, "POST");
+    el.setAttribute(ATTRS["request-url"], "http://example.com");
+    el.setAttribute(ATTRS["request-method"], "POST");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -109,8 +108,8 @@ describe("Request Behavior", () => {
       is: TEST_TAGS.div,
     }) as HTMLElement;
     el.setAttribute("behavior", name);
-    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/load");
-    el.setAttribute(REQUEST_ATTRS.TRIGGER, "load");
+    el.setAttribute(ATTRS["request-url"], "http://example.com/load");
+    el.setAttribute(ATTRS["request-trigger"], "load");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -130,8 +129,8 @@ describe("Request Behavior", () => {
       is: TEST_TAGS.button,
     }) as HTMLElement;
     el.setAttribute("behavior", name);
-    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-    el.setAttribute(REQUEST_ATTRS.TARGET, "my-target");
+    el.setAttribute(ATTRS["request-url"], "http://example.com");
+    el.setAttribute(ATTRS["request-target"], "my-target");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -148,7 +147,7 @@ describe("Request Behavior", () => {
       is: TEST_TAGS.button,
     }) as HTMLElement;
     el.setAttribute("behavior", name);
-    el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/cmd");
+    el.setAttribute(ATTRS["request-url"], "http://example.com/cmd");
     document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
@@ -168,8 +167,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.form,
       }) as HTMLFormElement;
       form.setAttribute("behavior", name);
-      form.setAttribute(REQUEST_ATTRS.URL, "http://example.com/search");
-      form.setAttribute(REQUEST_ATTRS.METHOD, "GET");
+      form.setAttribute(ATTRS["request-url"], "http://example.com/search");
+      form.setAttribute(ATTRS["request-method"], "GET");
 
       const input = document.createElement("input");
       input.name = "q";
@@ -193,8 +192,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.input,
       }) as HTMLInputElement;
       input.setAttribute("behavior", name);
-      input.setAttribute(REQUEST_ATTRS.URL, "http://example.com/update");
-      input.setAttribute(REQUEST_ATTRS.METHOD, "POST");
+      input.setAttribute(ATTRS["request-url"], "http://example.com/update");
+      input.setAttribute(ATTRS["request-method"], "POST");
       input.name = "email";
       input.value = "test@example.com";
 
@@ -278,9 +277,9 @@ describe("Request Behavior", () => {
           is: TEST_TAGS.button,
         }) as HTMLElement;
         el.setAttribute("behavior", name);
-        el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-        el.setAttribute(REQUEST_ATTRS.TARGET, "target");
-        el.setAttribute(REQUEST_ATTRS.SWAP, swap);
+        el.setAttribute(ATTRS["request-url"], "http://example.com");
+        el.setAttribute(ATTRS["request-target"], "target");
+        el.setAttribute(ATTRS["request-swap"], swap);
         document.body.appendChild(el);
 
         await vi.runAllTimersAsync();
@@ -303,8 +302,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-      el.setAttribute(REQUEST_ATTRS.INDICATOR, "loading-spinner");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
+      el.setAttribute(ATTRS["request-indicator"], "loading-spinner");
       document.body.appendChild(el);
 
       // Mock fetch to delay response so we can check loading state
@@ -339,8 +338,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-      el.setAttribute(REQUEST_ATTRS.CONFIRM, "Are you sure?");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
+      el.setAttribute(ATTRS["request-confirm"], "Are you sure?");
       document.body.appendChild(el);
 
       vi.spyOn(window, "confirm").mockReturnValue(false);
@@ -358,8 +357,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-      el.setAttribute(REQUEST_ATTRS.CONFIRM, "Are you sure?");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
+      el.setAttribute(ATTRS["request-confirm"], "Are you sure?");
       document.body.appendChild(el);
 
       vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -383,8 +382,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/error");
-      el.setAttribute(REQUEST_ATTRS.INDICATOR, "error-indicator");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/error");
+      el.setAttribute(ATTRS["request-indicator"], "error-indicator");
       document.body.appendChild(el);
 
       vi.mocked(fetch).mockResolvedValue({
@@ -413,9 +412,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
       el.setAttribute(
-        REQUEST_ATTRS.TRIGGER,
+        ATTRS["request-trigger"],
         JSON.stringify([{ event: "click", delay: 500 }]),
       );
       document.body.appendChild(el);
@@ -441,9 +440,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
       el.setAttribute(
-        REQUEST_ATTRS.TRIGGER,
+        ATTRS["request-trigger"],
         JSON.stringify([{ event: "click", from: "external-trigger" }]),
       );
       document.body.appendChild(el);
@@ -460,9 +459,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
       el.setAttribute(
-        REQUEST_ATTRS.TRIGGER,
+        ATTRS["request-trigger"],
         JSON.stringify(["click", "mouseenter"]),
       );
       document.body.appendChild(el);
@@ -493,15 +492,15 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el1.setAttribute("behavior", name);
-      el1.setAttribute(REQUEST_ATTRS.URL, "http://example.com/collapsed");
-      el1.setAttribute(REQUEST_ATTRS.TRIGGER, "load");
+      el1.setAttribute(ATTRS["request-url"], "http://example.com/collapsed");
+      el1.setAttribute(ATTRS["request-trigger"], "load");
 
       const el2 = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el2.setAttribute("behavior", name);
-      el2.setAttribute(REQUEST_ATTRS.URL, "http://example.com/collapsed");
-      el2.setAttribute(REQUEST_ATTRS.TRIGGER, "load");
+      el2.setAttribute(ATTRS["request-url"], "http://example.com/collapsed");
+      el2.setAttribute(ATTRS["request-trigger"], "load");
 
       document.body.appendChild(el1);
       document.body.appendChild(el2);
@@ -535,15 +534,15 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el1.setAttribute("behavior", name);
-      el1.setAttribute(REQUEST_ATTRS.URL, "http://example.com/post");
-      el1.setAttribute(REQUEST_ATTRS.METHOD, "POST");
+      el1.setAttribute(ATTRS["request-url"], "http://example.com/post");
+      el1.setAttribute(ATTRS["request-method"], "POST");
 
       const el2 = document.createElement("button", {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el2.setAttribute("behavior", name);
-      el2.setAttribute(REQUEST_ATTRS.URL, "http://example.com/post");
-      el2.setAttribute(REQUEST_ATTRS.METHOD, "POST");
+      el2.setAttribute(ATTRS["request-url"], "http://example.com/post");
+      el2.setAttribute(ATTRS["request-method"], "POST");
 
       document.body.appendChild(el1);
       document.body.appendChild(el2);
@@ -591,9 +590,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/sse");
       el.setAttribute(
-        REQUEST_ATTRS.TRIGGER,
+        ATTRS["request-trigger"],
         JSON.stringify([{ event: "sse", "sse-message": "update" }]),
       );
       document.body.appendChild(el);
@@ -624,9 +623,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/sse");
       el.setAttribute(
-        REQUEST_ATTRS.TRIGGER,
+        ATTRS["request-trigger"],
         JSON.stringify([{ event: "sse", "sse-close": "end" }]),
       );
       document.body.appendChild(el);
@@ -652,8 +651,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
-      el.setAttribute(REQUEST_ATTRS.TRIGGER, JSON.stringify([{ event: "sse" }]));
+      el.setAttribute(ATTRS["request-url"], "http://example.com/sse");
+      el.setAttribute(ATTRS["request-trigger"], JSON.stringify([{ event: "sse" }]));
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -667,8 +666,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
-      el.setAttribute(REQUEST_ATTRS.TRIGGER, JSON.stringify([{ event: "sse" }]));
+      el.setAttribute(ATTRS["request-url"], "http://example.com/sse");
+      el.setAttribute(ATTRS["request-trigger"], JSON.stringify([{ event: "sse" }]));
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -752,12 +751,12 @@ describe("Request Behavior", () => {
           }) as HTMLElement;
           el.innerHTML = "Original";
           el.setAttribute("behavior", name);
-          el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/sse");
+          el.setAttribute(ATTRS["request-url"], "http://example.com/sse");
           el.setAttribute(
-            REQUEST_ATTRS.TRIGGER,
+            ATTRS["request-trigger"],
             JSON.stringify([{ event: "sse" }]),
           );
-          el.setAttribute(REQUEST_ATTRS.SWAP, swap);
+          el.setAttribute(ATTRS["request-swap"], swap);
           document.body.appendChild(el);
 
           await vi.runAllTimersAsync();
@@ -782,7 +781,7 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
       document.body.appendChild(el);
 
       // Mock fetch to delay response
@@ -817,7 +816,7 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/error");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/error");
       document.body.appendChild(el);
 
       vi.mocked(fetch).mockResolvedValue({
@@ -865,9 +864,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "replace");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -903,9 +902,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "appendArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -942,9 +941,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "prependArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "prependArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -981,9 +980,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "appendArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1020,9 +1019,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "prependArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "prependArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1061,9 +1060,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "appendArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1089,9 +1088,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "replace");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1135,9 +1134,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "replace");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1167,9 +1166,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "appendArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "appendArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1212,9 +1211,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "data-store");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "prependArray");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "data-store");
+      el.setAttribute(ATTRS["request-json-strategy"], "prependArray");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1254,9 +1253,9 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com/data");
-      el.setAttribute(REQUEST_ATTRS.TARGET, "target-div");
-      el.setAttribute(REQUEST_ATTRS.JSON_STRATEGY, "replace");
+      el.setAttribute(ATTRS["request-url"], "http://example.com/data");
+      el.setAttribute(ATTRS["request-target"], "target-div");
+      el.setAttribute(ATTRS["request-json-strategy"], "replace");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -1287,8 +1286,8 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.button,
       }) as HTMLElement;
       el.setAttribute("behavior", name);
-      el.setAttribute(REQUEST_ATTRS.URL, "http://example.com");
-      el.setAttribute(REQUEST_ATTRS.SWAP, "innerHTML");
+      el.setAttribute(ATTRS["request-url"], "http://example.com");
+      el.setAttribute(ATTRS["request-swap"], "innerHTML");
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
