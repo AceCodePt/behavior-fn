@@ -59,11 +59,13 @@ async function buildCDNBundles() {
 
   console.log("\n✅ All CDN bundles built successfully!");
   console.log(`📂 Output directory: ${cdnOutDir}`);
-  console.log("\n📘 Loading Pattern:");
-  console.log("  1. Load core: <script src='behavior-fn-core.js'></script>");
-  console.log("  2. Load behaviors: <script src='reveal.js'></script>");
-  console.log("  3. (Optional) Load auto-loader: <script src='auto-loader.js'></script>");
-  console.log("     Note: Auto-loader enables itself automatically when loaded");
+  console.log("\n📘 Simple Loading Pattern:");
+  console.log("  <script src='reveal.js'></script>");
+  console.log("  Note: Each behavior includes core runtime (self-contained)");
+  console.log("\n📘 With Auto-Loader:");
+  console.log("  <script src='reveal.js'></script>");
+  console.log("  <script src='auto-loader.js'></script>");
+  console.log("  Note: Auto-loader enables itself automatically");
 }
 
 /**
@@ -157,22 +159,39 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
       continue;
     }
 
-    // Create standalone entry
+    // Create standalone entry that includes core runtime
     const standaloneEntry = join(cdnOutDir, `_${behaviorName}-standalone.js`);
     const standaloneCode = `
+// Import core runtime (will be bundled)
+import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
+import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
+
 // Import behavior
 import { ${exportName} } from "${behaviorPath}";
 
-// Check for core and register behavior
+// Setup global namespace if not already exists
 if (typeof window !== 'undefined') {
+  // Initialize BehaviorFN namespace if first behavior loaded
   if (!window.BehaviorFN) {
-    console.error('[BehaviorFN] Core not loaded! Load behavior-fn-core.js before ${behaviorName}.js');
-    console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
-  } else {
-    // Auto-register this behavior
-    window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
-    console.log('✅ BehaviorFN: Registered "${behaviorName}" behavior');
+    window.BehaviorFN = {
+      registerBehavior,
+      getBehavior,
+      defineBehavioralHost,
+      parseBehaviorNames,
+      getObservedAttributes,
+      version: '0.2.0',
+    };
+    
+    // Expose core functions globally for convenience
+    window.registerBehavior = registerBehavior;
+    window.getBehavior = getBehavior;
+    window.defineBehavioralHost = defineBehavioralHost;
   }
+  
+  // Auto-register this behavior
+  window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
+  console.log('✅ BehaviorFN: Loaded "${behaviorName}" behavior');
 }
 `;
 
@@ -217,24 +236,41 @@ async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
   
   const autoLoaderCode = `
+// Import core runtime (will be bundled)
+import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
+import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
+
 // Import auto-loader
 import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
 
-// Check for core and auto-enable
+// Setup global namespace if not already exists
 if (typeof window !== 'undefined') {
+  // Initialize BehaviorFN namespace if not already exists
   if (!window.BehaviorFN) {
-    console.error('[BehaviorFN] Core not loaded! Load behavior-fn-core.js before auto-loader.js');
-    console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
-  } else {
-    // Expose enableAutoLoader function
-    window.BehaviorFN.enableAutoLoader = enableAutoLoader;
-    window.enableAutoLoader = enableAutoLoader;
+    window.BehaviorFN = {
+      registerBehavior,
+      getBehavior,
+      defineBehavioralHost,
+      parseBehaviorNames,
+      getObservedAttributes,
+      version: '0.2.0',
+    };
     
-    // Automatically enable when loaded via script tag
-    enableAutoLoader();
-    
-    console.log('✅ BehaviorFN: Auto-loader enabled automatically');
+    // Expose core functions globally for convenience
+    window.registerBehavior = registerBehavior;
+    window.getBehavior = getBehavior;
+    window.defineBehavioralHost = defineBehavioralHost;
   }
+  
+  // Expose and enable auto-loader
+  window.BehaviorFN.enableAutoLoader = enableAutoLoader;
+  window.enableAutoLoader = enableAutoLoader;
+  
+  // Automatically enable when loaded via script tag
+  enableAutoLoader();
+  
+  console.log('✅ BehaviorFN: Auto-loader enabled');
 }
 `;
 

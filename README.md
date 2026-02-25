@@ -33,14 +33,11 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load core runtime (~4KB) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-  
-  <!-- 2. Load behaviors you need -->
+  <!-- Load the behavior you need (includes core runtime) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 </head>
 <body>
-  <!-- 3. Use explicit is attributes -->
+  <!-- Use explicit is attributes -->
   <dialog is="behavioral-reveal" behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -57,17 +54,14 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load core runtime -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-  
-  <!-- 2. Load behaviors -->
+  <!-- Load behaviors -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
   
-  <!-- 3. Load auto-loader (auto-enables itself) -->
+  <!-- Load auto-loader (auto-enables itself) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 </head>
 <body>
-  <!-- 4. Omit is attribute (auto-loader adds it) -->
+  <!-- Omit is attribute (auto-loader adds it) -->
   <dialog behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -87,15 +81,14 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 ### Breaking Changes
 
 - **Removed All-in-One Bundle:** `behavior-fn.all.js` has been removed
-- **Opt-In Loading:** Load core runtime + individual behaviors
-- **Core Required:** Individual behavior bundles now require core to be loaded first
+- **Opt-In Loading:** Load only the individual behaviors you need
 
 ### Benefits
 
-- **Better Performance:** Load only what you need (4KB to 100KB, you decide)
-- **Smaller Bundles:** Core runtime is only 4KB (~1.5KB gzipped)
-- **Clearer Dependencies:** Explicit core → behaviors → auto-loader
-- **Reduced Magic:** Auto-loader is opt-in, not automatic
+- **Better Performance:** Load only what you need (50KB for one behavior vs 72KB for all)
+- **Simpler Usage:** Just load the behavior script - core runtime is bundled in
+- **No Dependencies:** Each behavior is self-contained (includes core)
+- **Same DX as v0.1.6:** Individual bundles work exactly like before
 
 **📋 [Migration Guide](CHANGELOG.md)** | **🔄 [Full Changelog](CHANGELOG.md)**
 
