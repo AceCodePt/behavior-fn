@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 /**
- * Build CDN bundles for BehaviorFN
+ * Build CDN bundles for BehaviorFN (ESM Only)
  * 
- * Core + Behavior Modules Architecture:
- * 1. Core runtime (behavior-fn-core.js) - Standalone, required
- * 2. Individual behavior bundles (reveal.js, request.js, etc.) - Depend on core
- * 3. Optional auto-loader (auto-loader.js) - Depends on core, opt-in convenience
+ * ESM Module Architecture:
+ * 1. Core runtime (behavior-fn-core.js) - Exports core functions (registerBehavior, etc.)
+ * 2. Individual behavior bundles (reveal.js, request.js, etc.) - Export factory functions
+ * 3. Optional auto-loader (auto-loader.js) - Exports enableAutoLoader function
  * 
  * Key Strategies:
  * - Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
- * - Behaviors check for core at load time and fail gracefully if missing
- * - Eliminates registry isolation by using shared global BehaviorFN
+ * - Use real ESM imports/exports (no IIFE, no window assignments)
+ * - Eliminates registry isolation through natural ES module singleton sharing
+ * - All bundles are ESM format for modern browsers (ES2020+)
  */
 
 import { build, type Plugin } from "esbuild";
@@ -138,7 +139,7 @@ async function extractSchemaMetadata(behaviorName: string): Promise<{
 }
 
 async function buildCDNBundles() {
-  console.log("🏗️  Building CDN bundles (Core + Behavior Modules)...\n");
+  console.log("🏗️  Building CDN bundles (ESM Only - Core + Behavior Modules)...\n");
 
   await mkdir(cdnOutDir, { recursive: true });
 
@@ -150,32 +151,38 @@ async function buildCDNBundles() {
 
   console.log(`Found ${behaviorDirs.length} behaviors:\n- ${behaviorDirs.join("\n- ")}\n`);
 
-  // Phase 1: Build Core Runtime (Standalone)
-  console.log("📦 Phase 1: Building standalone core runtime...");
+  // Phase 1: Build Core Runtime (ESM)
+  console.log("📦 Phase 1: Building core runtime (ESM)...");
   await buildCore();
 
-  // Phase 2: Build Individual Behaviors (Depend on Core)
-  console.log("\n📦 Phase 2: Building behavior modules (require core)...");
+  // Phase 2: Build Individual Behaviors (ESM)
+  console.log("\n📦 Phase 2: Building behavior modules (ESM)...");
   await buildIndividualBehaviors(behaviorDirs);
 
-  // Phase 3: Build Auto-Loader (Depends on Core)
-  console.log("\n📦 Phase 3: Building auto-loader (requires core)...");
+  // Phase 3: Build Auto-Loader (ESM)
+  console.log("\n📦 Phase 3: Building auto-loader (ESM)...");
   await buildAutoLoader();
 
   // Phase 4: Generate Examples
   console.log("\n📦 Phase 4: Generating examples...");
   await generateCDNExamples(behaviorDirs);
 
-  console.log("\n✅ All CDN bundles built successfully!");
+  console.log("\n✅ All CDN bundles built successfully! (ESM Only - Auto-Register)");
   console.log(`📂 Output directory: ${cdnOutDir}`);
-  console.log("\n📘 Loading Pattern (Core + Behaviors):");
-  console.log("  <script src='behavior-fn-core.js'></script>  <!-- Required first! -->");
-  console.log("  <script src='reveal.js'></script>");
-  console.log("  <script src='request.js'></script>");
-  console.log("\n📘 With Auto-Loader:");
-  console.log("  <script src='behavior-fn-core.js'></script>  <!-- Required first! -->");
-  console.log("  <script src='reveal.js'></script>");
-  console.log("  <script src='auto-loader.js'></script>      <!-- Auto-enables -->");
+  console.log("\n📘 Loading Pattern (Simplest - Auto-Register & Auto-Enable):");
+  console.log("  <script type='module'>");
+  console.log("    import { defineBehavioralHost } from './behavior-fn-core.js';");
+  console.log("    import { metadata } from './reveal.js';  // Auto-registers!");
+  console.log("    import './auto-loader.js';  // Auto-enables!");
+  console.log("    ");
+  console.log("    // Optional: Define hosts manually for best performance");
+  console.log("    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);");
+  console.log("  </script>");
+  console.log("\n📘 Simplest (Auto-Loader Only):");
+  console.log("  <script type='module'>");
+  console.log("    import './reveal.js';       // Auto-registers!");
+  console.log("    import './auto-loader.js';  // Auto-enables!");
+  console.log("  </script>");
 }
 
 /**
@@ -192,34 +199,23 @@ import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-reg
 import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
 import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
 
-// Setup global namespace
-if (typeof window !== 'undefined') {
-  window.BehaviorFN = {
-    registerBehavior,
-    getBehavior,
-    defineBehavioralHost,
-    parseBehaviorNames,
-    getObservedAttributes,
-    version: '0.2.0',
-  };
-  
-  // Expose core functions globally for convenience
-  window.registerBehavior = registerBehavior;
-  window.getBehavior = getBehavior;
-  window.defineBehavioralHost = defineBehavioralHost;
-  
-  console.log('✅ BehaviorFN Core v0.2.0 loaded');
-}
+// Export all core functions as ESM
+export { registerBehavior, getBehavior, defineBehavioralHost, parseBehaviorNames, getObservedAttributes };
+
+// Version info
+export const version = '0.2.0';
+
+// Log when loaded
+console.log('✅ BehaviorFN Core v0.2.0 (ESM) loaded');
 `;
 
   await writeFile(coreEntry, coreCode);
 
-  // Build IIFE version
+  // Build ESM version only
   await build({
     entryPoints: [coreEntry],
     bundle: true,
-    format: "iife",
-    // NO globalName - code manually assigns to window.BehaviorFN
+    format: "esm",
     outfile: join(cdnOutDir, "behavior-fn-core.js"),
     platform: "browser",
     target: "es2020",
@@ -228,22 +224,7 @@ if (typeof window !== 'undefined') {
     plugins: [inlineTypeBoxPlugin],
   });
 
-  console.log(`  ✅ behavior-fn-core.js (IIFE)`);
-
-  // Build ESM version
-  await build({
-    entryPoints: [coreEntry],
-    bundle: true,
-    format: "esm",
-    outfile: join(cdnOutDir, "behavior-fn-core.esm.js"),
-    platform: "browser",
-    target: "es2020",
-    minify: true,
-    sourcemap: true,
-    plugins: [inlineTypeBoxPlugin],
-  });
-
-  console.log(`  ✅ behavior-fn-core.esm.js (ESM)`);
+  console.log(`  ✅ behavior-fn-core.js (ESM)`);
 }
 
 /**
@@ -276,49 +257,36 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
     const observedAttributes = schemaMeta?.observedAttributes || [];
     const jsonSchema = schemaMeta?.jsonSchema || {};
 
-    // Create behavior entry that depends on core
+    // Create behavior entry as ESM module with auto-registration
     const behaviorEntry = join(cdnOutDir, `_${behaviorName}-entry.js`);
     const behaviorCode = `
-// Import behavior (will be bundled)
+// Import core and behavior (will be bundled)
+import { registerBehavior } from "${join(registryDir, "behavior-registry.ts")}";
 import { ${exportName} } from "${behaviorPath}";
 
-// Check if BehaviorFN core is loaded
-if (typeof window === 'undefined' || !window.BehaviorFN) {
-  const error = '[BehaviorFN] Core not loaded! Load behavior-fn-core.js before ${behaviorName}.js';
-  console.error(error);
-  console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
-  throw new Error(error);
-}
+// Export factory function
+export { ${exportName} };
 
-// Observed attributes extracted from TypeBox schema (plain array, no TypeBox needed)
-const observedAttributes = ${JSON.stringify(observedAttributes)};
-
-// JSON Schema (plain object, converted from TypeBox)
-const jsonSchema = ${JSON.stringify(jsonSchema, null, 2)};
-
-// Auto-register this behavior using the global BehaviorFN
-window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
-
-// Store metadata for this behavior
-if (!window.BehaviorFN.behaviorMetadata) {
-  window.BehaviorFN.behaviorMetadata = {};
-}
-window.BehaviorFN.behaviorMetadata['${behaviorName}'] = {
-  observedAttributes,
-  schema: jsonSchema,
+// Export metadata (observed attributes and JSON Schema)
+export const metadata = {
+  observedAttributes: ${JSON.stringify(observedAttributes)},
+  schema: ${JSON.stringify(jsonSchema, null, 2)},
 };
 
-console.log('✅ BehaviorFN: Registered "${behaviorName}" behavior');
+// Auto-register on import (side-effect)
+registerBehavior('${behaviorName}', ${exportName});
+
+// Log when loaded and registered
+console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
 `;
 
     await writeFile(behaviorEntry, behaviorCode);
 
-    // Build IIFE version (no core bundled)
+    // Build ESM version only
     await build({
       entryPoints: [behaviorEntry],
       bundle: true,
-      format: "iife",
-      globalName: `BehaviorFN_${toPascalCase(behaviorName)}`,
+      format: "esm",
       outfile: join(cdnOutDir, `${behaviorName}.js`),
       platform: "browser",
       target: "es2020",
@@ -327,28 +295,13 @@ console.log('✅ BehaviorFN: Registered "${behaviorName}" behavior');
       plugins: [inlineTypeBoxPlugin],
     });
 
-    console.log(`  ✅ ${behaviorName}.js (IIFE, requires core)`);
-
-    // Build ESM version (no core bundled)
-    await build({
-      entryPoints: [behaviorEntry],
-      bundle: true,
-      format: "esm",
-      outfile: join(cdnOutDir, `${behaviorName}.esm.js`),
-      platform: "browser",
-      target: "es2020",
-      minify: true,
-      sourcemap: true,
-      plugins: [inlineTypeBoxPlugin],
-    });
-
-    console.log(`  ✅ ${behaviorName}.esm.js (ESM, requires core)`);
+    console.log(`  ✅ ${behaviorName}.js (ESM)`);
   }
 }
 
 /**
  * Build the optional auto-loader module.
- * Depends on core being loaded first. Auto-enables when loaded via script tag.
+ * Auto-enables when imported (side-effect).
  */
 async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
@@ -357,32 +310,23 @@ async function buildAutoLoader() {
 // Import auto-loader (will be bundled)
 import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
 
-// Check if BehaviorFN core is loaded
-if (typeof window === 'undefined' || !window.BehaviorFN) {
-  const error = '[BehaviorFN] Core not loaded! Load behavior-fn-core.js before auto-loader.js';
-  console.error(error);
-  console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
-  throw new Error(error);
-}
+// Export auto-loader function
+export { enableAutoLoader };
 
-// Expose and enable auto-loader
-window.BehaviorFN.enableAutoLoader = enableAutoLoader;
-window.enableAutoLoader = enableAutoLoader;
-
-// Automatically enable when loaded via script tag
+// Auto-enable when imported (side-effect)
 enableAutoLoader();
 
-console.log('✅ BehaviorFN: Auto-loader enabled');
+// Log when loaded and enabled
+console.log('✅ BehaviorFN: Auto-loader enabled automatically');
 `;
 
   await writeFile(autoLoaderEntry, autoLoaderCode);
 
-  // Build IIFE version
+  // Build ESM version only
   await build({
     entryPoints: [autoLoaderEntry],
     bundle: true,
-    format: "iife",
-    globalName: "BehaviorFN_AutoLoader",
+    format: "esm",
     outfile: join(cdnOutDir, "auto-loader.js"),
     platform: "browser",
     target: "es2020",
@@ -391,26 +335,11 @@ console.log('✅ BehaviorFN: Auto-loader enabled');
     plugins: [inlineTypeBoxPlugin],
   });
 
-  console.log(`  ✅ auto-loader.js (IIFE, requires core)`);
-
-  // Build ESM version
-  await build({
-    entryPoints: [autoLoaderEntry],
-    bundle: true,
-    format: "esm",
-    outfile: join(cdnOutDir, "auto-loader.esm.js"),
-    platform: "browser",
-    target: "es2020",
-    minify: true,
-    sourcemap: true,
-    plugins: [inlineTypeBoxPlugin],
-  });
-
-  console.log(`  ✅ auto-loader.esm.js (ESM, requires core)`);
+  console.log(`  ✅ auto-loader.js (ESM)`);
 }
 
 /**
- * Generate CDN usage examples
+ * Generate CDN usage examples (ESM Only)
  */
 async function generateCDNExamples(behaviorDirs: string[]) {
   const exampleHTML = `<!DOCTYPE html>
@@ -498,32 +427,31 @@ async function generateCDNExamples(behaviorDirs: string[]) {
     <strong>Why?</strong> v0.1.6 forced you to load 72KB (20KB gzipped) to use one behavior. v0.2.0 lets you load only what you need: 1.9KB to 5.5KB gzipped per behavior.
   </div>
 
-  <h2>🚀 Quick Start</h2>
+  <h2>🚀 Quick Start (ESM Only - Auto-Register)</h2>
   
-  <h3>Option 1: Auto-Loader (Recommended - 2 Script Tags)</h3>
-  <pre><code>&lt;!-- 1. Load behavior (includes core runtime) --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+  <h3>Option 1: Simplest (Auto-Loader - Recommended)</h3>
+  <pre><code>&lt;script type="module"&gt;
+  // Import auto-registers the behavior and auto-enables the loader!
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+&lt;/script&gt;
 
-&lt;!-- 2. Load auto-loader (auto-registers hosts) --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
-
-&lt;!-- Clean HTML (auto-loader adds is attribute) --&gt;
+&lt;!-- No is attribute needed with auto-loader --&gt;
 &lt;dialog behavior="reveal" id="my-modal"&gt;
   &lt;h2&gt;Hello!&lt;/h2&gt;
   &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
 &lt;/dialog&gt;
 
 &lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
-  <p><strong>Total:</strong> 14.4KB minified (5.5KB gzipped) - 73% smaller than v0.1.6!</p>
+  <p><strong>Total:</strong> ~17KB minified (~6KB gzipped) - Just 2 imports, everything automatic!</p>
 
-  <h3>Option 2: Manual Host (Smallest - 1 Tag + 1 Script Block)</h3>
-  <pre><code>&lt;!-- 1. Load behavior --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
-
-&lt;!-- 2. Define host manually --&gt;
-&lt;script&gt;
-  const meta = BehaviorFN.behaviorMetadata['reveal'];
-  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  <h3>Option 2: Explicit (Best Performance)</h3>
+  <pre><code>&lt;script type="module"&gt;
+  import { defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
+  import { metadata } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';  // Auto-registers!
+  
+  // Define host manually for best performance
+  defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
 &lt;/script&gt;
 
 &lt;!-- Must use explicit is attribute --&gt;
@@ -533,22 +461,24 @@ async function generateCDNExamples(behaviorDirs: string[]) {
 &lt;/dialog&gt;
 
 &lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
-  <p><strong>Total:</strong> 8.7KB minified (3.2KB gzipped) - 84% smaller than v0.1.6!</p>
+  <p><strong>Total:</strong> ~11KB minified (~4KB gzipped) - No auto-loader overhead!</p>
 
-  <h2>📦 Available Bundles</h2>
+  <h2>📦 Available Bundles (ESM Only)</h2>
   
-  <h3>Individual Behaviors (Self-Contained)</h3>
-  <p>Each includes: Core runtime + Behavior logic + JSON Schema + observedAttributes</p>
-
-  <h3>Individual Behaviors</h3>
+  <h3>Core Runtime</h3>
   <ul>
-${behaviorDirs.map(name => `    <li><code>${name}.js</code> / <code>${name}.esm.js</code></li>`).join("\n")}
+    <li><code>behavior-fn-core.js</code> - Core functions (registerBehavior, etc.) - Required</li>
   </ul>
 
-  <h3>Auto-Loader (Optional) <span class="badge new">NEW</span></h3>
+  <h3>Individual Behaviors</h3>
+  <p>Each behavior exports its factory function and metadata:</p>
   <ul>
-    <li><code>auto-loader.js</code> - Opt-in convenience (~5KB)</li>
-    <li><code>auto-loader.esm.js</code> - ESM version</li>
+${behaviorDirs.map(name => `    <li><code>${name}.js</code> - Export: ${name}BehaviorFactory, metadata</li>`).join("\n")}
+  </ul>
+
+  <h3>Auto-Loader (Optional)</h3>
+  <ul>
+    <li><code>auto-loader.js</code> - Export: enableAutoLoader (~5KB)</li>
   </ul>
 
   <h2>🎨 Live Example</h2>
@@ -565,76 +495,82 @@ ${behaviorDirs.map(name => `    <li><code>${name}.js</code> / <code>${name}.esm.
     </dialog>
   </div>
 
-  <h2>📖 Loading Patterns</h2>
+  <h2>📖 Loading Patterns (ESM Only - Auto-Register)</h2>
 
-  <h3>Pattern 1: Explicit (Recommended)</h3>
+  <h3>Pattern 1: Auto-Loader (Simplest - Recommended)</h3>
+  <p><strong>Best for:</strong> Most use cases, cleanest code, quick setup</p>
+  <pre><code>&lt;script type="module"&gt;
+  // Just import - behaviors auto-register, loader auto-enables!
+  import './reveal.js';
+  import './request.js';
+  import './auto-loader.js';
+&lt;/script&gt;
+
+&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
+  <ul>
+    <li>✅ Simplest setup (just imports!)</li>
+    <li>✅ Cleaner HTML (no is attribute)</li>
+    <li>✅ Auto-registration on import</li>
+    <li>✅ Works with dynamic content</li>
+    <li>✅ Closest to Alpine.js/HTMX DX</li>
+    <li>⚠️ Adds ~5KB + MutationObserver overhead</li>
+  </ul>
+
+  <h3>Pattern 2: Explicit (Best Performance)</h3>
   <p><strong>Best for:</strong> Production apps, maximum control, smallest size</p>
-  <pre><code>&lt;!-- 1. Load core --&gt;
-&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
+  <pre><code>&lt;script type="module"&gt;
+  import { defineBehavioralHost } from './behavior-fn-core.js';
+  import { metadata } from './reveal.js';  // Auto-registers!
+  
+  // Define host manually for best performance
+  defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
+&lt;/script&gt;
 
-&lt;!-- 2. Load behaviors --&gt;
-&lt;script src="reveal.js"&gt;&lt;/script&gt;
-
-&lt;!-- 3. Use explicit is attributes --&gt;
 &lt;dialog is="behavioral-reveal" behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
   <ul>
     <li>✅ Smallest bundle size</li>
     <li>✅ No MutationObserver overhead</li>
-    <li>✅ Most explicit and predictable</li>
     <li>✅ Best performance</li>
+    <li>✅ Auto-registration on import</li>
+    <li>⚠️ Requires explicit is attribute</li>
   </ul>
 
-  <h3>Pattern 2: Auto-Loader (Convenience)</h3>
-  <p><strong>Best for:</strong> Prototypes, content-heavy sites, quick demos</p>
-  <pre><code>&lt;!-- 1. Load core --&gt;
-&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
+  <h2>🔄 Migration from v0.1.x to v0.2.0 (ESM Only + Auto-Register)</h2>
 
-&lt;!-- 2. Load behaviors --&gt;
-&lt;script src="reveal.js"&gt;&lt;/script&gt;
-&lt;script src="request.js"&gt;&lt;/script&gt;
+  <div class="note">
+    <strong>⚠️ BREAKING CHANGE:</strong> v0.2.0 removes IIFE bundles completely. All bundles are now ESM-only with auto-registration.
+    <br><br>
+    <strong>Why?</strong> ESM eliminates registry isolation issues, auto-registration simplifies usage, and it's the web standard (98%+ browser support in 2026).
+  </div>
 
-&lt;!-- 3. Load and enable auto-loader --&gt;
-&lt;script src="auto-loader.js"&gt;&lt;/script&gt;
-&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt;
-
-&lt;!-- 4. Omit is attributes --&gt;
-&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
-  <ul>
-    <li>✅ Cleaner HTML</li>
-    <li>✅ Closer to Alpine.js/HTMX DX</li>
-    <li>⚠️ Adds ~5KB + MutationObserver overhead</li>
-    <li>⚠️ Requires explicit enablement</li>
-  </ul>
-
-  <h2>🔄 Migration from v0.1.x</h2>
-
-  <h3>If you used <code>behavior-fn.all.js</code>:</h3>
-  <pre><code>&lt;!-- ❌ OLD (v0.1.x) --&gt;
-&lt;script src="behavior-fn.all.js"&gt;&lt;/script&gt;
-&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;
-
-&lt;!-- ✅ NEW (v0.2.0) - Option 1: Explicit --&gt;
+  <h3>If you used IIFE bundles:</h3>
+  <pre><code>&lt;!-- ❌ OLD (v0.1.x) - IIFE format --&gt;
 &lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
 &lt;script src="reveal.js"&gt;&lt;/script&gt;
-&lt;dialog is="behavioral-reveal" behavior="reveal"&gt;...&lt;/dialog&gt;
 
-&lt;!-- ✅ NEW (v0.2.0) - Option 2: Auto-loader --&gt;
+&lt;!-- ✅ NEW (v0.2.0) - ESM format with auto-registration --&gt;
+&lt;script type="module"&gt;
+  import { defineBehavioralHost } from './behavior-fn-core.js';
+  import { metadata } from './reveal.js';  // Auto-registers!
+  
+  defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
+&lt;/script&gt;</code></pre>
+
+  <h3>With auto-loader (simplest):</h3>
+  <pre><code>&lt;!-- ❌ OLD (v0.1.x) - IIFE with global BehaviorFN --&gt;
 &lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
 &lt;script src="reveal.js"&gt;&lt;/script&gt;
 &lt;script src="auto-loader.js"&gt;&lt;/script&gt;
 &lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt;
-&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
 
-  <h3>If you used individual bundles:</h3>
-  <pre><code>&lt;!-- ❌ OLD (v0.1.x) - bundles included core --&gt;
-&lt;script src="reveal.js"&gt;&lt;/script&gt;
-&lt;script src="auto-loader.js"&gt;&lt;/script&gt; &lt;!-- auto-enabled --&gt;
+&lt;!-- ✅ NEW (v0.2.0) - Just imports! --&gt;
+&lt;script type="module"&gt;
+  import './reveal.js';       // Auto-registers!
+  import './auto-loader.js';  // Auto-enables!
+&lt;/script&gt;</code></pre>
 
-&lt;!-- ✅ NEW (v0.2.0) - explicit core, explicit enable --&gt;
-&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt; &lt;!-- NEW: explicit core --&gt;
-&lt;script src="reveal.js"&gt;&lt;/script&gt;
-&lt;script src="auto-loader.js"&gt;&lt;/script&gt;
-&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt; &lt;!-- NEW: explicit call --&gt;</code></pre>
+  <h3>Browser Support:</h3>
+  <p>ESM requires modern browsers (Chrome 61+, Firefox 60+, Safari 11+, Edge 79+). For IE11 support, stay on v0.1.x or use a bundler.</p>
 
   <h2>❓ FAQ</h2>
 
@@ -653,10 +589,8 @@ ${behaviorDirs.map(name => `    <li><code>${name}.js</code> / <code>${name}.esm.
     <li>Enable auto-loader (optional, <code>BehaviorFN.enableAutoLoader()</code>)</li>
   </ol>
 
-  <h3>Q: Can I use ESM imports?</h3>
-  <p><strong>A:</strong> Yes! All bundles have <code>.esm.js</code> versions:</p>
-  <pre><code>import { registerBehavior } from 'behavior-fn/dist/cdn/behavior-fn-core.esm.js';
-import { revealBehaviorFactory } from 'behavior-fn/dist/cdn/reveal.esm.js';</code></pre>
+  <h3>Q: What happened to IIFE bundles?</h3>
+  <p><strong>A:</strong> Removed in v0.2.0! All bundles are now ESM-only. This eliminates registry isolation issues and aligns with web standards. ESM has 98%+ browser support in 2026.</p>
 
   <h2>📚 Resources</h2>
   <ul>

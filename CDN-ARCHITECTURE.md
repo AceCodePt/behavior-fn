@@ -1,10 +1,26 @@
-# BehaviorFN CDN Architecture (v0.2.0)
+# BehaviorFN CDN Architecture (v0.2.0 - ESM Only + Auto-Register)
 
 ## Overview
 
-BehaviorFN v0.2.0 introduces an **Opt-In Loading Architecture** where you explicitly choose what to load. This gives you better performance, smaller bundle sizes, and clearer mental models.
+BehaviorFN v0.2.0 introduces an **Opt-In Loading Architecture** with **ESM-only bundles** and **auto-registration on import**. This eliminates registry isolation issues, simplifies usage to just imports, and aligns with modern web standards for better performance and clearer mental models.
 
-## 🔥 Breaking Change from v0.1.x
+## 🔥 Breaking Changes from v0.1.x
+
+### 1. ESM Only - IIFE Removed
+
+**⚠️ ALL BUNDLES ARE NOW ESM-ONLY.** IIFE format has been completely removed.
+
+**Why ESM Only?**
+- **Solves Registry Isolation:** IIFE bundles created isolated Maps that couldn't share state. ESM modules naturally share singletons.
+- **Modern Standard:** ES modules have 98%+ browser support in 2026 (Chrome 61+, Firefox 60+, Safari 11+, Edge 79+).
+- **Better DX:** Real imports/exports, type safety, IDE autocomplete.
+- **Simpler Architecture:** One format instead of two (IIFE + ESM).
+
+**Browser Support:**
+- ✅ Chrome 61+ (2017), Firefox 60+ (2018), Safari 11+ (2017), Edge 79+ (2020)
+- ❌ IE11 not supported (stay on v0.1.x or use a bundler)
+
+### 2. Removed All-in-One Bundle
 
 **⚠️ REMOVED:** The all-in-one bundle (`behavior-fn.all.js`) has been **completely removed** in v0.2.0.
 
@@ -21,9 +37,9 @@ Users were loading 72KB to use one behavior. Now you load only what you need.
 
 ## Bundle Types
 
-### 1. Core Runtime Bundle (Required)
+### 1. Core Runtime Bundle (Required) - ESM
 
-**Files:** `behavior-fn-core.js` / `behavior-fn-core.esm.js`
+**File:** `behavior-fn-core.js` (ESM only)
 
 **What it contains:**
 - `behavior-registry` - Behavior registration and lookup
@@ -32,15 +48,15 @@ Users were loading 72KB to use one behavior. Now you load only what you need.
 - `types` - TypeScript types
 - `event-methods` - Event handler utilities
 
-**Exports:**
+**Exports (ESM):**
 ```javascript
-window.BehaviorFN = {
+export {
   registerBehavior,     // Register a behavior factory
   getBehavior,          // Get a registered behavior
   defineBehavioralHost, // Define a custom element host
   parseBehaviorNames,   // Parse behavior attribute
   getObservedAttributes,// Extract observed attributes from schema
-  version,              // Current version
+  version,              // Current version (string)
 };
 ```
 
@@ -48,30 +64,38 @@ window.BehaviorFN = {
 
 **Usage:**
 ```html
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+<script type="module">
+  import { registerBehavior, defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
+</script>
 ```
 
 ---
 
-### 2. Individual Behavior Bundles
+### 2. Individual Behavior Bundles - ESM + Auto-Register
 
-**Files:** `reveal.js`, `request.js`, `json-template.js`, etc.
+**Files:** `reveal.js`, `request.js`, `json-template.js`, etc. (ESM only)
 
-**What they do:**
-- Check that core is loaded (throws error if not)
-- Auto-register the behavior factory
-- Log registration confirmation
+**What they export:**
+- Factory function (e.g., `revealBehaviorFactory`)
+- Metadata object (observedAttributes, JSON Schema)
+
+**What they do automatically:**
+- **Auto-register** the behavior on import (side-effect)
 
 **Example:**
 ```javascript
-// reveal.js (conceptual)
-if (!window.BehaviorFN) {
-  console.error('[BehaviorFN] Core not loaded! Load behavior-fn-core.js first.');
-} else {
-  window.BehaviorFN.registerBehavior('reveal', revealBehaviorFactory);
-  console.log('✅ BehaviorFN: Registered "reveal" behavior');
-}
+// reveal.js (ESM)
+export { revealBehaviorFactory };
+export const metadata = {
+  observedAttributes: ['reveal-delay', 'reveal-duration', ...],
+  schema: { /* JSON Schema */ }
+};
+
+// Auto-registers on import!
+registerBehavior('reveal', revealBehaviorFactory);
 ```
+
+**Just import to register** - no manual `registerBehavior()` call needed!
 
 **Size:** Varies by behavior (behavior logic + JSON Schema, NO core bundled)
 
@@ -91,40 +115,40 @@ if (!window.BehaviorFN) {
 
 **Usage:**
 ```html
-<!-- Load core first! -->
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-
-<!-- Then load behaviors you need -->
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js"></script>
+<script type="module">
+  // Just import - behaviors auto-register!
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js';
+</script>
 ```
 
 ---
 
-### 3. Auto-Loader (Optional)
+### 3. Auto-Loader (Optional) - ESM + Auto-Enable
 
-**Files:** `auto-loader.js` / `auto-loader.esm.js`
+**File:** `auto-loader.js` (ESM only)
 
-**What it does:**
+**What it exports:**
+- `enableAutoLoader` function
+
+**What it does automatically:**
+- **Auto-enables** when imported (side-effect)
 - Automatically adds `is="behavioral-*"` attributes to elements with `behavior` attributes
-- Scans DOM on load (when you call `enableAutoLoader()`)
+- Scans DOM immediately
 - Watches for new elements (MutationObserver)
 - Registers behavioral hosts automatically
 
-**Important:** Automatically enables itself when loaded via `<script>` tag.
+**Important:** Just import to enable - no manual call needed!
 
 **Size:** 5.7KB minified (2.3KB gzipped)
 
 **Usage:**
 ```html
-<!-- Load core -->
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-
-<!-- Load behaviors -->
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-
-<!-- Load auto-loader (auto-enables itself) -->
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+<script type="module">
+  // Just import - behaviors auto-register, loader auto-enables!
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+</script>
 
 <!-- Now you can omit the is attribute -->
 <dialog behavior="reveal">Content</dialog>
@@ -132,27 +156,24 @@ if (!window.BehaviorFN) {
 
 ---
 
-## Loading Patterns
+## Loading Patterns (ESM Only + Auto-Register)
 
-### Pattern 1: Auto-Loader (Recommended - 3 Script Tags)
+### Pattern 1: Auto-Loader (Simplest - Recommended)
 
-**Best for:** Most use cases, simplest setup
+**Best for:** Most use cases, cleanest code, quick setup
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load core (required first) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-  
-  <!-- 2. Load behavior -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  
-  <!-- 3. Load auto-loader (auto-registers hosts) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+  <script type="module">
+    // Just import - behaviors auto-register, loader auto-enables!
+    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+  </script>
 </head>
 <body>
-  <!-- Clean HTML (auto-loader adds is attribute) -->
+  <!-- No is attribute needed with auto-loader -->
   <dialog behavior="reveal" id="modal">
     <h2>Hello!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -163,43 +184,41 @@ if (!window.BehaviorFN) {
 </html>
 ```
 
-**Total:** ~17KB minified / ~6.2KB gzipped (core 4KB/1.6KB + reveal 6.8KB/2.3KB + auto-loader 5.6KB/2.2KB)
+**Total:** ~17KB minified / ~6.2KB gzipped (reveal 6.8KB/2.3KB + auto-loader 5.6KB/2.2KB + registry 4KB/1.6KB)
 
 **Pros:**
-- ✅ Simple setup (just 3 script tags)
-- ✅ Clean HTML (no `is` attribute)
-- ✅ Auto-registers behavioral hosts
+- ✅ **Simplest setup** (just 2 imports!)
+- ✅ Cleaner HTML (no `is` attribute)
+- ✅ Auto-registration on import
+- ✅ Auto-enables on import
 - ✅ Works with dynamic content
-- ✅ Shared core for multiple behaviors
+- ✅ Closest to Alpine.js/HTMX DX
+- ✅ Real ES modules - no registry isolation
 
 **Cons:**
 - ⚠️ Adds ~5.6KB for auto-loader
-- ⚠️ Requires loading core first
+- ⚠️ MutationObserver overhead
 
 ---
 
-### Pattern 2: Manual Host (Maximum Control)
+### Pattern 2: Explicit (Best Performance)
 
-**Best for:** Production apps where every KB matters, maximum control
+**Best for:** Production apps, maximum control, smallest size
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load core (required first) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-  
-  <!-- 2. Load behavior -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  
-  <!-- 3. Define behavioral host manually -->
-  <script>
-    const meta = BehaviorFN.behaviorMetadata['reveal'];
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  <script type="module">
+    import { defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
+    import { metadata } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';  // Auto-registers!
+    
+    // Define host manually for best performance
+    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
   </script>
 </head>
 <body>
-  <!-- Must use explicit is attribute -->
+  <!-- Explicit is attribute required -->
   <dialog is="behavioral-reveal" behavior="reveal" id="modal">
     <h2>Hello!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -210,19 +229,18 @@ if (!window.BehaviorFN) {
 </html>
 ```
 
-**Total:** ~10.8KB minified / ~4KB gzipped (core 4KB/1.6KB + reveal 6.8KB/2.3KB)
+**Total:** ~11KB minified / ~4KB gzipped (core 4KB/1.6KB + reveal 6.8KB/2.3KB)
 
 **Pros:**
-- ✅ Smallest bundle (no auto-loader)
+- ✅ Smallest bundle size
 - ✅ No MutationObserver overhead
-- ✅ Most explicit and predictable
 - ✅ Best performance
-- ✅ Shared core enables multiple behaviors efficiently
+- ✅ Auto-registration on import
+- ✅ Real ES modules - no registry isolation
 
 **Cons:**
 - ⚠️ Requires manual `defineBehavioralHost` call
 - ⚠️ Must add `is` attribute manually
-- ⚠️ Must load core first
 
 ---
 
@@ -473,20 +491,27 @@ All behaviors are available as individual bundles:
 
 ---
 
-## ESM Support
+## Import Maps (Optional Convenience)
 
-All bundles have ESM versions (`.esm.js`) for modern bundlers:
+Use import maps to simplify import paths:
 
-```javascript
-// Import core
-import { registerBehavior, defineBehavioralHost } from 'behavior-fn/dist/cdn/behavior-fn-core.esm.js';
+```html
+<script type="importmap">
+{
+  "imports": {
+    "behavior-fn/": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/"
+  }
+}
+</script>
 
-// Import behaviors
-import { revealBehaviorFactory } from 'behavior-fn/dist/cdn/reveal.esm.js';
+<script type="module">
+  // Cleaner imports!
+  import { registerBehavior, defineBehavioralHost } from 'behavior-fn/behavior-fn-core.js';
+  import { revealBehaviorFactory, metadata } from 'behavior-fn/reveal.js';
 
-// Register manually
-registerBehavior('reveal', revealBehaviorFactory);
-defineBehavioralHost('dialog', 'behavioral-reveal');
+  registerBehavior('reveal', revealBehaviorFactory);
+  defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
+</script>
 ```
 
 ---

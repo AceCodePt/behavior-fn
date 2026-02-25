@@ -25,21 +25,24 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ## 🚀 Quick Start
 
-### CDN Usage (v0.2.0+)
+### CDN Usage (v0.2.0+ - ESM Only + Auto-Register)
 
-**⚠️ Breaking Change:** The all-in-one bundle (`behavior-fn.all.js`) has been **removed** in v0.2.0.
+**⚠️ Breaking Change:** All bundles are now **ESM-only** with **auto-registration on import**.
 
-**Option 1: Auto-Loader (Recommended - 2 Script Tags)**
+**Option 1: Auto-Loader (Simplest - Recommended)**
 
-**Option 1: All-in-One Bundle (Easiest)**
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+  <script type="module">
+    // Just import - behaviors auto-register, loader auto-enables!
+    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+  </script>
 </head>
 <body>
-  <!-- Auto-loader enabled - no is attribute needed -->
+  <!-- No is attribute needed with auto-loader -->
   <dialog behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -50,65 +53,27 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 </html>
 ```
 
-**Option 2: Individual Behaviors + Auto-Loader**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <!-- Load specific behaviors -->
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
-  <!-- Load auto-loader LAST -->
-  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
-</head>
-<body>
-  <dialog behavior="reveal" id="modal">
-    <h2>Hello World!</h2>
-  </dialog>
-</body>
-</html>
-```
-
-**Option 3: Individual Behaviors + Explicit `is`**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <!-- 1. Load behavior (includes core runtime) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  
-  <!-- 2. Load auto-loader (auto-registers hosts) -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-</head>
-<body>
-  <!-- Clean HTML (no is attribute needed) -->
-  <dialog behavior="reveal" id="modal">
-    <h2>Hello World!</h2>
-  </dialog>
-</body>
-</html>
-```
-
-**Total:** 14.4KB minified (5.5KB gzipped) - **73% smaller than v0.1.6!**
+**Total:** ~17KB minified (~6KB gzipped)  
+**Best for:** Most use cases, cleanest code
 
 ---
 
-**Option 2: Manual Host (Smallest Bundle - 1 Tag + 1 Script Block)**
+**Option 2: Explicit (Best Performance)**
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load behavior -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  
-  <!-- 2. Define behavioral host manually -->
-  <script>
-    const meta = BehaviorFN.behaviorMetadata['reveal'];
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  <script type="module">
+    import { defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
+    import { metadata } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';  // Auto-registers!
+    
+    // Define host manually for best performance
+    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
   </script>
 </head>
 <body>
-  <!-- Must use explicit is attribute -->
+  <!-- Explicit is attribute required -->
   <dialog is="behavioral-reveal" behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -119,42 +84,8 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 </html>
 ```
 
-**Total:** 8.7KB minified (3.2KB gzipped) - **84% smaller than v0.1.6!**
-
-**Total:** 2 script tags, 14.4KB minified (5.5KB gzipped)
-
----
-
-**Option 2: Manual Host Definition (Most Control)**
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <!-- 1. Load the behavior -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  
-  <!-- 2. Define behavioral host manually -->
-  <script>
-    // Get observed attributes from behavior metadata
-    const meta = BehaviorFN.behaviorMetadata['reveal'];
-    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
-  </script>
-</head>
-<body>
-  <!-- Use explicit is attribute -->
-  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
-    <h2>Hello World!</h2>
-    <button commandfor="modal" command="--hide">Close</button>
-  </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
-</body>
-</html>
-```
-
-**Total:** 1 script tag + 1 script block, 8.7KB minified (3.2KB gzipped)  
-**Best for:** Maximum control, smallest bundle
+**Total:** ~11KB minified (~4KB gzipped)  
+**Best for:** Production apps, best performance
 
 **📚 [View Complete CDN Examples](examples/cdn/)** | **📖 [CDN Architecture Guide](CDN-ARCHITECTURE.md)**
 
@@ -164,19 +95,35 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ### 🔥 Breaking Changes
 
-**⚠️ REMOVED: All-in-One Bundle (`behavior-fn.all.js`)**
+**⚠️ ESM ONLY + AUTO-REGISTER: IIFE Bundles Removed**
 
-The 72KB all-in-one bundle has been **completely removed**. You now load only the behaviors you need.
+All CDN bundles are now **ESM-only** with **auto-registration on import**. This eliminates registry isolation issues, simplifies usage, and aligns with modern web standards (ES2020+).
+
+**Browser Support:** Chrome 61+, Firefox 60+, Safari 11+, Edge 79+ (98%+ coverage in 2026)
 
 **Migration:**
 ```html
-<!-- ❌ v0.1.6: All-in-one (72KB / 20KB gzipped) -->
-<script src="behavior-fn.all.js"></script>
+<!-- ❌ v0.1.6: IIFE format -->
+<script src="behavior-fn-core.js"></script>
+<script src="reveal.js"></script>
 
-<!-- ✅ v0.2.0: Auto-loader (14.4KB / 5.5KB gzipped) -->
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+<!-- ✅ v0.2.0: ESM format with auto-registration -->
+<script type="module">
+  // Just import - auto-registers and auto-enables!
+  import './reveal.js';
+  import './auto-loader.js';
+</script>
 ```
+
+**New: Auto-Registration on Import**
+- Behaviors automatically register themselves when imported
+- Auto-loader automatically enables itself when imported
+- No more manual `registerBehavior()` or `enableAutoLoader()` calls needed
+- Simpler, cleaner code
+
+**⚠️ REMOVED: All-in-One Bundle (`behavior-fn.all.js`)**
+
+The 72KB all-in-one bundle has been **completely removed**. You now load only the behaviors you need.
 
 ### ✨ Benefits
 

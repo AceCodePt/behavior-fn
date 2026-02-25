@@ -9,46 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔥 BREAKING CHANGES
 
-#### Removed All-in-One Bundle
+#### ESM Only + Auto-Registration - IIFE Bundles Removed
 
-The `behavior-fn.all.js` bundle has been removed in favor of an opt-in loading architecture. This encourages better performance by loading only what you need.
+**All CDN bundles are now ESM-only with auto-registration on import.** IIFE bundles have been completely removed to eliminate registry isolation issues and align with modern web standards (ES2020+).
+
+**Why?** 
+- Solves registry isolation problems (behaviors couldn't find each other in IIFE)
+- Natural singleton sharing through ES modules
+- Auto-registration simplifies usage to just imports
+- Modern standard (98%+ browser support in 2026)
+- Better DX (real imports, type safety, IDE autocomplete)
+- Simpler architecture (one format instead of two)
+
+**Browser Support:**
+- ✅ Chrome 61+ (2017)
+- ✅ Firefox 60+ (2018)
+- ✅ Safari 11+ (2017)
+- ✅ Edge 79+ (2020)
+- ❌ IE11 not supported (use v0.1.x or a bundler)
 
 **Migration:**
 
-**Before (v0.1.6):**
+**Before (v0.1.6 - IIFE):**
 ```html
-<script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/behavior-fn.all.js"></script>
-<dialog behavior="reveal">Content</dialog>
-```
-
-**After (v0.2.0) - Option 1: Explicit (Recommended):**
-```html
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/behavior-fn-core.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/reveal.js"></script>
 <dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
 ```
 
-**After (v0.2.0) - Option 2: Auto-Loader:**
+**After (v0.2.0 - ESM + Auto-Register):**
 ```html
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script> <!-- Auto-enables itself -->
+<script type="module">
+  import { defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
+  import { metadata } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';  // Auto-registers!
+  
+  defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
+</script>
+
+<dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
+```
+
+**Simplest (Auto-Loader):**
+```html
+<script type="module">
+  // Just import - behaviors auto-register, loader auto-enables!
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+</script>
+
 <dialog behavior="reveal">Content</dialog>
 ```
 
-#### Auto-Loader Automatically Enables When Loaded
+#### Removed All-in-One Bundle
 
-The auto-loader module (`auto-loader.js`) automatically enables itself when loaded via `<script>` tag. No explicit `enableAutoLoader()` call is needed.
-
-**Before (v0.1.6):**
-```html
-<script src="auto-loader.js"></script> <!-- Auto-enabled itself -->
-```
-
-**After (v0.2.0):**
-```html
-<script src="auto-loader.js"></script> <!-- Still auto-enables itself -->
-```
+The `behavior-fn.all.js` bundle has been removed in favor of an opt-in loading architecture. This encourages better performance by loading only what you need.
 
 **Note:** This maintains backward compatibility for auto-loader behavior.
 
