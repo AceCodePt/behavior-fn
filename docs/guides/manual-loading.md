@@ -20,7 +20,14 @@ Perfect for:
   <title>BehaviorFN CDN Example</title>
 </head>
 <body>
+  <!-- 1. Load core runtime (required) -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
+  
+  <!-- 2. Load behavior -->
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  
+  <!-- 3. Load auto-loader (auto-adds is attributes) -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
   
   <dialog behavior="reveal" id="modal">
     <h2>Hello Modal!</h2>
@@ -37,16 +44,19 @@ Perfect for:
 
 ## Loading Options
 
-### Individual Behaviors
+### Individual Behaviors (Recommended)
 
-Load only what you need:
+Load only what you need. **Core is required first**, then behaviors:
 
 ```html
-<!-- Load specific behaviors -->
+<!-- 1. Load core runtime (required) -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
+
+<!-- 2. Load specific behaviors -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
 
-<!-- Load auto-loader (enables automatic is attribute addition) -->
+<!-- 3. Load auto-loader (enables automatic is attribute addition) -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
 
 <!-- Now just use behavior attribute (no is needed!) -->
@@ -56,19 +66,27 @@ Load only what you need:
 <button commandfor="modal" command="--toggle">Toggle</button>
 ```
 
-Each behavior bundle (~10KB) is self-contained and works independently.
+**Bundle sizes:** Core (4KB / 1.6KB gzipped) is shared. Individual behaviors: 2.3-11KB minified / 976B-3.3KB gzipped.
 
 **Without auto-loader**, use explicit `is` attributes and define behavioral hosts:
 
 ```html
-<!-- Load behaviors only -->
+<!-- 1. Load core runtime (required) -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
+
+<!-- 2. Load behaviors -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
 
-<!-- Define behavioral hosts manually -->
+<!-- 3. Define behavioral hosts manually -->
 <script>
+  // Get metadata for behaviors
+  const revealMeta = window.BehaviorFN.behaviorMetadata['reveal'];
+  const loggerMeta = window.BehaviorFN.behaviorMetadata['logger'];
+  
   // Define a dialog that can host reveal and logger behaviors
-  window.BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', []);
+  window.BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', 
+    [...revealMeta.observedAttributes, ...loggerMeta.observedAttributes]);
 </script>
 
 <!-- Add is attribute explicitly -->
@@ -81,31 +99,21 @@ Each behavior bundle (~10KB) is self-contained and works independently.
 
 ---
 
-### All-in-One Bundle
-
-Load all behaviors at once:
-
-```html
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
-
-<dialog behavior="reveal" id="modal">Content</dialog>
-<button commandfor="modal" command="--toggle">Toggle</button>
-```
-
-Single bundle (~20KB gzipped) with all behaviors included.
-
----
-
 ### Manual Registration (Advanced)
 
 For explicit control over registration:
 
 ```html
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"></script>
+<!-- 1. Load core -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
+
+<!-- 2. Load behavior -->
 <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
 
+<!-- 3. Define behavioral host manually -->
 <script>
-  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
 </script>
 
 <dialog is="behavioral-reveal" behavior="reveal" id="modal">
@@ -121,15 +129,18 @@ Use when you need explicit control over behavioral host registration.
 
 ```html
 <script type="module">
+  // Import core
   import { 
     registerBehavior, 
     defineBehavioralHost 
-  } from 'https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.esm.js';
+  } from 'https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.esm.js';
   
-  import { revealBehaviorFactory } from 'https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.esm.js';
+  // Behaviors auto-register when imported, but you can also import their factories
+  import 'https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.esm.js';
   
-  registerBehavior('reveal', revealBehaviorFactory);
-  defineBehavioralHost('dialog', 'behavioral-reveal', []);
+  // Define host with metadata
+  const meta = window.BehaviorFN.behaviorMetadata['reveal'];
+  defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
 </script>
 ```
 
@@ -171,7 +182,10 @@ Modern import syntax with tree-shaking support.
 <body>
   <h1>Modal Dialog with Reveal Behavior</h1>
   
+  <!-- Load core + behavior + auto-loader -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
   
   <button commandfor="my-modal" command="--toggle">
     Open Modal
@@ -208,7 +222,10 @@ Modern import syntax with tree-shaking support.
 <body>
   <h1>Popover Menu</h1>
   
+  <!-- Load core + behavior + auto-loader -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
   
   <button commandfor="menu" command="--toggle">
     Show Menu
@@ -240,7 +257,10 @@ Modern import syntax with tree-shaking support.
 <body>
   <h1>Search with Request Behavior</h1>
   
+  <!-- Load core + behavior + auto-loader -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/request.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
   
   <input 
     behavior="request"
@@ -271,8 +291,11 @@ Modern import syntax with tree-shaking support.
 <body>
   <h1>Dialog with Multiple Behaviors</h1>
   
+  <!-- Load core + behaviors + auto-loader -->
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
   <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js"></script>
+  <script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
   
   <button commandfor="logged-modal" command="--toggle">
     Open Modal
@@ -297,22 +320,29 @@ Modern import syntax with tree-shaking support.
 
 All bundles are available on unpkg and jsdelivr:
 
+**Core Runtime (Required):**
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js` (4KB / 1.6KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.esm.js` (ESM)
+
 **Individual Behaviors:**
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js`
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js`
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/request.js`
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/input-watcher.js`
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/compute.js`
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/element-counter.js`
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/logger.js` (2.3KB / 976B gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/element-counter.js` (2.7KB / 1.1KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/compound-commands.js` (3.1KB / 1.3KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/content-setter.js` (3.2KB / 1.2KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/input-watcher.js` (3.8KB / 1.5KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/compute.js` (5.6KB / 2.2KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/json-template.js` (6.1KB / 2.5KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js` (6.8KB / 2.3KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/request.js` (11KB / 3.3KB gzipped)
 
-**All-in-One:**
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js`
-
-**Core Runtime (for manual registration):**
-- `https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js`
+**Auto-Loader (Optional):**
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js` (5.6KB / 2.2KB gzipped)
+- `https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.esm.js` (ESM)
 
 **ES Modules:**
 - Add `.esm.js` extension for any bundle (e.g., `reveal.esm.js`)
+
+**Note:** Sizes shown are minified / gzipped without core. Add core (4KB / 1.6KB gzipped) for total.
 
 ---
 
@@ -543,8 +573,9 @@ Limited support (Chrome 114+). Fallback:
 ## Troubleshooting
 
 **Behaviors not working:**
-- Check browser console for errors
-- Verify script loaded before DOM elements
+- **Check load order:** Core must be loaded before behaviors
+- Check browser console for errors (look for "Core not loaded")
+- Verify scripts loaded before DOM elements
 - For Safari, add custom elements polyfill
 
 **Commands not working:**
@@ -552,17 +583,26 @@ Limited support (Chrome 114+). Fallback:
 - Check command name (e.g., `--toggle`)
 - Try manual event dispatching (see Browser Compatibility)
 
+**"Core not loaded" error:**
+- Make sure `behavior-fn-core.js` is loaded before any behavior bundles
+- Check script tag order in your HTML
+
 ---
 
 ## Bundle Sizes
 
-Approximate gzipped sizes:
+Minified / gzipped sizes (add core for total):
 
-| Bundle | Size |
-|--------|------|
-| Individual behaviors | ~10 KB each |
-| `behavior-fn.all.js` | ~20 KB |
-| Core only | ~7 KB |
+| Bundle | Minified | Gzipped | Notes |
+|--------|----------|---------|-------|
+| Core runtime | 4KB | 1.6KB | Required, shared across all behaviors |
+| Individual behaviors | 2-11KB | 976B-3.3KB | See Available Bundles for details |
+| Auto-loader | 5.6KB | 2.2KB | Optional convenience feature |
+
+**Example totals:**
+- Core + Reveal + Auto-loader = **16.4KB** minified / **6.2KB gzipped**
+- Core + Request = **15KB** minified / **4.9KB gzipped**
+- Core + Reveal + Logger = **13.1KB** minified / **4.5KB gzipped**
 
 ---
 
@@ -572,7 +612,10 @@ BehaviorFN is available on multiple CDNs:
 
 ### unpkg (Recommended)
 ```html
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<!-- Load core + behaviors -->
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
 ```
 
 **Why unpkg:**
@@ -583,7 +626,10 @@ BehaviorFN is available on multiple CDNs:
 
 ### jsdelivr (Alternative)
 ```html
-<script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"></script>
+<!-- Load core + behaviors -->
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/behavior-fn-core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@latest/dist/cdn/auto-loader.js"></script>
 ```
 
 **Why jsdelivr:**
@@ -597,13 +643,16 @@ BehaviorFN is available on multiple CDNs:
 
 ```html
 <!-- unpkg: Pin to exact version -->
-<script src="https://unpkg.com/behavior-fn@0.1.0/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 
 <!-- jsdelivr: Pin to exact version -->
-<script src="https://cdn.jsdelivr.net/npm/behavior-fn@0.1.0/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 
 <!-- Use semver range (both CDNs support this) -->
-<script src="https://unpkg.com/behavior-fn@0/dist/cdn/behavior-fn.all.js"></script>
+<script src="https://unpkg.com/behavior-fn@0/dist/cdn/behavior-fn-core.js"></script>
+<script src="https://unpkg.com/behavior-fn@0/dist/cdn/reveal.js"></script>
 ```
 
 ---

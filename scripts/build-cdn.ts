@@ -2,11 +2,15 @@
 /**
  * Build CDN bundles for BehaviorFN
  * 
- * Opt-In Loading Architecture:
- * 1. Individual behavior bundles (reveal.js, request.js, etc.) - Self-contained
- * 2. Optional auto-loader (auto-loader.js) - Opt-in convenience feature
+ * Core + Behavior Modules Architecture:
+ * 1. Core runtime (behavior-fn-core.js) - Standalone, required
+ * 2. Individual behavior bundles (reveal.js, request.js, etc.) - Depend on core
+ * 3. Optional auto-loader (auto-loader.js) - Depends on core, opt-in convenience
  * 
- * Key Strategy: Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
+ * Key Strategies:
+ * - Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
+ * - Behaviors check for core at load time and fail gracefully if missing
+ * - Eliminates registry isolation by using shared global BehaviorFN
  */
 
 import { build, type Plugin } from "esbuild";
@@ -134,7 +138,7 @@ async function extractSchemaMetadata(behaviorName: string): Promise<{
 }
 
 async function buildCDNBundles() {
-  console.log("🏗️  Building CDN bundles (Opt-In Architecture)...\n");
+  console.log("🏗️  Building CDN bundles (Core + Behavior Modules)...\n");
 
   await mkdir(cdnOutDir, { recursive: true });
 
@@ -146,16 +150,16 @@ async function buildCDNBundles() {
 
   console.log(`Found ${behaviorDirs.length} behaviors:\n- ${behaviorDirs.join("\n- ")}\n`);
 
-  // Phase 1: Build Core Runtime
-  console.log("📦 Phase 1: Building core runtime...");
+  // Phase 1: Build Core Runtime (Standalone)
+  console.log("📦 Phase 1: Building standalone core runtime...");
   await buildCore();
 
-  // Phase 2: Build Individual Behaviors
-  console.log("\n📦 Phase 2: Building individual behaviors...");
+  // Phase 2: Build Individual Behaviors (Depend on Core)
+  console.log("\n📦 Phase 2: Building behavior modules (require core)...");
   await buildIndividualBehaviors(behaviorDirs);
 
-  // Phase 3: Build Auto-Loader (Opt-In)
-  console.log("\n📦 Phase 3: Building auto-loader (opt-in)...");
+  // Phase 3: Build Auto-Loader (Depends on Core)
+  console.log("\n📦 Phase 3: Building auto-loader (requires core)...");
   await buildAutoLoader();
 
   // Phase 4: Generate Examples
@@ -164,13 +168,14 @@ async function buildCDNBundles() {
 
   console.log("\n✅ All CDN bundles built successfully!");
   console.log(`📂 Output directory: ${cdnOutDir}`);
-  console.log("\n📘 Simple Loading Pattern:");
+  console.log("\n📘 Loading Pattern (Core + Behaviors):");
+  console.log("  <script src='behavior-fn-core.js'></script>  <!-- Required first! -->");
   console.log("  <script src='reveal.js'></script>");
-  console.log("  Note: Each behavior includes core runtime (self-contained)");
+  console.log("  <script src='request.js'></script>");
   console.log("\n📘 With Auto-Loader:");
+  console.log("  <script src='behavior-fn-core.js'></script>  <!-- Required first! -->");
   console.log("  <script src='reveal.js'></script>");
-  console.log("  <script src='auto-loader.js'></script>");
-  console.log("  Note: Auto-loader enables itself automatically");
+  console.log("  <script src='auto-loader.js'></script>      <!-- Auto-enables -->");
 }
 
 /**
@@ -271,16 +276,19 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
     const observedAttributes = schemaMeta?.observedAttributes || [];
     const jsonSchema = schemaMeta?.jsonSchema || {};
 
-    // Create standalone entry that includes core runtime
-    const standaloneEntry = join(cdnOutDir, `_${behaviorName}-standalone.js`);
-    const standaloneCode = `
-// Import core runtime (will be bundled)
-import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
-import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
-import { parseBehaviorNames } from "${join(registryDir, "behavior-utils.ts")}";
-
-// Import behavior
+    // Create behavior entry that depends on core
+    const behaviorEntry = join(cdnOutDir, `_${behaviorName}-entry.js`);
+    const behaviorCode = `
+// Import behavior (will be bundled)
 import { ${exportName} } from "${behaviorPath}";
+
+// Check if BehaviorFN core is loaded
+if (typeof window === 'undefined' || !window.BehaviorFN) {
+  const error = '[BehaviorFN] Core not loaded! Load behavior-fn-core.js before ${behaviorName}.js';
+  console.error(error);
+  console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
+  throw new Error(error);
+}
 
 // Observed attributes extracted from TypeBox schema (plain array, no TypeBox needed)
 const observedAttributes = ${JSON.stringify(observedAttributes)};
@@ -288,55 +296,26 @@ const observedAttributes = ${JSON.stringify(observedAttributes)};
 // JSON Schema (plain object, converted from TypeBox)
 const jsonSchema = ${JSON.stringify(jsonSchema, null, 2)};
 
-// getObservedAttributes for JSON Schema (no TypeBox dependency)
-const getObservedAttributes = (schema) => {
-  if (!schema) return [];
-  if ("properties" in schema && typeof schema.properties === "object") {
-    return Object.keys(schema.properties);
-  }
-  return [];
+// Auto-register this behavior using the global BehaviorFN
+window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
+
+// Store metadata for this behavior
+if (!window.BehaviorFN.behaviorMetadata) {
+  window.BehaviorFN.behaviorMetadata = {};
+}
+window.BehaviorFN.behaviorMetadata['${behaviorName}'] = {
+  observedAttributes,
+  schema: jsonSchema,
 };
 
-// Setup global namespace if not already exists
-if (typeof window !== 'undefined') {
-  // Initialize BehaviorFN namespace if first behavior loaded
-  if (!window.BehaviorFN) {
-    window.BehaviorFN = {
-      registerBehavior,
-      getBehavior,
-      defineBehavioralHost,
-      parseBehaviorNames,
-      getObservedAttributes,
-      version: '0.2.0',
-    };
-    
-    // Expose core functions globally for convenience
-    window.registerBehavior = registerBehavior;
-    window.getBehavior = getBehavior;
-    window.defineBehavioralHost = defineBehavioralHost;
-  }
-  
-  // Auto-register this behavior with its observed attributes
-  window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
-  
-  // Store metadata for this behavior
-  if (!window.BehaviorFN.behaviorMetadata) {
-    window.BehaviorFN.behaviorMetadata = {};
-  }
-  window.BehaviorFN.behaviorMetadata['${behaviorName}'] = {
-    observedAttributes,
-    schema: jsonSchema,
-  };
-  
-  console.log('✅ BehaviorFN: Loaded "${behaviorName}" behavior');
-}
+console.log('✅ BehaviorFN: Registered "${behaviorName}" behavior');
 `;
 
-    await writeFile(standaloneEntry, standaloneCode);
+    await writeFile(behaviorEntry, behaviorCode);
 
-    // Build IIFE version
+    // Build IIFE version (no core bundled)
     await build({
-      entryPoints: [standaloneEntry],
+      entryPoints: [behaviorEntry],
       bundle: true,
       format: "iife",
       globalName: `BehaviorFN_${toPascalCase(behaviorName)}`,
@@ -348,11 +327,11 @@ if (typeof window !== 'undefined') {
       plugins: [inlineTypeBoxPlugin],
     });
 
-    console.log(`  ✅ ${behaviorName}.js (IIFE)`);
+    console.log(`  ✅ ${behaviorName}.js (IIFE, requires core)`);
 
-    // Build ESM version
+    // Build ESM version (no core bundled)
     await build({
-      entryPoints: [standaloneEntry],
+      entryPoints: [behaviorEntry],
       bundle: true,
       format: "esm",
       outfile: join(cdnOutDir, `${behaviorName}.esm.js`),
@@ -363,54 +342,37 @@ if (typeof window !== 'undefined') {
       plugins: [inlineTypeBoxPlugin],
     });
 
-    console.log(`  ✅ ${behaviorName}.esm.js (ESM)`);
+    console.log(`  ✅ ${behaviorName}.esm.js (ESM, requires core)`);
   }
 }
 
 /**
  * Build the optional auto-loader module.
- * Users must explicitly enable it via BehaviorFN.enableAutoLoader()
+ * Depends on core being loaded first. Auto-enables when loaded via script tag.
  */
 async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
   
   const autoLoaderCode = `
-// Import core runtime (will be bundled)
-import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
-import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
-import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
-
-// Import auto-loader
+// Import auto-loader (will be bundled)
 import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
 
-// Setup global namespace if not already exists
-if (typeof window !== 'undefined') {
-  // Initialize BehaviorFN namespace if not already exists
-  if (!window.BehaviorFN) {
-    window.BehaviorFN = {
-      registerBehavior,
-      getBehavior,
-      defineBehavioralHost,
-      parseBehaviorNames,
-      getObservedAttributes,
-      version: '0.2.0',
-    };
-    
-    // Expose core functions globally for convenience
-    window.registerBehavior = registerBehavior;
-    window.getBehavior = getBehavior;
-    window.defineBehavioralHost = defineBehavioralHost;
-  }
-  
-  // Expose and enable auto-loader
-  window.BehaviorFN.enableAutoLoader = enableAutoLoader;
-  window.enableAutoLoader = enableAutoLoader;
-  
-  // Automatically enable when loaded via script tag
-  enableAutoLoader();
-  
-  console.log('✅ BehaviorFN: Auto-loader enabled');
+// Check if BehaviorFN core is loaded
+if (typeof window === 'undefined' || !window.BehaviorFN) {
+  const error = '[BehaviorFN] Core not loaded! Load behavior-fn-core.js before auto-loader.js';
+  console.error(error);
+  console.error('[BehaviorFN] Expected: <script src="behavior-fn-core.js"></script>');
+  throw new Error(error);
 }
+
+// Expose and enable auto-loader
+window.BehaviorFN.enableAutoLoader = enableAutoLoader;
+window.enableAutoLoader = enableAutoLoader;
+
+// Automatically enable when loaded via script tag
+enableAutoLoader();
+
+console.log('✅ BehaviorFN: Auto-loader enabled');
 `;
 
   await writeFile(autoLoaderEntry, autoLoaderCode);
@@ -429,7 +391,7 @@ if (typeof window !== 'undefined') {
     plugins: [inlineTypeBoxPlugin],
   });
 
-  console.log(`  ✅ auto-loader.js (IIFE)`);
+  console.log(`  ✅ auto-loader.js (IIFE, requires core)`);
 
   // Build ESM version
   await build({
@@ -444,7 +406,7 @@ if (typeof window !== 'undefined') {
     plugins: [inlineTypeBoxPlugin],
   });
 
-  console.log(`  ✅ auto-loader.esm.js (ESM)`);
+  console.log(`  ✅ auto-loader.esm.js (ESM, requires core)`);
 }
 
 /**

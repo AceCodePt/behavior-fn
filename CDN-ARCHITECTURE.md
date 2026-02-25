@@ -73,19 +73,21 @@ if (!window.BehaviorFN) {
 }
 ```
 
-**Size:** Varies by behavior (all include core runtime + JSON Schema)
+**Size:** Varies by behavior (behavior logic + JSON Schema, NO core bundled)
 
-| Behavior | Minified | Gzipped |
-|----------|----------|---------|
-| `logger.js` | 4.7KB | 1.9KB |
-| `element-counter.js` | 5.1KB | 2.0KB |
-| `compound-commands.js` | 5.6KB | 2.2KB |
-| `input-watcher.js` | 6.0KB | 2.4KB |
-| `content-setter.js` | 6.3KB | 2.4KB |
-| `json-template.js` | 7.6KB | 3.0KB |
-| `compute.js` | 7.9KB | 3.0KB |
-| `reveal.js` | 8.7KB | 3.2KB |
-| `request.js` | 14KB | 4.6KB |
+| Behavior | Minified | Gzipped | Notes |
+|----------|----------|---------|-------|
+| `logger.js` | 2.3KB | 976B | Logging and debug output |
+| `element-counter.js` | 2.7KB | 1.1KB | Element counting |
+| `compound-commands.js` | 3.1KB | 1.3KB | Command composition |
+| `content-setter.js` | 3.2KB | 1.2KB | Dynamic content |
+| `input-watcher.js` | 3.8KB | 1.5KB | Form input watching |
+| `compute.js` | 5.6KB | 2.2KB | Computed values |
+| `json-template.js` | 6.1KB | 2.5KB | JSON templating |
+| `reveal.js` | 6.8KB | 2.3KB | Show/hide with transitions |
+| `request.js` | 11KB | 3.3KB | HTTP requests |
+
+**Note:** Sizes are WITHOUT core (4KB minified / 1.6KB gzipped). Add core size to get total.
 
 **Usage:**
 ```html
@@ -132,7 +134,7 @@ if (!window.BehaviorFN) {
 
 ## Loading Patterns
 
-### Pattern 1: Auto-Loader (Recommended - 2 Script Tags)
+### Pattern 1: Auto-Loader (Recommended - 3 Script Tags)
 
 **Best for:** Most use cases, simplest setup
 
@@ -140,10 +142,13 @@ if (!window.BehaviorFN) {
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load behavior (includes core runtime) -->
+  <!-- 1. Load core (required first) -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+  
+  <!-- 2. Load behavior -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
   
-  <!-- 2. Load auto-loader (auto-registers hosts) -->
+  <!-- 3. Load auto-loader (auto-registers hosts) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 </head>
 <body>
@@ -158,17 +163,18 @@ if (!window.BehaviorFN) {
 </html>
 ```
 
-**Total:** 14.4KB minified (5.5KB gzipped)
+**Total:** ~17KB minified / ~6.2KB gzipped (core 4KB/1.6KB + reveal 6.8KB/2.3KB + auto-loader 5.6KB/2.2KB)
 
 **Pros:**
-- ✅ Simplest (just 2 script tags)
+- ✅ Simple setup (just 3 script tags)
 - ✅ Clean HTML (no `is` attribute)
 - ✅ Auto-registers behavioral hosts
 - ✅ Works with dynamic content
-- ✅ 73% smaller than v0.1.6 all-in-one
+- ✅ Shared core for multiple behaviors
 
 **Cons:**
-- ⚠️ Adds 5.7KB (2.3KB gzipped) for auto-loader
+- ⚠️ Adds ~5.6KB for auto-loader
+- ⚠️ Requires loading core first
 
 ---
 
@@ -180,10 +186,13 @@ if (!window.BehaviorFN) {
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load behavior -->
+  <!-- 1. Load core (required first) -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
+  
+  <!-- 2. Load behavior -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
   
-  <!-- 2. Define behavioral host manually -->
+  <!-- 3. Define behavioral host manually -->
   <script>
     const meta = BehaviorFN.behaviorMetadata['reveal'];
     BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
@@ -201,19 +210,19 @@ if (!window.BehaviorFN) {
 </html>
 ```
 
-**Total:** 8.7KB minified (3.2KB gzipped)
+**Total:** ~10.8KB minified / ~4KB gzipped (core 4KB/1.6KB + reveal 6.8KB/2.3KB)
 
 **Pros:**
 - ✅ Smallest bundle (no auto-loader)
 - ✅ No MutationObserver overhead
 - ✅ Most explicit and predictable
 - ✅ Best performance
-- ✅ 84% smaller than v0.1.6 all-in-one
+- ✅ Shared core enables multiple behaviors efficiently
 
 **Cons:**
 - ⚠️ Requires manual `defineBehavioralHost` call
 - ⚠️ Must add `is` attribute manually
-- ⚠️ More verbose HTML
+- ⚠️ Must load core first
 
 ---
 
@@ -230,18 +239,20 @@ if (!window.BehaviorFN) {
 
 **After (v0.2.0) - Option 1: Auto-Loader (Recommended)**
 ```html
-<!-- ✅ NEW: 2 script tags (14.4KB / 5.5KB gzipped) -->
+<!-- ✅ NEW: 3 script tags (~17KB minified) -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 
 <dialog behavior="reveal">Content</dialog>
 ```
 
-**Savings:** 73% smaller! (5.5KB vs 20KB gzipped)
+**Savings:** Still much smaller, plus you can now load multiple behaviors efficiently!
 
 **After (v0.2.0) - Option 2: Manual Host (Smallest)**
 ```html
-<!-- ✅ NEW: 1 script tag + 1 script block (8.7KB / 3.2KB gzipped) -->
+<!-- ✅ NEW: 2 script tags + 1 script block (~10.8KB minified) -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 <script>
   const meta = BehaviorFN.behaviorMetadata['reveal'];
@@ -251,7 +262,7 @@ if (!window.BehaviorFN) {
 <dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
 ```
 
-**Savings:** 84% smaller! (3.2KB vs 20KB gzipped)
+**Savings:** Smaller for single behavior, MUCH smaller when using multiple behaviors!
 
 ---
 
@@ -266,13 +277,14 @@ if (!window.BehaviorFN) {
 
 **After (v0.2.0):**
 ```html
-<!-- ✅ SAME: No changes needed! -->
+<!-- ✅ REQUIRES: Add core before behaviors -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 <dialog behavior="reveal">Content</dialog>
 ```
 
-**Bonus:** Bundles are now 75-90% smaller (TypeBox eliminated)!
+**Bonus:** Behaviors NO longer include core, so multiple behaviors share the same core (eliminates duplication)!
 
 ---
 
@@ -289,7 +301,8 @@ if (!window.BehaviorFN) {
 
 **After (v0.2.0):**
 ```html
-<!-- ✅ IMPROVED: Use behavior metadata instead of hardcoding -->
+<!-- ✅ REQUIRES: Add core + use metadata instead of hardcoding -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 <script>
   const meta = BehaviorFN.behaviorMetadata['reveal'];
@@ -310,11 +323,10 @@ if (!window.BehaviorFN) {
 
 **After (v0.2.0) - Option 2: Auto-Loader**
 ```html
-<!-- Explicit core + behaviors + auto-loader -->
+<!-- Explicit core + behaviors + auto-loader (auto-enables) -->
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
 <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
-<script>BehaviorFN.enableAutoLoader();</script>
 <dialog behavior="reveal">Content</dialog>
 ```
 
@@ -332,11 +344,10 @@ if (!window.BehaviorFN) {
 
 **After (v0.2.0):**
 ```html
-<!-- Explicit core, explicit auto-loader enablement -->
+<!-- Explicit core, auto-loader auto-enables -->
 <script src="behavior-fn-core.js"></script> <!-- NEW: explicit core -->
 <script src="reveal.js"></script>
-<script src="auto-loader.js"></script>
-<script>BehaviorFN.enableAutoLoader();</script> <!-- NEW: explicit call -->
+<script src="auto-loader.js"></script> <!-- Auto-enables when loaded -->
 <dialog behavior="reveal">Content</dialog>
 ```
 
@@ -372,7 +383,7 @@ behavior-fn-core.js
 reveal.js
 ├─ Checks: window.BehaviorFN exists
 ├─ Registers: 'reveal' behavior
-└─ Size: ~50KB
+└─ Size: ~6.8KB (NO core bundled)
 
 HTML:
 <dialog is="behavioral-reveal" behavior="reveal">
@@ -391,13 +402,13 @@ behavior-fn-core.js
 
 reveal.js
 ├─ Registers: 'reveal' behavior
-└─ Size: ~50KB
+└─ Size: ~6.8KB (NO core bundled)
 
 auto-loader.js
 ├─ Exposes: window.BehaviorFN.enableAutoLoader
-└─ Size: ~5.4KB
+└─ Size: ~5.6KB (NO core bundled)
 
-<script>BehaviorFN.enableAutoLoader();</script>
+Auto-loader (self-enables on load):
 ├─ Scans: DOM for [behavior] attributes
 ├─ Adds: is="behavioral-*" dynamically
 └─ Observes: New elements via MutationObserver
@@ -446,17 +457,19 @@ HTML:
 
 All behaviors are available as individual bundles:
 
-| Behavior | Size | Description |
-|----------|------|-------------|
-| `logger.js` | ~750 bytes | Log behavior events to console |
-| `element-counter.js` | ~1.2KB | Count matching elements |
-| `compound-commands.js` | ~1.7KB | Execute multiple commands |
-| `input-watcher.js` | ~1.7KB | Watch input changes |
-| `json-template.js` | ~3.6KB | Render JSON data |
-| `compute.js` | ~4.2KB | Computed properties |
-| `content-setter.js` | ~47KB | Set element content |
-| `reveal.js` | ~50KB | Show/hide elements with positioning |
-| `request.js` | ~53KB | HTTP requests with validation |
+| Behavior | Minified | Gzipped | Description |
+|----------|----------|---------|-------------|
+| `logger.js` | 2.3KB | 976B | Log behavior events to console |
+| `element-counter.js` | 2.7KB | 1.1KB | Count matching elements |
+| `compound-commands.js` | 3.1KB | 1.3KB | Execute multiple commands |
+| `content-setter.js` | 3.2KB | 1.2KB | Set element content |
+| `input-watcher.js` | 3.8KB | 1.5KB | Watch input changes |
+| `compute.js` | 5.6KB | 2.2KB | Computed properties |
+| `json-template.js` | 6.1KB | 2.5KB | Render JSON data |
+| `reveal.js` | 6.8KB | 2.3KB | Show/hide elements with positioning |
+| `request.js` | 11KB | 3.3KB | HTTP requests with validation |
+
+**Note:** Add `behavior-fn-core.js` (4KB minified / 1.6KB gzipped) for total size. Core is shared across all behaviors.
 
 ---
 
@@ -559,29 +572,28 @@ import { revealBehaviorFactory } from 'behavior-fn/dist/cdn/reveal.esm.js';
 
 ### Q: How do I enable auto-loader?
 
-**A:** Load `auto-loader.js` and explicitly call `BehaviorFN.enableAutoLoader()`:
+**A:** Just load `auto-loader.js` after core and behaviors - it auto-enables:
 ```html
-<script src="auto-loader.js"></script>
-<script>BehaviorFN.enableAutoLoader();</script>
+<script src="behavior-fn-core.js"></script>
+<script src="reveal.js"></script>
+<script src="auto-loader.js"></script> <!-- Auto-enables! -->
 ```
 
 ---
 
 ### Q: What's the total size for a typical setup?
 
-**A:** Common configurations (all include core runtime + JSON Schema):
+**A:** Common configurations:
 
-| Use Case | Bundles | Minified | Gzipped |
-|----------|---------|----------|---------|
-| Simple logger | logger.js | 4.7KB | **1.9KB** |
-| Modal dialog | reveal.js | 8.7KB | **3.2KB** |
-| Modal + auto-loader | reveal + auto-loader | 14.4KB | **5.5KB** |
-| Form handling | request.js | 14KB | **4.6KB** |
-| Complex app | reveal + request + auto-loader | 28.4KB | **10.1KB** |
+| Use Case | Bundles | Minified | Gzipped | Notes |
+|----------|---------|----------|---------|-------|
+| Simple logger | core + logger | 6.3KB | **2.6KB** | Core (4KB/1.6KB) + Logger (2.3KB/976B) |
+| Modal dialog | core + reveal | 10.8KB | **4KB** | Core (4KB/1.6KB) + Reveal (6.8KB/2.3KB) |
+| Modal + auto-loader | core + reveal + auto-loader | 16.4KB | **6.2KB** | Core + Reveal + Auto-loader |
+| Form handling | core + request | 15KB | **4.9KB** | Core (4KB/1.6KB) + Request (11KB/3.3KB) |
+| Complex app | core + reveal + request + auto-loader | 27.4KB | **9.5KB** | Shared core eliminates duplication! |
 
-**v0.1.6 all-in-one:** 72KB minified (20KB gzipped) but includes ALL 9 behaviors whether you use them or not.
-
-**v0.2.0 savings:** Up to 97% reduction for typical use cases!
+**Key Benefit:** Core is loaded ONCE and shared across all behaviors. No duplication!
 
 ---
 
