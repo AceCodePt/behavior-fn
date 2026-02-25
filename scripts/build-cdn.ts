@@ -208,6 +208,8 @@ if (typeof window !== 'undefined') {
       target: "es2020",
       minify: true,
       sourcemap: true,
+      // Mark TypeBox as external - schemas not needed at runtime
+      external: ['@sinclair/typebox'],
     });
 
     console.log(`  ✅ ${behaviorName}.js (IIFE)`);
@@ -222,6 +224,8 @@ if (typeof window !== 'undefined') {
       target: "es2020",
       minify: true,
       sourcemap: true,
+      // Mark TypeBox as external - schemas not needed at runtime
+      external: ['@sinclair/typebox'],
     });
 
     console.log(`  ✅ ${behaviorName}.esm.js (ESM)`);
