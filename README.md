@@ -385,12 +385,14 @@ Count matching elements in the DOM and display the count reactively.
 ---
 
 ### 🎨 **json-template**
-Data binding and template rendering for JSON data sources with implicit template patterns.
+Data binding and template rendering for JSON data sources using intuitive curly brace interpolation.
 
 **Attributes:**
 - `json-template-for` — ID of the `<script type="application/json">` element containing the data (like `for` in `<label>`)
-- `data-key` — JSON path for data binding (on descendant elements)
-- `json-template-item` — ID of template for array items (optional - can use implicit nested template)
+
+**Template Syntax:**
+- `{path}` — Interpolate values in text content or attributes
+- `data-array="path"` — Mark nested `<template>` for array rendering
 
 **Example:**
 ```html
@@ -398,6 +400,7 @@ Data binding and template rendering for JSON data sources with implicit template
 <script type="application/json" id="user-data">
   {
     "name": "Sagi",
+    "role": "admin",
     "projects": [
       {"title": "BehaviorFN", "stars": 100},
       {"title": "AutoWC", "stars": 50}
@@ -405,35 +408,36 @@ Data binding and template rendering for JSON data sources with implicit template
   }
 </script>
 
-<!-- Renderer with implicit template -->
+<!-- Renderer with curly brace syntax -->
 <div 
   is="behavioral-json-template"
   behavior="json-template" 
   json-template-for="user-data"
 >
   <template>
-    <h2 data-key="name"></h2>
-    
-    <!-- Array with implicit nested template -->
-    <ul data-key="projects">
-      <template>
-        <li>
-          <span data-key="title"></span>: <span data-key="stars"></span> ⭐
-        </li>
-      </template>
-    </ul>
+    <div data-role="{role}">
+      <h2>{name}</h2>
+      
+      <!-- Array with data-array marker -->
+      <ul>
+        <template data-array="projects">
+          <li>{title}: {stars} ⭐</li>
+        </template>
+      </ul>
+    </div>
   </template>
 </div>
 ```
 
 **Features:**
-- Implicit template pattern (like `<input>` in `<label>`)
-- Watches data source for changes (MutationObserver)
-- Nested path resolution: `user.profile.name`, `items[0].title`
-- Implicit array templates: Nested `<template>` for array items
-- Explicit template IDs: Reusable templates via `json-template-item`
-- Template preservation: Templates never deleted, always available for re-rendering
-- Recursive nesting: Arrays in arrays in objects - all supported
+- **Text interpolation:** `{name}`, `Username: {firstName} {lastName}`
+- **Attribute interpolation:** `data-type="{type}"`, `class="user-{role}"`
+- **Nested paths:** `{user.profile.name}`, `{items[0].title}`
+- **Root array support:** If root data is an array, template repeats automatically (no `data-array` needed)
+- **Nested arrays:** Use `data-array="path"` on nested `<template>` for arrays within objects
+- **Web component support:** Preserves `is=""` attributes for behavioral hosts
+- **Reactive:** Watches data source for changes (MutationObserver)
+- **Graceful:** Missing values render as empty strings (no errors)
 
 ---
 

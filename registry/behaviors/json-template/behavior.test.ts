@@ -14,7 +14,7 @@ import { registerBehavior } from "../behavior-registry";
 import { jsonTemplateBehaviorFactory } from "./behavior";
 import JSON_TEMPLATE_DEFINITION from "./_behavior-definition";
 
-describe("JSON Template Behavior", () => {
+describe("JSON Template Behavior - Curly Brace Syntax", () => {
   const tag = "div";
   const webcomponentTag = "test-json-template";
 
@@ -35,16 +35,14 @@ describe("JSON Template Behavior", () => {
     vi.restoreAllMocks();
   });
 
-  describe("Core Functionality", () => {
-    it("should render simple value bindings (string, number) on connectedCallback", () => {
-      // Setup data source
+  describe("Text Content Interpolation", () => {
+    it("should interpolate simple values in text content", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
       script.textContent = JSON.stringify({ name: "Sagi", age: 30 });
       document.body.appendChild(script);
 
-      // Setup container with template (new implicit pattern)
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
@@ -53,21 +51,41 @@ describe("JSON Template Behavior", () => {
       container.innerHTML = `
         <template>
           <div>
-            <h2 data-key="name"></h2>
-            <p>Age: <span data-key="age"></span></p>
+            <h2>{name}</h2>
+            <p>Age: {age}</p>
           </div>
         </template>
       `;
       document.body.appendChild(container);
 
-      // Verify rendering (content should be in container)
       expect(container.querySelector("h2")?.textContent).toBe("Sagi");
-      expect(container.querySelector("span")?.textContent).toBe("30");
-      // Template should still exist
+      expect(container.querySelector("p")?.textContent).toBe("Age: 30");
       expect(container.querySelector("template")).toBeTruthy();
     });
 
-    it("should handle nested object paths (dot notation)", () => {
+    it("should interpolate mixed static and dynamic text", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ name: "Sagi", type: "user" });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div>Username: {name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector("div")?.textContent).toBe("Username: Sagi");
+    });
+
+    it("should handle nested object paths with dot notation", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
@@ -89,8 +107,8 @@ describe("JSON Template Behavior", () => {
       container.innerHTML = `
         <template>
           <div>
-            <span data-key="user.profile.name"></span>
-            <span data-key="user.profile.email"></span>
+            <span>{user.profile.name}</span>
+            <span>{user.profile.email}</span>
           </div>
         </template>
       `;
@@ -121,8 +139,8 @@ describe("JSON Template Behavior", () => {
       container.innerHTML = `
         <template>
           <div>
-            <span data-key="items[0].title"></span>
-            <span data-key="items[1].price"></span>
+            <span>{items[0].title}</span>
+            <span>{items[1].price}</span>
           </div>
         </template>
       `;
@@ -133,7 +151,204 @@ describe("JSON Template Behavior", () => {
       expect(spans[1]?.textContent).toBe("20");
     });
 
-    it("should render array items using implicit nested template", () => {
+    it("should handle multiple interpolations in one text node", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ firstName: "Sagi", lastName: "Cohen", age: 30 });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <p>{firstName} {lastName} is {age} years old</p>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector("p")?.textContent).toBe("Sagi Cohen is 30 years old");
+    });
+  });
+
+  describe("Attribute Interpolation", () => {
+    it("should interpolate values in attributes", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ type: "user", id: "123" });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div data-type="{type}" data-id="{id}">Content</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const div = container.querySelector("div");
+      expect(div?.getAttribute("data-type")).toBe("user");
+      expect(div?.getAttribute("data-id")).toBe("123");
+    });
+
+    it("should handle multiple interpolations in one attribute", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ base: "btn", modifier: "primary" });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <button class="{base} btn-{modifier}">Click</button>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelector("button")?.className).toBe("btn btn-primary");
+    });
+
+    it("should preserve non-interpolated attributes", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ id: "dynamic-id" });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div id="{id}" class="static-class" data-static="value">Content</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const div = container.querySelector("div");
+      expect(div?.id).toBe("dynamic-id");
+      expect(div?.className).toBe("static-class");
+      expect(div?.getAttribute("data-static")).toBe("value");
+    });
+
+    it("should support web component is attribute", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ title: "Modal Title", content: "Modal content here" });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <dialog is="behavioral-reveal" behavior="reveal">
+            <h2>{title}</h2>
+            <p>{content}</p>
+          </dialog>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const dialog = container.querySelector("dialog");
+      expect(dialog?.getAttribute("is")).toBe("behavioral-reveal");
+      expect(dialog?.getAttribute("behavior")).toBe("reveal");
+      expect(dialog?.querySelector("h2")?.textContent).toBe("Modal Title");
+      expect(dialog?.querySelector("p")?.textContent).toBe("Modal content here");
+    });
+  });
+
+  describe("Array Rendering", () => {
+    it("should render root-level array (array as root data)", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice", age: 25 },
+        { name: "Bob", age: 30 },
+        { name: "Charlie", age: 35 },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="person">
+            <h3>{name}</h3>
+            <p>Age: {age}</p>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const people = container.querySelectorAll(".person");
+      expect(people).toHaveLength(3);
+      expect(people[0]?.querySelector("h3")?.textContent).toBe("Alice");
+      expect(people[0]?.querySelector("p")?.textContent).toBe("Age: 25");
+      expect(people[1]?.querySelector("h3")?.textContent).toBe("Bob");
+      expect(people[1]?.querySelector("p")?.textContent).toBe("Age: 30");
+      expect(people[2]?.querySelector("h3")?.textContent).toBe("Charlie");
+      expect(people[2]?.querySelector("p")?.textContent).toBe("Age: 35");
+    });
+
+    it("should render root-level array with compact template syntax", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { title: "Buy groceries", priority: "high" },
+        { title: "Walk the dog", priority: "medium" },
+        { title: "Write documentation", priority: "high" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="todo priority-{priority}">
+            {title}
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".todo");
+      expect(items).toHaveLength(3);
+      expect(items[0]?.textContent?.trim()).toBe("Buy groceries");
+      expect(items[0]?.classList.contains("priority-high")).toBe(true);
+      expect(items[1]?.textContent?.trim()).toBe("Walk the dog");
+      expect(items[1]?.classList.contains("priority-medium")).toBe(true);
+      expect(items[2]?.textContent?.trim()).toBe("Write documentation");
+      expect(items[2]?.classList.contains("priority-high")).toBe(true);
+    });
+
+    it("should render arrays using implicit nested template", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
@@ -152,11 +367,9 @@ describe("JSON Template Behavior", () => {
       container.setAttribute("json-template-for", "data-source");
       container.innerHTML = `
         <template>
-          <ul data-key="users">
-            <template>
-              <li>
-                <span data-key="name"></span> (<span data-key="age"></span>)
-              </li>
+          <ul>
+            <template data-array="users">
+              <li>{name} ({age})</li>
             </template>
           </ul>
         </template>
@@ -165,60 +378,11 @@ describe("JSON Template Behavior", () => {
 
       const items = container.querySelectorAll("li");
       expect(items).toHaveLength(2);
-      expect(items[0]?.textContent?.trim()).toContain("Alice");
-      expect(items[0]?.textContent?.trim()).toContain("25");
-      expect(items[1]?.textContent?.trim()).toContain("Bob");
-      expect(items[1]?.textContent?.trim()).toContain("30");
-      
-      // Template should still exist (preserved for re-rendering)
-      const ul = container.querySelector("ul");
-      expect(ul?.querySelector("template")).toBeTruthy();
+      expect(items[0]?.textContent?.trim()).toBe("Alice (25)");
+      expect(items[1]?.textContent?.trim()).toBe("Bob (30)");
     });
 
-    it("should render array items using explicit template ID (backward compatibility)", () => {
-      const script = document.createElement("script");
-      script.type = "application/json";
-      script.id = "data-source";
-      script.textContent = JSON.stringify({
-        users: [
-          { name: "Alice", age: 25 },
-          { name: "Bob", age: 30 },
-        ],
-      });
-      document.body.appendChild(script);
-
-      // Create external item template
-      const itemTemplate = document.createElement("template");
-      itemTemplate.id = "user-item";
-      itemTemplate.innerHTML = `
-        <li>
-          <span data-key="name"></span> (<span data-key="age"></span>)
-        </li>
-      `;
-      document.body.appendChild(itemTemplate);
-
-      const container = document.createElement(tag, {
-        is: webcomponentTag,
-      }) as HTMLElement;
-      container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
-      container.innerHTML = `
-        <template>
-          <ul data-key="users" json-template-item="user-item">
-          </ul>
-        </template>
-      `;
-      document.body.appendChild(container);
-
-      const items = container.querySelectorAll("li");
-      expect(items).toHaveLength(2);
-      expect(items[0]?.textContent?.trim()).toContain("Alice");
-      expect(items[0]?.textContent?.trim()).toContain("25");
-      expect(items[1]?.textContent?.trim()).toContain("Bob");
-      expect(items[1]?.textContent?.trim()).toContain("30");
-    });
-
-    it("should render nested arrays using multiple implicit templates", () => {
+    it("should handle nested arrays", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
@@ -248,13 +412,13 @@ describe("JSON Template Behavior", () => {
       container.setAttribute("json-template-for", "data-source");
       container.innerHTML = `
         <template>
-          <div data-key="departments">
-            <template>
+          <div>
+            <template data-array="departments">
               <div class="dept">
-                <h3 data-key="name"></h3>
-                <ul data-key="employees">
-                  <template>
-                    <li data-key="name"></li>
+                <h3>{name}</h3>
+                <ul>
+                  <template data-array="employees">
+                    <li>{name}</li>
                   </template>
                 </ul>
               </div>
@@ -277,48 +441,7 @@ describe("JSON Template Behavior", () => {
       expect(secondDeptEmployees[0]?.textContent).toBe("Charlie");
     });
 
-    it("should prefer explicit template ID over implicit nested template", () => {
-      const script = document.createElement("script");
-      script.type = "application/json";
-      script.id = "data-source";
-      script.textContent = JSON.stringify({
-        users: [
-          { name: "Alice" },
-          { name: "Bob" },
-        ],
-      });
-      document.body.appendChild(script);
-
-      // Create external template (should be used)
-      const externalTemplate = document.createElement("template");
-      externalTemplate.id = "external-template";
-      externalTemplate.innerHTML = `<li>External: <span data-key="name"></span></li>`;
-      document.body.appendChild(externalTemplate);
-
-      const container = document.createElement(tag, {
-        is: webcomponentTag,
-      }) as HTMLElement;
-      container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
-      container.innerHTML = `
-        <template>
-          <ul data-key="users" json-template-item="external-template">
-            <template>
-              <li>Internal: <span data-key="name"></span></li>
-            </template>
-          </ul>
-        </template>
-      `;
-      document.body.appendChild(container);
-
-      const items = container.querySelectorAll("li");
-      expect(items).toHaveLength(2);
-      // Should use external template
-      expect(items[0]?.textContent?.trim()).toContain("External: Alice");
-      expect(items[1]?.textContent?.trim()).toContain("External: Bob");
-    });
-
-    it("should preserve implicit nested template after rendering", () => {
+    it("should preserve nested template after rendering", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
@@ -334,28 +457,100 @@ describe("JSON Template Behavior", () => {
       container.setAttribute("json-template-for", "data-source");
       container.innerHTML = `
         <template>
-          <div data-key="users">
-            <template>
-              <p data-key="name"></p>
+          <div>
+            <template data-array="users">
+              <p>{name}</p>
             </template>
           </div>
         </template>
       `;
       document.body.appendChild(container);
 
-      const outerDiv = container.querySelector("div[data-key='users']");
+      const outerDiv = container.querySelector("div");
       const nestedTemplate = outerDiv?.querySelector("template");
       
       expect(nestedTemplate).toBeTruthy();
-      expect(nestedTemplate?.innerHTML).toContain("<p data-key=\"name\"></p>");
+      expect(nestedTemplate?.getAttribute("data-array")).toBe("users");
       
       // Should have rendered content AND kept template
-      expect(outerDiv).toBeTruthy();
-      const renderedItems = outerDiv!.querySelectorAll("p");
-      expect(renderedItems.length).toBe(1);
-      expect(renderedItems[0]?.textContent).toBe("Alice");
+      const renderedItems = outerDiv?.querySelectorAll("p");
+      expect(renderedItems?.length).toBe(1);
+      expect(renderedItems?.[0]?.textContent).toBe("Alice");
     });
 
+    it("should handle objects nested in arrays with deep property access", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        team: [
+          {
+            name: "Sarah",
+            profile: {
+              email: "sarah@example.com",
+              title: "Engineer",
+              years: 5
+            },
+            address: {
+              city: "San Francisco",
+              state: "CA"
+            }
+          },
+          {
+            name: "Marcus",
+            profile: {
+              email: "marcus@example.com",
+              title: "Designer",
+              years: 3
+            },
+            address: {
+              city: "Austin",
+              state: "TX"
+            }
+          }
+        ]
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div>
+            <template data-array="team">
+              <div class="member">
+                <h3>{name}</h3>
+                <p>{profile.title} - {profile.email}</p>
+                <p>{address.city}, {address.state}</p>
+                <p>{profile.years} years experience</p>
+              </div>
+            </template>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const members = container.querySelectorAll(".member");
+      expect(members).toHaveLength(2);
+      
+      // First member
+      expect(members[0]?.querySelector("h3")?.textContent).toBe("Sarah");
+      expect(members[0]?.querySelectorAll("p")[0]?.textContent).toBe("Engineer - sarah@example.com");
+      expect(members[0]?.querySelectorAll("p")[1]?.textContent).toBe("San Francisco, CA");
+      expect(members[0]?.querySelectorAll("p")[2]?.textContent).toBe("5 years experience");
+      
+      // Second member
+      expect(members[1]?.querySelector("h3")?.textContent).toBe("Marcus");
+      expect(members[1]?.querySelectorAll("p")[0]?.textContent).toBe("Designer - marcus@example.com");
+      expect(members[1]?.querySelectorAll("p")[1]?.textContent).toBe("Austin, TX");
+      expect(members[1]?.querySelectorAll("p")[2]?.textContent).toBe("3 years experience");
+    });
+  });
+
+  describe("Reactivity", () => {
     it("should update when data source changes", async () => {
       const script = document.createElement("script");
       script.type = "application/json";
@@ -370,14 +565,12 @@ describe("JSON Template Behavior", () => {
       container.setAttribute("json-template-for", "data-source");
       container.innerHTML = `
         <template>
-          <div>
-            <span data-key="count"></span>
-          </div>
+          <div>Count: {count}</div>
         </template>
       `;
       document.body.appendChild(container);
 
-      expect(container.querySelector("span")?.textContent).toBe("1");
+      expect(container.querySelector("div")?.textContent).toBe("Count: 1");
 
       // Update data
       script.textContent = JSON.stringify({ count: 42 });
@@ -385,9 +578,11 @@ describe("JSON Template Behavior", () => {
       // Wait for MutationObserver
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      expect(container.querySelector("span")?.textContent).toBe("42");
+      expect(container.querySelector("div")?.textContent).toBe("Count: 42");
     });
+  });
 
+  describe("Edge Cases", () => {
     it("should handle empty data source gracefully", () => {
       const script = document.createElement("script");
       script.type = "application/json";
@@ -402,14 +597,13 @@ describe("JSON Template Behavior", () => {
       container.setAttribute("json-template-for", "data-source");
       container.innerHTML = `
         <template>
-          <div data-key="name"></div>
+          <div>{name}</div>
         </template>
       `;
       document.body.appendChild(container);
 
       // Should not crash, just not render
       expect(container.querySelector("div")).toBeNull();
-      // Template should still exist
       expect(container.querySelector("template")).toBeTruthy();
     });
 
@@ -420,8 +614,6 @@ describe("JSON Template Behavior", () => {
       script.textContent = JSON.stringify({ foo: "bar" });
       document.body.appendChild(script);
 
-      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
@@ -429,21 +621,15 @@ describe("JSON Template Behavior", () => {
       container.setAttribute("json-template-for", "data-source");
       container.innerHTML = `
         <template>
-          <div>
-            <span data-key="nonexistent.path"></span>
-          </div>
+          <div>Value: {nonexistent.path}</div>
         </template>
       `;
       document.body.appendChild(container);
 
-      // Should log error about missing path
-      expect(consoleError).toHaveBeenCalledWith(
-        expect.stringContaining("Data path not found"),
-      );
+      // Should render with empty string for missing value
+      expect(container.querySelector("div")?.textContent).toBe("Value: ");
     });
-  });
 
-  describe("Edge Cases", () => {
     it("should require json-template-for attribute", () => {
       const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -451,8 +637,7 @@ describe("JSON Template Behavior", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      // Missing json-template-for
-      container.innerHTML = `<template><div></div></template>`;
+      container.innerHTML = `<template><div>{name}</div></template>`;
       document.body.appendChild(container);
 
       expect(consoleError).toHaveBeenCalledWith(
@@ -468,7 +653,7 @@ describe("JSON Template Behavior", () => {
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
       container.setAttribute("json-template-for", "nonexistent");
-      container.innerHTML = `<template><div></div></template>`;
+      container.innerHTML = `<template><div>{name}</div></template>`;
       document.body.appendChild(container);
 
       expect(consoleError).toHaveBeenCalledWith(
@@ -490,7 +675,6 @@ describe("JSON Template Behavior", () => {
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
       container.setAttribute("json-template-for", "data-source");
-      // No template child
       container.innerHTML = `<div>No template</div>`;
       document.body.appendChild(container);
 
@@ -513,13 +697,36 @@ describe("JSON Template Behavior", () => {
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
       container.setAttribute("json-template-for", "data-source");
-      container.innerHTML = `<template><div></div></template>`;
+      container.innerHTML = `<template><div>{name}</div></template>`;
       document.body.appendChild(container);
 
       expect(consoleError).toHaveBeenCalledWith(
         expect.stringContaining("Invalid JSON in source element"),
         expect.anything(),
       );
+    });
+
+    it("should handle literal curly braces in text", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({ name: "Sagi" });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div>Hello {name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // For now, we don't support escaping - this will be interpolated
+      expect(container.querySelector("div")?.textContent).toBe("Hello Sagi");
     });
   });
 });

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>json-template: Root Array Pattern</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #f5f5f5;
+    }
+    
+    h1 {
+      color: #1a73e8;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .todo {
+      background: white;
+      border-left: 4px solid #ddd;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .todo.priority-high {
+      border-left-color: #e63946;
+      background: #fff5f5;
+    }
+    
+    .todo.priority-medium {
+      border-left-color: #f77f00;
+      background: #fff8f0;
+    }
+    
+    .todo.priority-low {
+      border-left-color: #06a77d;
+      background: #f0fdf9;
+    }
+    
+    .product-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .product-image {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2rem;
+    }
+    
+    .product-info {
+      flex: 1;
+    }
+    
+    .product-info h3 {
+      margin: 0 0 0.5rem 0;
+      color: #333;
+    }
+    
+    .product-info p {
+      margin: 0.25rem 0;
+      color: #666;
+    }
+    
+    .price {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #1a73e8;
+    }
+    
+    .stock {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .stock.in-stock {
+      background: #e0f7f0;
+      color: #06a77d;
+    }
+    
+    .stock.low-stock {
+      background: #fef3e0;
+      color: #f77f00;
+    }
+    
+    .stock.out-of-stock {
+      background: #fee;
+      color: #c33;
+    }
+    
+    button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+    }
+    
+    button:hover {
+      background: #1557b0;
+    }
+    
+    code {
+      background: #f0f0f0;
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .highlight {
+      background: #fffacd;
+      padding: 1rem;
+      border-radius: 4px;
+      border-left: 4px solid #ffd700;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 json-template: Root Array Pattern</h1>
+  
+  <div class="card highlight">
+    <h2>✨ Elegant Pattern for Array Data</h2>
+    <p>When your root JSON data is an array, you can use a simpler, more intuitive pattern:</p>
+    <p><strong>No <code>data-array</code> attribute needed!</strong> The template automatically iterates over the root array.</p>
+  </div>
+
+  <div>
+    <button onclick="loadTodos()">Load Todo List</button>
+    <button onclick="loadProducts()">Load Product Catalog</button>
+    <button onclick="updateTodo()">Mark First Complete</button>
+  </div>
+
+  <!-- Example 1: Todo List -->
+  <div class="card">
+    <h2>📝 Todo List (Root Array)</h2>
+    
+    <script type="application/json" id="todo-data">
+    [
+      { "title": "Buy groceries", "priority": "high" },
+      { "title": "Walk the dog", "priority": "medium" },
+      { "title": "Write documentation", "priority": "high" },
+      { "title": "Call mom", "priority": "low" }
+    ]
+    </script>
+
+    <!-- Simple, clean pattern -->
+    <div is="behavioral-json-template" behavior="json-template" json-template-for="todo-data">
+      <template>
+        <div class="todo priority-{priority}">
+          ✓ {title}
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Example 2: Product Catalog -->
+  <div class="card">
+    <h2>🛍️ Product Catalog (Root Array)</h2>
+    
+    <script type="application/json" id="product-data">
+    [
+      {
+        "name": "Wireless Headphones",
+        "price": 129.99,
+        "stock": 15,
+        "icon": "🎧"
+      },
+      {
+        "name": "Smart Watch",
+        "price": 299.99,
+        "stock": 3,
+        "icon": "⌚"
+      },
+      {
+        "name": "Laptop Stand",
+        "price": 49.99,
+        "stock": 0,
+        "icon": "💻"
+      }
+    ]
+    </script>
+
+    <div is="behavioral-json-template" behavior="json-template" json-template-for="product-data">
+      <template>
+        <div class="product-card">
+          <div class="product-image">{icon}</div>
+          <div class="product-info">
+            <h3>{name}</h3>
+            <p class="price">${price}</p>
+            <p>Stock: {stock} units</p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Comparison -->
+  <div class="card">
+    <h2>📊 Pattern Comparison</h2>
+    
+    <h3>❌ Old Pattern (Nested Object)</h3>
+    <pre><code>{
+  "items": [
+    { "name": "Item 1" },
+    { "name": "Item 2" }
+  ]
+}
+
+&lt;div behavior="json-template" json-template-for="data"&gt;
+  &lt;template&gt;
+    &lt;ul&gt;
+      &lt;template data-array="items"&gt;
+        &lt;li&gt;{name}&lt;/li&gt;
+      &lt;/template&gt;
+    &lt;/ul&gt;
+  &lt;/template&gt;
+&lt;/div&gt;</code></pre>
+
+    <h3>✅ New Pattern (Root Array)</h3>
+    <pre><code>[
+  { "name": "Item 1" },
+  { "name": "Item 2" }
+]
+
+&lt;div behavior="json-template" json-template-for="data"&gt;
+  &lt;template&gt;
+    &lt;div&gt;{name}&lt;/div&gt;
+  &lt;/template&gt;
+&lt;/div&gt;</code></pre>
+
+    <p><strong>Benefits:</strong></p>
+    <ul>
+      <li>✅ Cleaner: No extra wrapper object needed</li>
+      <li>✅ Simpler: No <code>data-array</code> attribute</li>
+      <li>✅ More intuitive: Template iterates automatically</li>
+      <li>✅ Less nesting: Flatter HTML structure</li>
+    </ul>
+  </div>
+
+  <!-- Technical Details -->
+  <div class="card">
+    <h2>🔧 How It Works</h2>
+    
+    <h3>Auto-Detection</h3>
+    <p>The behavior checks if the root JSON data is an array:</p>
+    <pre><code>if (Array.isArray(jsonData)) {
+  // Render template once per item
+  // Each item becomes the data context
+}</code></pre>
+
+    <h3>Use Cases</h3>
+    <ul>
+      <li><strong>API responses:</strong> Many APIs return arrays directly</li>
+      <li><strong>Lists:</strong> Todo lists, product catalogs, user lists</li>
+      <li><strong>Feeds:</strong> Social media feeds, news articles</li>
+      <li><strong>Tables:</strong> Tabular data without metadata</li>
+    </ul>
+
+    <h3>When NOT to Use</h3>
+    <ul>
+      <li>When you need metadata alongside the array (use nested object pattern)</li>
+      <li>When you have multiple arrays to render (use nested object pattern)</li>
+      <li>When you need static content mixed with array (use nested object pattern)</li>
+    </ul>
+  </div>
+
+  <script>
+    // Polyfill for behavioral host
+    if (!customElements.get('behavioral-json-template')) {
+      customElements.define('behavioral-json-template', class extends HTMLDivElement {
+        constructor() {
+          super();
+        }
+      }, { extends: 'div' });
+    }
+
+    function loadTodos() {
+      document.getElementById('todo-data').textContent = JSON.stringify([
+        { title: "Buy groceries", priority: "high" },
+        { title: "Walk the dog", priority: "medium" },
+        { title: "Write documentation", priority: "high" },
+        { title: "Call mom", priority: "low" }
+      ], null, 2);
+    }
+
+    function loadProducts() {
+      document.getElementById('product-data').textContent = JSON.stringify([
+        {
+          name: "Wireless Headphones",
+          price: 129.99,
+          stock: 15,
+          icon: "🎧"
+        },
+        {
+          name: "Smart Watch",
+          price: 299.99,
+          stock: 3,
+          icon: "⌚"
+        },
+        {
+          name: "Laptop Stand",
+          price: 49.99,
+          stock: 0,
+          icon: "💻"
+        }
+      ], null, 2);
+    }
+
+    function updateTodo() {
+      const todos = JSON.parse(document.getElementById('todo-data').textContent);
+      if (todos[0]) {
+        todos[0].title = "✅ " + todos[0].title;
+        todos[0].priority = "low";
+      }
+      document.getElementById('todo-data').textContent = JSON.stringify(todos, null, 2);
+    }
+
+    // Initialize
+    loadTodos();
+    loadProducts();
+  </script>
+</body>
+</html>
