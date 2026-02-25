@@ -135,26 +135,195 @@ function resolvePath(data: unknown, path: string): unknown {
 }
 
 /**
+ * Parses an interpolation expression to extract path, operator, and fallback value.
+ * Handles operators correctly when they appear inside quoted strings.
+ *
+ * Examples:
+ * - "name" → { path: "name", operator: null, fallback: null }
+ * - "name || 'Guest'" → { path: "name", operator: "||", fallback: "Guest" }
+ * - "count ?? 0" → { path: "count", operator: "??", fallback: 0 }
+ * - "active && true" → { path: "active", operator: "&&", fallback: true }
+ * - "message || 'A || B'" → { path: "message", operator: "||", fallback: "A || B" }
+ */
+function parseInterpolation(expr: string): {
+  path: string;
+  operator: "||" | "??" | "&&" | null;
+  fallback: string | number | boolean | null;
+} {
+  const trimmed = expr.trim();
+
+  // Find operator that's NOT inside quotes
+  // We need to scan the string and track quote state
+  let operatorIndex = -1;
+  let operator: "||" | "??" | "&&" | null = null;
+  let insideQuote = "";
+
+  // Check for ?? first (longer match to avoid false positive with ||)
+  for (let i = 0; i < trimmed.length - 1; i++) {
+    const char = trimmed[i];
+    const nextChar = trimmed[i + 1];
+
+    // Track quote state
+    if ((char === '"' || char === "'") && !insideQuote) {
+      insideQuote = char;
+    } else if (char === insideQuote && trimmed[i - 1] !== "\\") {
+      // Close quote (not escaped)
+      insideQuote = "";
+    }
+
+    // Check for operators outside quotes
+    if (!insideQuote) {
+      if (char === "?" && nextChar === "?") {
+        operatorIndex = i;
+        operator = "??";
+        break;
+      }
+    }
+  }
+
+  // If no ?? found, check for || and &&
+  if (operator === null) {
+    insideQuote = "";
+    for (let i = 0; i < trimmed.length - 1; i++) {
+      const char = trimmed[i];
+      const nextChar = trimmed[i + 1];
+
+      // Track quote state
+      if ((char === '"' || char === "'") && !insideQuote) {
+        insideQuote = char;
+      } else if (char === insideQuote && trimmed[i - 1] !== "\\") {
+        // Close quote (not escaped)
+        insideQuote = "";
+      }
+
+      // Check for operators outside quotes
+      if (!insideQuote) {
+        if (char === "|" && nextChar === "|") {
+          operatorIndex = i;
+          operator = "||";
+          break;
+        }
+        if (char === "&" && nextChar === "&") {
+          operatorIndex = i;
+          operator = "&&";
+          break;
+        }
+      }
+    }
+  }
+
+  // No operator found - return simple path
+  if (operator === null || operatorIndex === -1) {
+    return { path: trimmed, operator: null, fallback: null };
+  }
+
+  // Extract path and fallback
+  const pathExpr = trimmed.slice(0, operatorIndex).trim();
+  const fallbackExpr = trimmed.slice(operatorIndex + 2).trim();
+
+  // Parse path - could be a property path OR a literal value
+  let path: string;
+  
+  // Check if path is a quoted literal (e.g., "&&" or '||')
+  // This allows expressions like {"&&" && "||"}
+  const pathQuotedMatch = pathExpr.match(/^(['"])(.*)\1$/);
+  if (pathQuotedMatch) {
+    // Path is a quoted literal - treat it as a special marker
+    // We'll store it with a prefix so resolvePath returns the literal value
+    path = `__LITERAL__:${pathQuotedMatch[2]}`;
+  } else {
+    // Normal path
+    path = pathExpr;
+  }
+
+  // Parse fallback value
+  let fallback: string | number | boolean | null = null;
+
+  // Check for quoted string (single or double quotes)
+  const quotedMatch = fallbackExpr.match(/^(['"])(.*)\1$/);
+  if (quotedMatch) {
+    fallback = quotedMatch[2];
+  } else if (fallbackExpr === "true") {
+    fallback = true;
+  } else if (fallbackExpr === "false") {
+    fallback = false;
+  } else {
+    // Try to parse as number
+    const num = Number(fallbackExpr);
+    if (!Number.isNaN(num)) {
+      fallback = num;
+    } else {
+      // Unquoted string or invalid - treat as string
+      fallback = fallbackExpr;
+    }
+  }
+
+  return { path, operator, fallback };
+}
+
+/**
  * Interpolates curly brace patterns {path} in a string with values from data.
+ * Supports fallback operators: || (logical OR), ?? (nullish coalescing), and && (logical AND).
  * Returns the interpolated string.
+ *
+ * Examples:
+ * - {name} → resolves name, returns "" if undefined/null
+ * - {name || "Guest"} → resolves name, returns "Guest" if falsy
+ * - {name ?? "Guest"} → resolves name, returns "Guest" if nullish (undefined/null)
+ * - {premium && "Pro"} → resolves premium, returns "Pro" if truthy
  */
 function interpolateString(text: string, data: unknown): string {
   // Match all {path} patterns
-  return text.replace(/\{([^}]+)\}/g, (_, path) => {
-    const value = resolvePath(data, path.trim());
+  return text.replace(/\{([^}]+)\}/g, (_, expr) => {
+    const { path, operator, fallback } = parseInterpolation(expr);
+    
+    // Check if path is a literal value (starts with __LITERAL__:)
+    let value: unknown;
+    if (path.startsWith("__LITERAL__:")) {
+      // Extract the literal string value
+      value = path.slice("__LITERAL__:".length);
+    } else {
+      // Normal path resolution
+      value = resolvePath(data, path);
+    }
 
-    // Return empty string for undefined/null (graceful degradation)
-    if (value === undefined || value === null) {
-      return "";
+    // Apply operator semantics
+    let finalValue: unknown = value;
+
+    if (operator === "||") {
+      // Logical OR: use fallback if value is falsy
+      if (!value) {
+        finalValue = fallback;
+      }
+    } else if (operator === "??") {
+      // Nullish coalescing: use fallback only if value is null/undefined
+      if (value === null || value === undefined) {
+        finalValue = fallback;
+      }
+    } else if (operator === "&&") {
+      // Logical AND: use fallback if value is truthy
+      if (value) {
+        finalValue = fallback;
+      }
+    } else {
+      // No operator: use old behavior (empty string for undefined/null)
+      if (value === undefined || value === null) {
+        return "";
+      }
     }
 
     // Convert to string for primitives
     if (
-      typeof value === "string" ||
-      typeof value === "number" ||
-      typeof value === "boolean"
+      typeof finalValue === "string" ||
+      typeof finalValue === "number" ||
+      typeof finalValue === "boolean"
     ) {
-      return String(value);
+      return String(finalValue);
+    }
+
+    // For undefined/null after operator check, return empty
+    if (finalValue === undefined || finalValue === null) {
+      return "";
     }
 
     // For objects/arrays, return empty (can't interpolate complex types)

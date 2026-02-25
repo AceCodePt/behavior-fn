@@ -2,58 +2,45 @@
 
 ## Goal
 
-Add support for fallback values in curly brace interpolation using the `||` operator, enabling conditional rendering with default values.
+Enhance the JSON-template behavior to support fallback/default values when interpolating paths that resolve to `undefined` or `null`. This allows templates to gracefully handle missing data with user-specified defaults instead of rendering empty strings.
 
 ## Context
 
-Currently, the `json-template` behavior interpolates values using `{path}` syntax. When a path doesn't exist or is `null`/`undefined`, it returns an empty string.
+Currently, the JSON-template behavior interpolates `{path}` expressions by resolving paths in the data object. When a path doesn't exist or resolves to `null`/`undefined`, it renders an empty string. This behavior is acceptable for some use cases, but many real-world scenarios require fallback values for better UX (e.g., showing "Guest" when username is missing, or "N/A" for unavailable data).
 
-**The Problem:**
-When building reactive forms and UIs, we often need default values:
-- Session tokens that default to `"-"` for new sessions
-- User names that default to `"Guest"`
-- Counts that default to `0`
-- Any conditional value where we want a meaningful fallback
-
-**Current Behavior:**
-```html
-{session.name}  → "" (empty string if session doesn't exist)
-```
-
-**Desired Behavior:**
-```html
-{session.name || "-"}     → "-" (if session doesn't exist)
-{user.name || "Guest"}    → "Guest" (if user.name is undefined)
-{count || 0}              → "0" (if count is undefined)
-{items[0].title || "Untitled"}  → "Untitled" (if no items or no title)
-```
-
-**Use Cases:**
-- Chat forms: `<input name="session" value="{[0].session.name || -}">`
-- User greetings: `<p>Hello, {user.name || "Guest"}!</p>`
-- Default values: `<span>Count: {items.length || 0}</span>`
-- Conditional text: `<p>{status || "Unknown"}</p>`
+Common templating systems (Handlebars, Vue, etc.) support fallback operators like `||` or `??` to provide default values. Adding this capability to our JSON-template behavior would make it more robust and user-friendly without breaking existing functionality.
 
 ## Requirements
 
-- Extend `interpolateString` function to parse and handle `||` operator
-- Support string fallbacks with and without quotes: `{path || "default"}` or `{path || default}`
-- Support numeric fallbacks: `{path || 0}`
-- Support fallbacks for nested paths: `{user.profile.name || "Anonymous"}`
-- Support fallbacks for array access: `{items[0].title || "No title"}`
-- Maintain backward compatibility (expressions without `||` work as before)
-- Gracefully handle malformed expressions
+- Support a fallback operator syntax within `{path}` interpolations (e.g., `{user.name || "Guest"}` or `{price ?? "N/A"}`)
+- Preserve backward compatibility: existing templates without fallback operators should continue to work unchanged (empty string for undefined/null)
+- Handle three operators with their standard JavaScript semantics:
+  - `||`: Returns fallback if value is falsy (undefined, null, false, 0, "", NaN)
+  - `??`: Returns fallback only if value is nullish (undefined or null)
+  - `&&`: Returns fallback if value is truthy (the inverse of `||`)
+- Support literal string fallbacks with proper quote handling (single or double quotes)
+- Support numeric and boolean literal fallbacks
+- Fallback values should be literals only (not nested path resolution) for initial implementation
+- Work correctly in both text content and attribute interpolations
+- Work correctly in both root-level templates and nested array templates
 
 ## Definition of Done
 
-- [ ] Fallback operator parsing implemented in `interpolateString` function
-- [ ] String fallbacks work (with and without quotes)
-- [ ] Numeric fallbacks work
-- [ ] Nested path fallbacks work
-- [ ] Array access fallbacks work
-- [ ] Tests cover all fallback scenarios
-- [ ] Tests verify fallback only applies when value is `undefined`, `null`, or empty string
-- [ ] Tests verify fallback doesn't apply when value is `0`, `false`, or other falsy but valid values
-- [ ] All existing tests still pass (backward compatibility verified)
-- [ ] Documentation updated (already done in `JSON-TEMPLATE-PATTERNS.md`)
+- [ ] Fallback operator parsing implemented in interpolation logic
+- [ ] All three operators (`||`, `??`, `&&`) supported with correct semantics
+- [ ] String, numeric, and boolean literal fallbacks supported
+- [ ] Quote handling (single/double) works correctly for string literals
+- [ ] Backward compatibility verified: templates without fallbacks unchanged
+- [ ] Tests cover:
+  - [ ] Text content interpolation with fallbacks
+  - [ ] Attribute interpolation with fallbacks
+  - [ ] Both `||` and `??` operators
+  - [ ] All literal types (string, number, boolean)
+  - [ ] Nested object paths with fallbacks
+  - [ ] Array templates with fallbacks
+  - [ ] Edge cases (empty strings, 0, false vs undefined/null)
+- [ ] All existing tests continue to pass
+- [ ] Documentation updated with fallback operator examples
 - [ ] **User Review**: Changes verified and commit authorized
+
+> **Note:** Do not include implementation details, code snippets, or technical designs here. The detailed execution plan belongs in the `LOG.md` file created during the **Plan** phase of the PDSRTDD workflow.

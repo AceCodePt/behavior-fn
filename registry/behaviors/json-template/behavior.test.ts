@@ -768,4 +768,1159 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(container.querySelector("div")?.textContent).toBe("Hello Sagi");
     });
   });
+
+  describe("Fallback Operators", () => {
+    describe("|| Operator (Logical OR)", () => {
+      it("should use fallback for undefined values", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ age: 30 });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{name || "Guest"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("div")?.textContent).toBe("Guest");
+      });
+
+      it("should use actual value when defined", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ name: "Alice" });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{name || "Guest"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("div")?.textContent).toBe("Alice");
+      });
+
+      it("should use fallback for falsy values (0, false, empty string)", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          count: 0,
+          active: false,
+          message: "",
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="count">{count || 10}</span>
+              <span class="active">{active || "N/A"}</span>
+              <span class="message">{message || "No message"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".count")?.textContent).toBe("10");
+        expect(container.querySelector(".active")?.textContent).toBe("N/A");
+        expect(container.querySelector(".message")?.textContent).toBe(
+          "No message",
+        );
+      });
+
+      it("should support single quotes for string fallbacks", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{name || 'Anonymous'}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("div")?.textContent).toBe("Anonymous");
+      });
+
+      it("should support numeric fallbacks", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{count || 42}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("div")?.textContent).toBe("42");
+      });
+
+      it("should support boolean fallbacks", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{active || true}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("div")?.textContent).toBe("true");
+      });
+    });
+
+    describe("&& Operator (Logical AND)", () => {
+      it("should use fallback when value is truthy", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ 
+          name: "Alice",
+          count: 5,
+          active: true 
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="name">{name && "Name exists"}</span>
+              <span class="count">{count && "Has items"}</span>
+              <span class="active">{active && "Active user"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".name")?.textContent).toBe("Name exists");
+        expect(container.querySelector(".count")?.textContent).toBe("Has items");
+        expect(container.querySelector(".active")?.textContent).toBe("Active user");
+      });
+
+      it("should NOT use fallback for falsy values", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          count: 0,
+          active: false,
+          message: "",
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="count">{count && "Has count"}</span>
+              <span class="active">{active && "Is active"}</span>
+              <span class="message">{message && "Has message"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".count")?.textContent).toBe("0");
+        expect(container.querySelector(".active")?.textContent).toBe("false");
+        expect(container.querySelector(".message")?.textContent).toBe("");
+      });
+
+      it("should render empty string for undefined/null values", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          name: null,
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="name">{name && "Name exists"}</span>
+              <span class="missing">{missing && "Missing exists"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".name")?.textContent).toBe("");
+        expect(container.querySelector(".missing")?.textContent).toBe("");
+      });
+
+      it("should work with numeric and boolean fallbacks", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          premium: true,
+          hasAccess: 1,
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="premium">{premium && 100}</span>
+              <span class="access">{hasAccess && true}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".premium")?.textContent).toBe("100");
+        expect(container.querySelector(".access")?.textContent).toBe("true");
+      });
+    });
+
+    describe("?? Operator (Nullish Coalescing)", () => {
+      it("should use fallback only for null/undefined", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          name: null,
+          age: undefined,
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="name">{name ?? "Unknown"}</span>
+              <span class="age">{age ?? "N/A"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".name")?.textContent).toBe("Unknown");
+        expect(container.querySelector(".age")?.textContent).toBe("N/A");
+      });
+
+      it("should NOT use fallback for falsy non-nullish values", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          count: 0,
+          active: false,
+          message: "",
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="count">{count ?? 10}</span>
+              <span class="active">{active ?? "N/A"}</span>
+              <span class="message">{message ?? "No message"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".count")?.textContent).toBe("0");
+        expect(container.querySelector(".active")?.textContent).toBe("false");
+        expect(container.querySelector(".message")?.textContent).toBe("");
+      });
+    });
+
+    describe("Fallbacks with Nested Paths", () => {
+      it("should work with dot notation paths", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          user: { profile: { email: "test@example.com" } },
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="name">{user.profile.name || "Anonymous"}</span>
+              <span class="email">{user.profile.email || "No email"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".name")?.textContent).toBe("Anonymous");
+        expect(container.querySelector(".email")?.textContent).toBe(
+          "test@example.com",
+        );
+      });
+
+      it("should work with bracket notation", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          items: [{ title: "First" }],
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>
+              <span class="first">{items[0].title || "Untitled"}</span>
+              <span class="second">{items[1].title ?? "Missing"}</span>
+            </div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector(".first")?.textContent).toBe("First");
+        expect(container.querySelector(".second")?.textContent).toBe("Missing");
+      });
+    });
+
+    describe("Fallbacks in Attributes", () => {
+      it("should work in attribute values", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ role: null, active: true });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div 
+              data-role="{role ?? 'guest'}" 
+              class="user-{role || 'default'}"
+              data-status="{active && 'online'}">Content</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        const div = container.querySelector("div");
+        expect(div?.getAttribute("data-role")).toBe("guest");
+        expect(div?.className).toBe("user-default");
+        expect(div?.getAttribute("data-status")).toBe("online");
+      });
+    });
+
+    describe("Fallbacks in Array Templates", () => {
+      it("should work within nested array templates", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          users: [
+            { name: "Alice", role: "admin" },
+            { name: null, role: "user" },
+            { role: "guest" },
+          ],
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <ul>
+              <template data-array="users">
+                <li>{name || "Anonymous"} - {role ?? "N/A"}</li>
+              </template>
+            </ul>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        const items = container.querySelectorAll("li");
+        expect(items).toHaveLength(3);
+        expect(items[0]?.textContent?.trim()).toBe("Alice - admin");
+        expect(items[1]?.textContent?.trim()).toBe("Anonymous - user");
+        expect(items[2]?.textContent?.trim()).toBe("Anonymous - guest");
+      });
+    });
+
+    describe("Whitespace Handling", () => {
+      it("should handle whitespace around operators", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{ name  ||  "Guest" }</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("div")?.textContent).toBe("Guest");
+      });
+    });
+
+    describe("Mixed Operators", () => {
+      it("should handle all three operators in different interpolations", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ 
+          verified: true,
+          score: 0,
+          status: null 
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <p>{verified && "✓"} Score: {score ?? "N/A"} - {status || "Unknown"}</p>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        expect(container.querySelector("p")?.textContent).toBe("✓ Score: 0 - Unknown");
+      });
+    });
+
+    describe("Backward Compatibility", () => {
+      it("should preserve old behavior when no operator is used", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>Value: {nonexistent}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should render empty string for missing value (old behavior)
+        expect(container.querySelector("div")?.textContent).toBe("Value: ");
+      });
+    });
+
+    describe("Edge Cases with Operators in Strings", () => {
+      it("should handle || inside quoted fallback strings", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{message || "A || B"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should use the fallback string "A || B" (not split on inner ||)
+        expect(container.querySelector("div")?.textContent).toBe("A || B");
+      });
+
+      it("should handle ?? inside quoted fallback strings", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{value ?? "X ?? Y"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should use the fallback string "X ?? Y" (not split on inner ??)
+        expect(container.querySelector("div")?.textContent).toBe("X ?? Y");
+      });
+
+      it("should handle && inside quoted fallback strings", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ active: true });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{active && "Fish && Chips"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should use the fallback string "Fish && Chips" (not split on inner &&)
+        expect(container.querySelector("div")?.textContent).toBe("Fish && Chips");
+      });
+
+      it("should handle complex operator combinations in quoted strings", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ hasOp: true });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"&&" && "||"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should parse '&&' as a literal string (truthy)
+        // and return the fallback "||"
+        expect(container.querySelector("div")?.textContent).toBe("||");
+      });
+
+      it("should handle quoted literal on left with ||", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"" || "fallback"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Empty string literal is falsy, should use fallback
+        expect(container.querySelector("div")?.textContent).toBe("fallback");
+      });
+
+      it("should handle quoted literal on left with ??", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"" ?? "fallback"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Empty string literal is NOT nullish, should keep empty string
+        expect(container.querySelector("div")?.textContent).toBe("");
+      });
+
+      it("should handle single quotes in both operands", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{'||' && '&&'}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // '||' is truthy, should return '&&'
+        expect(container.querySelector("div")?.textContent).toBe("&&");
+      });
+
+      it('should handle {"||" && "&&"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"||" && "&&"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "||" is truthy, should return "&&"
+        expect(container.querySelector("div")?.textContent).toBe("&&");
+      });
+
+      it('should handle {"||" || "&&"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"||" || "&&"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "||" is truthy, should keep "||" (not use fallback)
+        expect(container.querySelector("div")?.textContent).toBe("||");
+      });
+
+      it('should handle {"??" && "||"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"??" && "||"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "??" is truthy, should return "||"
+        expect(container.querySelector("div")?.textContent).toBe("||");
+      });
+
+      it('should handle {"??" || "&&"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"??" || "&&"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "??" is truthy, should keep "??" (not use fallback)
+        expect(container.querySelector("div")?.textContent).toBe("??");
+      });
+
+      it('should handle {"??" ?? "||"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"??" ?? "||"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "??" is not nullish, should keep "??"
+        expect(container.querySelector("div")?.textContent).toBe("??");
+      });
+
+      it('should handle {"&&" || "??"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"&&" || "??"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "&&" is truthy, should keep "&&" (not use fallback)
+        expect(container.querySelector("div")?.textContent).toBe("&&");
+      });
+
+      it('should handle {"&&" ?? "||"}', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"&&" ?? "||"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "&&" is not nullish, should keep "&&"
+        expect(container.querySelector("div")?.textContent).toBe("&&");
+      });
+
+      it('should handle all three operators as literals and operators', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div class="a">{"||" && "&&"}</div>
+            <div class="b">{"&&" || "??"}</div>
+            <div class="c">{"??" ?? "||"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // All operator strings are truthy
+        expect(container.querySelector(".a")?.textContent).toBe("&&");  // && returns fallback for truthy
+        expect(container.querySelector(".b")?.textContent).toBe("&&");  // || keeps value when truthy
+        expect(container.querySelector(".c")?.textContent).toBe("??");  // ?? keeps value when not nullish
+      });
+
+      it('should handle unquoted "undefined" as a path (not literal)', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({ undefined: "has-value" });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{undefined ?? "??"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "undefined" without quotes is a path, looks for data.undefined
+        // data has undefined: "has-value", so returns "has-value"
+        expect(container.querySelector("div")?.textContent).toBe("has-value");
+      });
+
+      it('should handle unquoted "undefined" path with missing property', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{undefined ?? "??"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "undefined" without quotes is a path, data.undefined doesn't exist
+        // resolvePath returns undefined, ?? operator uses fallback "??"
+        expect(container.querySelector("div")?.textContent).toBe("??");
+      });
+
+      it('should handle quoted "undefined" as literal string', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"undefined" ?? "??"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "undefined" WITH quotes is a literal string (truthy)
+        // ?? operator keeps the value when not nullish
+        expect(container.querySelector("div")?.textContent).toBe("undefined");
+      });
+
+      it('should handle quoted "null" as literal string', () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({});
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{"null" ?? "??"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // "null" WITH quotes is a literal string (truthy, not actual null)
+        // ?? operator keeps the value when not nullish
+        expect(container.querySelector("div")?.textContent).toBe("null");
+      });
+    });
+
+    describe("Deep Path Safety - Undefined Intermediate Properties", () => {
+      it("should safely handle a.b.c where b is undefined (no errors)", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          a: {
+            // b is missing
+            other: "value"
+          }
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{a.b.c}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should not throw error, should return empty string
+        expect(container.querySelector("div")?.textContent).toBe("");
+      });
+
+      it("should safely handle a.b.c where a is undefined", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          other: "value"
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{a.b.c}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should not throw error, should return empty string
+        expect(container.querySelector("div")?.textContent).toBe("");
+      });
+
+      it("should use fallback when intermediate property is undefined", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          user: {
+            // profile is missing
+            name: "John"
+          }
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{user.profile.email || "no-email@example.com"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should use fallback when any part of path is undefined
+        expect(container.querySelector("div")?.textContent).toBe("no-email@example.com");
+      });
+
+      it("should handle deeply nested missing paths with ??", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          app: {
+            settings: {
+              // theme is missing
+            }
+          }
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{app.settings.theme.color ?? "blue"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should use fallback when intermediate path is undefined
+        expect(container.querySelector("div")?.textContent).toBe("blue");
+      });
+
+      it("should handle null intermediate values", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          user: null
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div>{user.profile.name ?? "Anonymous"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // Should handle null safely and use fallback
+        expect(container.querySelector("div")?.textContent).toBe("Anonymous");
+      });
+
+      it("should not confuse 0 or false with undefined in path", () => {
+        const script = document.createElement("script");
+        script.type = "application/json";
+        script.id = "data-source";
+        script.textContent = JSON.stringify({
+          counters: {
+            value: 0,
+            active: false
+          }
+        });
+        document.body.appendChild(script);
+
+        const container = document.createElement(tag, {
+          is: webcomponentTag,
+        }) as HTMLElement;
+        container.setAttribute("behavior", "json-template");
+        container.setAttribute(attributes["json-template-for"], "data-source");
+        container.innerHTML = `
+          <template>
+            <div class="value">{counters.value.toString ?? "undefined"}</div>
+            <div class="active">{counters.active.toString ?? "undefined"}</div>
+          </template>
+        `;
+        document.body.appendChild(container);
+
+        // 0 and false are valid values, accessing .toString on them should fail safely
+        // Since 0 and false are primitives, they don't have properties, so returns undefined
+        expect(container.querySelector(".value")?.textContent).toBe("undefined");
+        expect(container.querySelector(".active")?.textContent).toBe("undefined");
+      });
+    });
+  });
 });
