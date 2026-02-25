@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Add json-template-slice Attribute for Array Slicing](docs/tasks/json-template-slice/task.md)
+- [-] [Add json-template-slice Attribute for Array Slicing](docs/tasks/json-template-slice/task.md)
 - [-] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
 - [-] [Restructure CDN Build - Core + Behavior Modules](docs/tasks/cdn-core-plus-behaviors/task.md)
 - [x] [Fix CDN Build to Inline TypeBox Schemas](docs/tasks/fix-cdn-build-typebox/task.md)
