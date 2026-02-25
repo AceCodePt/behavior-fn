@@ -314,7 +314,7 @@ For arrays within objects, use the `data-array` attribute on a nested `<template
 
 #### Empty Nested Arrays
 
-Empty nested arrays are also handled gracefully - the outer content renders but no array items appear:
+**Note:** Empty **nested** arrays (with `data-array` attribute) behave differently - they render **nothing** (not even once). This is the correct behavior for nested arrays.
 
 ```html
 <script type="application/json" id="user">
@@ -340,9 +340,13 @@ Empty nested arrays are also handled gracefully - the outer content renders but 
 ```html
 <h2>Alice</h2>
 <ul>
-  <!-- No <li> elements, but <ul> is rendered -->
+  <!-- No <li> elements - nested arrays don't render when empty -->
 </ul>
 ```
+
+**The difference:**
+- **Root-level empty array (`[]`)**: Renders template **once** with empty context
+- **Nested empty array (`data-array="items"` where items is `[]`)**: Renders **nothing** (zero times)
 
 ### Deeply Nested Arrays
 
