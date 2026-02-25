@@ -125,149 +125,107 @@ function resolvePath(data: unknown, path: string): unknown {
 }
 
 /**
- * Processes data bindings on a cloned DOM tree.
- * 
- * For each element with a data-key attribute:
- * 1. If it has json-template-item: treat the data as an array and render items
- * 2. Otherwise: resolve the path and set textContent for simple values
+ * Interpolates curly brace patterns {path} in a string with values from data.
+ * Returns the interpolated string.
  */
-function processBindings(
+function interpolateString(text: string, data: unknown): string {
+  // Match all {path} patterns
+  return text.replace(/\{([^}]+)\}/g, (match, path) => {
+    const value = resolvePath(data, path.trim());
+    
+    // Return empty string for undefined/null (graceful degradation)
+    if (value === undefined || value === null) {
+      return "";
+    }
+    
+    // Convert to string for primitives
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      return String(value);
+    }
+    
+    // For objects/arrays, return empty (can't interpolate complex types)
+    return "";
+  });
+}
+
+/**
+ * Processes interpolation on a cloned DOM tree.
+ * 
+ * 1. Interpolates all text nodes containing {path} patterns
+ * 2. Interpolates all attribute values containing {path} patterns
+ * 3. Detects and renders arrays using nested <template data-array="path">
+ */
+function processInterpolation(
   element: Node,
   data: unknown,
-  isArrayItem: boolean = false,
 ): void {
-  // Only process element nodes (ignore text nodes, comments, etc.)
+  // Process text nodes
+  if (element.nodeType === Node.TEXT_NODE) {
+    const textNode = element as Text;
+    const text = textNode.textContent || "";
+    
+    if (text.includes("{")) {
+      textNode.textContent = interpolateString(text, data);
+    }
+    return;
+  }
+
+  // Only process element nodes beyond this point
   if (element.nodeType !== Node.ELEMENT_NODE) {
     return;
   }
 
   const el = element as Element;
 
-  // Check for data-key attribute
-  const dataKey = el.getAttribute(JSON_TEMPLATE_ATTRS.DATA_KEY);
-  if (!dataKey) {
-    // No binding on this element, recurse to children
-    for (const child of Array.from(el.childNodes)) {
-      processBindings(child, data, isArrayItem);
+  // Check for array template marker
+  const arrayPath = el.getAttribute("data-array");
+  if (arrayPath && el instanceof HTMLTemplateElement) {
+    // This is an array template marker - resolve the array data
+    const arrayData = resolvePath(data, arrayPath);
+    
+    if (!Array.isArray(arrayData)) {
+      console.error(
+        `[json-template] Expected array at path "${arrayPath}", got ${typeof arrayData}`,
+      );
+      return;
     }
+
+    // Find parent to insert rendered items
+    const parent = el.parentElement;
+    if (!parent) {
+      console.error(
+        `[json-template] Array template has no parent element`,
+      );
+      return;
+    }
+
+    // Render each array item
+    for (const item of arrayData) {
+      const itemClone = el.content.cloneNode(true) as DocumentFragment;
+      
+      // Process interpolation for this item
+      for (const child of Array.from(itemClone.childNodes)) {
+        processInterpolation(child, item);
+      }
+
+      // Insert before the template
+      parent.insertBefore(itemClone, el);
+    }
+    
+    // Array template processed - don't recurse into it
     return;
   }
 
-  // We have a data-key, process the binding
-  {
-    const value = resolvePath(data, dataKey);
-    
-    // Check if this is array rendering (either explicit via attribute or implicit via nested template)
-    const itemTemplateId = el.getAttribute(JSON_TEMPLATE_ATTRS.ITEM_TEMPLATE);
-    const nestedTemplate = el.querySelector(':scope > template');
-    const isArrayWithTemplate = Array.isArray(value) && (itemTemplateId || nestedTemplate);
-    
-    if (isArrayWithTemplate) {
-      // Array rendering - find the template
-      let itemTemplate: HTMLTemplateElement | null = null;
-      
-      if (itemTemplateId) {
-        // Explicit template via ID
-        const templateById = document.getElementById(itemTemplateId);
-        if (!templateById) {
-          console.error(
-            `[json-template] Item template not found: ${itemTemplateId}`,
-          );
-          return;
-        }
-        if (!(templateById instanceof HTMLTemplateElement)) {
-          console.error(
-            `[json-template] Element with id "${itemTemplateId}" is not a template element`,
-          );
-          return;
-        }
-        itemTemplate = templateById;
-      } else if (nestedTemplate instanceof HTMLTemplateElement) {
-        // Implicit template (nested as direct child)
-        itemTemplate = nestedTemplate;
-      }
-      
-      if (!itemTemplate) {
-        console.error(
-          `[json-template] Could not find item template for array at "${dataKey}"`,
-        );
-        return;
-      }
-
-      // Clear container (preserve nested template if implicit)
-      if (nestedTemplate && !itemTemplateId) {
-        // Implicit pattern: keep the template, clear everything else
-        const nodesToRemove: ChildNode[] = [];
-        el.childNodes.forEach(node => {
-          if (node !== nestedTemplate) {
-            nodesToRemove.push(node);
-          }
-        });
-        nodesToRemove.forEach(node => {
-          if (node.parentNode) {
-            node.parentNode.removeChild(node);
-          }
-        });
-      } else {
-        // Explicit pattern: clear everything
-        (el as HTMLElement).innerHTML = "";
-      }
-
-      // Render each item
-      for (const item of value) {
-        const itemClone = itemTemplate.content.cloneNode(true) as DocumentFragment;
-        
-        // Process bindings for this item (relative to item data)
-        for (const child of Array.from(itemClone.children)) {
-          processBindings(child, item, true);
-        }
-
-        // Insert before the template (if implicit) or at end (if explicit)
-        if (nestedTemplate && !itemTemplateId) {
-          el.insertBefore(itemClone, nestedTemplate);
-        } else {
-          el.appendChild(itemClone);
-        }
-      }
-      
-      // Array was rendered - items were already processed
-      // Do NOT recurse to children (would double-process rendered items)
-      return;
-    } else if (itemTemplateId || nestedTemplate) {
-      // Has template but value is not an array
-      if (value !== undefined) {
-        console.error(
-          `[json-template] Expected array at path "${dataKey}", got ${typeof value}`,
-        );
-      }
-      return;
-    } else {
-      // Simple value binding
-      if (value === undefined) {
-        console.error(
-          `[json-template] Data path not found: "${dataKey}"`,
-        );
-        return;
-      }
-
-      // Only bind simple values (string, number)
-      if (typeof value === "string" || typeof value === "number") {
-        el.textContent = String(value);
-      }
-      // Objects, booleans, and other types are ignored
-      // Fall through to recurse into children for nested bindings
+  // Process attributes (interpolate any attribute values)
+  for (const attr of Array.from(el.attributes)) {
+    if (attr.value.includes("{")) {
+      attr.value = interpolateString(attr.value, data);
     }
   }
 
   // Recursively process children
-  // This handles:
-  // - Elements without data-key that contain elements with data-key
-  // - Nested objects (e.g., data-key="user" with children that have data-key="name", "email", etc.)
-  // - Mixed content (elements with bindings alongside static content)
-  // 
-  // Note: Array rendering returns early above, so we don't double-process array items
   for (const child of Array.from(el.childNodes)) {
-    processBindings(child, data, isArrayItem);
+    processInterpolation(child, data);
   }
 }
 
@@ -328,9 +286,9 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
     // Clone template content
     const clone = templateElement.content.cloneNode(true) as DocumentFragment;
 
-    // Process data bindings (all done off-DOM in the DocumentFragment)
-    for (const child of Array.from(clone.children)) {
-      processBindings(child, jsonData);
+    // Process interpolation (all done off-DOM in the DocumentFragment)
+    for (const child of Array.from(clone.childNodes)) {
+      processInterpolation(child, jsonData);
     }
 
     // Clear existing rendered content (preserve template)
