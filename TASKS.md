@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Fix CDN Build to Inline TypeBox Schemas](docs/tasks/fix-cdn-build-typebox/task.md)
+- [-] [Fix CDN Build to Inline TypeBox Schemas](docs/tasks/fix-cdn-build-typebox/task.md)
 - [ ] [Render json-template When Root Data is Empty Array](docs/tasks/json-template-render-empty-arrays/task.md)
 - [x] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
 - [x] [Add Array Swap Strategies to Request Behavior](docs/tasks/add-array-swap-strategies/task.md)
