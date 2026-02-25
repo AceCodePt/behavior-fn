@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Add Negative Array Index Support to json-template](docs/tasks/json-template-negative-indices/task.md)
 - [-] [Add json-template-slice Attribute for Array Slicing](docs/tasks/json-template-slice/task.md)
 - [-] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
 - [-] [Restructure CDN Build - Core + Behavior Modules](docs/tasks/cdn-core-plus-behaviors/task.md)
