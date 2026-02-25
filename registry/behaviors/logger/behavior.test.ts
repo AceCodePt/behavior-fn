@@ -6,8 +6,8 @@ import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name } = definition;
-const observedAttributes = getObservedAttributes(definition.schema);
+const { name, attributes, schema } = definition;
+const observedAttributes = getObservedAttributes(schema);
 
 describe("Logger Behavior", () => {
   beforeAll(() => {
@@ -27,7 +27,7 @@ describe("Logger Behavior", () => {
       is: webcomponentTag,
     }) as HTMLElement;
     el.setAttribute("behavior", "logger");
-    el.setAttribute(definition.ATTRS["logger-trigger"], "click");
+    el.setAttribute(attributes["logger-trigger"], "click");
     document.body.appendChild(el);
 
     await vi.waitFor(() => {
@@ -48,7 +48,7 @@ describe("Logger Behavior", () => {
       is: webcomponentTag,
     });
     el.setAttribute("behavior", "logger");
-    el.setAttribute(definition.ATTRS["logger-trigger"], "mouseenter");
+    el.setAttribute(attributes["logger-trigger"], "mouseenter");
     document.body.appendChild(el);
 
     await vi.waitFor(() => {

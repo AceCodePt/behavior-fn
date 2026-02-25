@@ -1,11 +1,11 @@
 import definition from "./_behavior-definition";
 
-const { ATTRS } = definition;
+const { attributes } = definition;
 
 export const loggerBehaviorFactory = (el: HTMLElement) => {
   return {
     onClick(e: MouseEvent) {
-      const trigger = el.getAttribute(ATTRS["logger-trigger"]);
+      const trigger = el.getAttribute(attributes["logger-trigger"]);
       if (trigger === "click") {
         console.log(
           `[Logger] Element <${el.tagName.toLowerCase()}> clicked!`,
@@ -14,7 +14,7 @@ export const loggerBehaviorFactory = (el: HTMLElement) => {
       }
     },
     onMouseEnter(e: MouseEvent) {
-      const trigger = el.getAttribute(ATTRS["logger-trigger"]);
+      const trigger = el.getAttribute(attributes["logger-trigger"]);
       console.log(trigger, "mouse enter");
       if (trigger === "mouseenter") {
         console.log(

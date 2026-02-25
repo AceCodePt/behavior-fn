@@ -6,7 +6,7 @@ import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name, schema } = definition;
+const { name, schema, attributes } = definition;
 const observedAttributes = getObservedAttributes(schema);
 
 describe("Input Watcher Behavior", () => {
@@ -45,7 +45,7 @@ describe("Input Watcher Behavior", () => {
   });
 
   it("should update host text content when input changes", async () => {
-    host.setAttribute("input-watcher-target", "#test-input");
+    host.setAttribute(attributes["input-watcher-target"], "#test-input");
 
     // Wait for microtasks (behavior attachment)
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -59,8 +59,8 @@ describe("Input Watcher Behavior", () => {
   });
 
   it("should format output with {value}", async () => {
-    host.setAttribute("input-watcher-target", "#test-input");
-    host.setAttribute("input-watcher-format", "Value: {value}");
+    host.setAttribute(attributes["input-watcher-target"], "#test-input");
+    host.setAttribute(attributes["input-watcher-format"], "Value: {value}");
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -77,8 +77,11 @@ describe("Input Watcher Behavior", () => {
     input2.id = "test-input-2";
     document.body.appendChild(input2);
 
-    host.setAttribute("input-watcher-target", "#test-input, #test-input-2");
-    host.setAttribute("input-watcher-format", "{0} - {1}");
+    host.setAttribute(
+      attributes["input-watcher-target"],
+      "#test-input, #test-input-2",
+    );
+    host.setAttribute(attributes["input-watcher-format"], "{0} - {1}");
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -94,8 +97,8 @@ describe("Input Watcher Behavior", () => {
   });
 
   it("should read from attribute if specified", async () => {
-    host.setAttribute("input-watcher-target", "#test-input");
-    host.setAttribute("input-watcher-attr", "data-value");
+    host.setAttribute(attributes["input-watcher-target"], "#test-input");
+    host.setAttribute(attributes["input-watcher-attr"], "data-value");
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 

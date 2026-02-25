@@ -1,10 +1,10 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { ATTRS, COMMANDS } = definition;
+const { attributes, commands } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
-  const isPopover = () => el.hasAttribute("popover");
+  const isPopover = () => el.hasAttribute(attributes["popover"]);
   const isDialog = () => el instanceof HTMLDialogElement;
 
   let openerElement: HTMLElement | null = null;
@@ -27,9 +27,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   };
 
   const applyStyles = () => {
-    const revealDelay = el.getAttribute(ATTRS["reveal-delay"]);
-    const revealDuration = el.getAttribute(ATTRS["reveal-duration"]);
-    const revealAnchor = el.getAttribute(ATTRS["reveal-anchor"]);
+    const revealDelay = el.getAttribute(attributes["reveal-delay"]);
+    const revealDuration = el.getAttribute(attributes["reveal-duration"]);
+    const revealAnchor = el.getAttribute(attributes["reveal-anchor"]);
     if (revealDelay) {
       el.style.setProperty("--reveal-delay", revealDelay);
     }
@@ -138,9 +138,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   let attributeObserver: MutationObserver | null = null;
 
   const setupAttributeWatcher = () => {
-    const targetSelector = el.getAttribute(ATTRS["reveal-when-target"]);
-    const attribute = el.getAttribute(ATTRS["reveal-when-attribute"]);
-    const value = el.getAttribute(ATTRS["reveal-when-value"]);
+    const targetSelector = el.getAttribute(attributes["reveal-when-target"]);
+    const attribute = el.getAttribute(attributes["reveal-when-attribute"]);
+    const value = el.getAttribute(attributes["reveal-when-value"]);
 
     // Only set up if all three are provided
     if (!targetSelector || !attribute || !value) return;
@@ -247,8 +247,8 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
       }
     },
     onCommand(e: CommandEvent<string>) {
-      if (!COMMANDS) return;
-      const cmd = COMMANDS;
+      if (!commands) return;
+      const cmd = commands;
       const popover = isPopover();
       const dialog = isDialog();
 
@@ -305,6 +305,3 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
-
-// Attach observed attributes as a static property for auto-loader
-revealBehaviorFactory.observedAttributes = definition.OBSERVED_ATTRIBUTES;

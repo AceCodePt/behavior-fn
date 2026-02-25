@@ -1,6 +1,6 @@
 import definition from "./_behavior-definition";
 
-const { ATTRS } = definition;
+const { attributes } = definition;
 
 /**
  * Parse a comma-separated attribute value into an array of trimmed strings.
@@ -72,10 +72,10 @@ function dispatchCommandEvent(
 
 /**
  * Compound Commands Behavior Factory
- * 
+ *
  * This behavior enables buttons to dispatch multiple commands to multiple targets
  * using comma-separated syntax in `commandfor` and `command` attributes.
- * 
+ *
  * @param el The button element (should be HTMLButtonElement)
  * @returns Behavior instance with onClick handler
  */
@@ -88,11 +88,11 @@ export const compoundCommandsBehaviorFactory = (el: HTMLElement) => {
   }
 
   return {
-    onClick(event: MouseEvent) {
+    onClick(_: MouseEvent) {
       const button = el as HTMLButtonElement;
-      
-      const commandForAttr = button.getAttribute(ATTRS["commandfor"]);
-      const commandAttr = button.getAttribute(ATTRS["command"]);
+
+      const commandForAttr = button.getAttribute(attributes["commandfor"]);
+      const commandAttr = button.getAttribute(attributes["command"]);
 
       // Both attributes must be present
       if (!commandForAttr || !commandAttr) {
@@ -143,9 +143,7 @@ export const compoundCommandsBehaviorFactory = (el: HTMLElement) => {
       for (const { targetId, command } of dispatchPlan) {
         const targetElement = document.getElementById(targetId);
         if (!targetElement) {
-          console.warn(
-            `[CompoundCommands] Target not found: ${targetId}`,
-          );
+          console.warn(`[CompoundCommands] Target not found: ${targetId}`);
           continue;
         }
 

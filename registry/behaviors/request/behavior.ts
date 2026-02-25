@@ -1,13 +1,9 @@
-import {
-  registerBehavior,
-  type BehaviorInstance,
-  type CommandEvent,
-} from "~registry";
+import { type CommandEvent } from "~registry";
 import { hasValue } from "~utils";
 import definition from "./_behavior-definition";
 import type { TriggerConfig } from "./schema";
 
-const { ATTRS, COMMANDS, name } = definition;
+const { attributes, commands } = definition;
 
 // Global registry for collapsing concurrent GET requests
 const requestRegistry = new Map<string, Promise<string>>();
@@ -114,15 +110,15 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   const handleEvent = async (e?: Event) => {
     if (e?.cancelable) e.preventDefault();
 
-    const url = getAttr(ATTRS["request-url"]);
+    const url = getAttr(attributes["request-url"]);
     if (!url) return;
 
-    const method = getAttr(ATTRS["request-method"]) || "GET";
-    const confirmMsg = getAttr(ATTRS["request-confirm"]);
+    const method = getAttr(attributes["request-method"]) || "GET";
+    const confirmMsg = getAttr(attributes["request-confirm"]);
 
     if (confirmMsg && !window.confirm(confirmMsg)) return;
 
-    const targetId = getAttr(ATTRS["request-target"]);
+    const targetId = getAttr(attributes["request-target"]);
     const target = targetId ? document.getElementById(targetId) : el;
 
     if (!target) {
@@ -130,7 +126,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       return;
     }
 
-    const indicatorId = getAttr(ATTRS["request-indicator"]);
+    const indicatorId = getAttr(attributes["request-indicator"]);
     const indicator = indicatorId ? document.getElementById(indicatorId) : null;
 
     if (indicator) indicator.setAttribute("data-request-loading", "");
@@ -146,7 +142,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         setState("loaded");
       } else {
         const formData = getFormData();
-        const valsStr = getAttr(ATTRS["request-vals"]);
+        const valsStr = getAttr(attributes["request-vals"]);
         if (valsStr) {
           try {
             const vals = JSON.parse(valsStr);
@@ -180,7 +176,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         html = await executeRequest(finalUrl, options);
         setState("loaded");
 
-        const pushUrlVal = getAttr(ATTRS["request-push-url"]);
+        const pushUrlVal = getAttr(attributes["request-push-url"]);
         if (pushUrlVal) {
           const urlObj = new URL(finalUrl, window.location.origin);
           const pushUrl =
@@ -198,7 +194,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       const activeId = activeElement?.id;
 
       // Check for JSON script tag update strategy
-      const jsonStrategy = getAttr(ATTRS["request-json-strategy"]);
+      const jsonStrategy = getAttr(attributes["request-json-strategy"]);
       const isScriptTag =
         target instanceof HTMLScriptElement &&
         target.type === "application/json";
@@ -232,7 +228,10 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
               break;
 
             case "appendArray":
-              if (!Array.isArray(existingData) || !Array.isArray(responseData)) {
+              if (
+                !Array.isArray(existingData) ||
+                !Array.isArray(responseData)
+              ) {
                 console.warn(
                   "[Request] appendArray requires both existing and response to be arrays",
                 );
@@ -242,7 +241,10 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
               break;
 
             case "prependArray":
-              if (!Array.isArray(existingData) || !Array.isArray(responseData)) {
+              if (
+                !Array.isArray(existingData) ||
+                !Array.isArray(responseData)
+              ) {
                 console.warn(
                   "[Request] prependArray requires both existing and response to be arrays",
                 );
@@ -262,7 +264,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
         }
       } else {
         // Existing HTML swap logic
-        const swap = getAttr(ATTRS["request-swap"]) || "innerHTML";
+        const swap = getAttr(attributes["request-swap"]) || "innerHTML";
 
         switch (swap) {
           case "innerHTML":
@@ -307,7 +309,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   const setupListeners = () => {
     cleanup();
 
-    const triggerAttr = getAttr(ATTRS["request-trigger"]);
+    const triggerAttr = getAttr(attributes["request-trigger"]);
     let triggers: TriggerConfig[] = [];
 
     if (triggerAttr) {
@@ -344,7 +346,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
       if (event === "load") {
         hasLoadTrigger = true;
-        const currentUrl = getAttr(ATTRS["request-url"]);
+        const currentUrl = getAttr(attributes["request-url"]);
         if (lastLoadedUrl !== currentUrl) {
           lastLoadedUrl = currentUrl || undefined;
           if (delay) {
@@ -357,7 +359,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       }
 
       if (event === "sse") {
-        const url = getAttr(ATTRS["request-url"]);
+        const url = getAttr(attributes["request-url"]);
         if (url && !eventSource) {
           setState("loading");
           eventSource = new EventSource(url);
@@ -383,7 +385,12 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
       const listener = (e: Event) => {
         const targetEl = e.target;
-        if (changed && targetEl && targetEl instanceof Element && hasValue(targetEl)) {
+        if (
+          changed &&
+          targetEl &&
+          targetEl instanceof Element &&
+          hasValue(targetEl)
+        ) {
           const val = String(targetEl.value);
           if (lastValues.get(targetEl) === val) return;
           lastValues.set(targetEl, val);
@@ -414,25 +421,25 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
   };
 
   return {
-    observedAttributes: definition.OBSERVED_ATTRIBUTES,
     onCommand(e: CommandEvent<string>) {
-      if (!COMMANDS) return;
-      if (e.command === COMMANDS["--trigger"]) {
+      if (e.command === commands["--trigger"]) {
         handleEvent(e);
-      } else if (e.command === COMMANDS["--close-sse"]) {
+      } else if (e.command === commands["--close-sse"]) {
         if (eventSource) {
           eventSource.close();
           eventSource = undefined;
         }
       }
     },
+    connectedCallback() {
+      setupListeners();
+    },
     disconnectedCallback() {
       cleanup();
     },
-    attributeChangedCallback(this: BehaviorInstance) {
+    attributeChangedCallback(
+    ) {
       setupListeners();
     },
   };
 };
-
-registerBehavior(name, requestBehaviorFactory);

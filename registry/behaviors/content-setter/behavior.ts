@@ -1,12 +1,11 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { attributes, command } = definition;
+const { attributes, commands } = definition;
 
 export const contentSetterBehaviorFactory = (el: HTMLElement) => {
   // Store original values for toggle mode
   let originalTextContent: string | null = null;
-  const originalAttributeValues = new Map<string, string | null>();
 
   // Track toggle state for each attribute (true = showing value, false = showing original)
   const toggleStates = new Map<string, boolean>();
@@ -18,11 +17,13 @@ export const contentSetterBehaviorFactory = (el: HTMLElement) => {
     },
 
     onCommand(e: CommandEvent<string>) {
-      if (!command || e.command !== command["--set-content"]) {
+      if (!commands || e.command !== commands["--set-content"]) {
         return;
       }
 
-      const targetAttribute = el.getAttribute(attributes["content-setter-attribute"]);
+      const targetAttribute = el.getAttribute(
+        attributes["content-setter-attribute"],
+      );
       const value = el.getAttribute(attributes["content-setter-value"]);
       const mode = el.getAttribute(attributes["content-setter-mode"]) || "set";
 

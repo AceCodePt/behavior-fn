@@ -12,19 +12,17 @@ import { getObservedAttributes } from "~utils";
 import { defineBehavioralHost } from "../behavioral-host";
 import { registerBehavior } from "../behavior-registry";
 import { jsonTemplateBehaviorFactory } from "./behavior";
-import JSON_TEMPLATE_DEFINITION from "./_behavior-definition";
+import definition from "./_behavior-definition";
+
+const { name, schema, attributes } = definition;
 
 describe("JSON Template Behavior - Curly Brace Syntax", () => {
   const tag = "div";
   const webcomponentTag = "test-json-template";
 
   beforeAll(() => {
-    registerBehavior(JSON_TEMPLATE_DEFINITION.name, jsonTemplateBehaviorFactory);
-    defineBehavioralHost(
-      tag,
-      webcomponentTag,
-      getObservedAttributes(JSON_TEMPLATE_DEFINITION.schema),
-    );
+    registerBehavior(name, jsonTemplateBehaviorFactory);
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
   });
 
   beforeEach(() => {
@@ -47,7 +45,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>
@@ -74,7 +72,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>Username: {name}</div>
@@ -82,7 +80,9 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       `;
       document.body.appendChild(container);
 
-      expect(container.querySelector("div")?.textContent).toBe("Username: Sagi");
+      expect(container.querySelector("div")?.textContent).toBe(
+        "Username: Sagi",
+      );
     });
 
     it("should handle nested object paths with dot notation", () => {
@@ -103,7 +103,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>
@@ -135,7 +135,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>
@@ -155,14 +155,18 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
-      script.textContent = JSON.stringify({ firstName: "Sagi", lastName: "Cohen", age: 30 });
+      script.textContent = JSON.stringify({
+        firstName: "Sagi",
+        lastName: "Cohen",
+        age: 30,
+      });
       document.body.appendChild(script);
 
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <p>{firstName} {lastName} is {age} years old</p>
@@ -170,7 +174,9 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       `;
       document.body.appendChild(container);
 
-      expect(container.querySelector("p")?.textContent).toBe("Sagi Cohen is 30 years old");
+      expect(container.querySelector("p")?.textContent).toBe(
+        "Sagi Cohen is 30 years old",
+      );
     });
   });
 
@@ -186,7 +192,10 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(
+        attributes[attributes["json-template-for"]],
+        "data-source",
+      );
       container.innerHTML = `
         <template>
           <div data-type="{type}" data-id="{id}">Content</div>
@@ -210,7 +219,10 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(
+        attributes[attributes["json-template-for"]],
+        "data-source",
+      );
       container.innerHTML = `
         <template>
           <button class="{base} btn-{modifier}">Click</button>
@@ -218,7 +230,9 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       `;
       document.body.appendChild(container);
 
-      expect(container.querySelector("button")?.className).toBe("btn btn-primary");
+      expect(container.querySelector("button")?.className).toBe(
+        "btn btn-primary",
+      );
     });
 
     it("should preserve non-interpolated attributes", () => {
@@ -232,7 +246,10 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(
+        attributes[attributes["json-template-for"]],
+        "data-source",
+      );
       container.innerHTML = `
         <template>
           <div id="{id}" class="static-class" data-static="value">Content</div>
@@ -250,14 +267,17 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
-      script.textContent = JSON.stringify({ title: "Modal Title", content: "Modal content here" });
+      script.textContent = JSON.stringify({
+        title: "Modal Title",
+        content: "Modal content here",
+      });
       document.body.appendChild(script);
 
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <dialog is="behavioral-reveal" behavior="reveal">
@@ -272,7 +292,9 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(dialog?.getAttribute("is")).toBe("behavioral-reveal");
       expect(dialog?.getAttribute("behavior")).toBe("reveal");
       expect(dialog?.querySelector("h2")?.textContent).toBe("Modal Title");
-      expect(dialog?.querySelector("p")?.textContent).toBe("Modal content here");
+      expect(dialog?.querySelector("p")?.textContent).toBe(
+        "Modal content here",
+      );
     });
   });
 
@@ -292,7 +314,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div class="person">
@@ -328,7 +350,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div class="todo priority-{priority}">
@@ -364,7 +386,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <ul>
@@ -388,18 +410,13 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       script.id = "data-source";
       script.textContent = JSON.stringify({
         departments: [
-          { 
-            name: "Engineering", 
-            employees: [
-              { name: "Alice" },
-              { name: "Bob" }
-            ]
+          {
+            name: "Engineering",
+            employees: [{ name: "Alice" }, { name: "Bob" }],
           },
-          { 
-            name: "Sales", 
-            employees: [
-              { name: "Charlie" }
-            ]
+          {
+            name: "Sales",
+            employees: [{ name: "Charlie" }],
           },
         ],
       });
@@ -409,7 +426,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>
@@ -430,12 +447,12 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
 
       const depts = container.querySelectorAll(".dept");
       expect(depts).toHaveLength(2);
-      
+
       const firstDeptEmployees = depts[0]?.querySelectorAll("li");
       expect(firstDeptEmployees).toHaveLength(2);
       expect(firstDeptEmployees[0]?.textContent).toBe("Alice");
       expect(firstDeptEmployees[1]?.textContent).toBe("Bob");
-      
+
       const secondDeptEmployees = depts[1]?.querySelectorAll("li");
       expect(secondDeptEmployees).toHaveLength(1);
       expect(secondDeptEmployees[0]?.textContent).toBe("Charlie");
@@ -454,7 +471,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>
@@ -468,10 +485,10 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
 
       const outerDiv = container.querySelector("div");
       const nestedTemplate = outerDiv?.querySelector("template");
-      
+
       expect(nestedTemplate).toBeTruthy();
       expect(nestedTemplate?.getAttribute("data-array")).toBe("users");
-      
+
       // Should have rendered content AND kept template
       const renderedItems = outerDiv?.querySelectorAll("p");
       expect(renderedItems?.length).toBe(1);
@@ -489,26 +506,26 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
             profile: {
               email: "sarah@example.com",
               title: "Engineer",
-              years: 5
+              years: 5,
             },
             address: {
               city: "San Francisco",
-              state: "CA"
-            }
+              state: "CA",
+            },
           },
           {
             name: "Marcus",
             profile: {
               email: "marcus@example.com",
               title: "Designer",
-              years: 3
+              years: 3,
             },
             address: {
               city: "Austin",
-              state: "TX"
-            }
-          }
-        ]
+              state: "TX",
+            },
+          },
+        ],
       });
       document.body.appendChild(script);
 
@@ -516,7 +533,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>
@@ -535,18 +552,30 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
 
       const members = container.querySelectorAll(".member");
       expect(members).toHaveLength(2);
-      
+
       // First member
       expect(members[0]?.querySelector("h3")?.textContent).toBe("Sarah");
-      expect(members[0]?.querySelectorAll("p")[0]?.textContent).toBe("Engineer - sarah@example.com");
-      expect(members[0]?.querySelectorAll("p")[1]?.textContent).toBe("San Francisco, CA");
-      expect(members[0]?.querySelectorAll("p")[2]?.textContent).toBe("5 years experience");
-      
+      expect(members[0]?.querySelectorAll("p")[0]?.textContent).toBe(
+        "Engineer - sarah@example.com",
+      );
+      expect(members[0]?.querySelectorAll("p")[1]?.textContent).toBe(
+        "San Francisco, CA",
+      );
+      expect(members[0]?.querySelectorAll("p")[2]?.textContent).toBe(
+        "5 years experience",
+      );
+
       // Second member
       expect(members[1]?.querySelector("h3")?.textContent).toBe("Marcus");
-      expect(members[1]?.querySelectorAll("p")[0]?.textContent).toBe("Designer - marcus@example.com");
-      expect(members[1]?.querySelectorAll("p")[1]?.textContent).toBe("Austin, TX");
-      expect(members[1]?.querySelectorAll("p")[2]?.textContent).toBe("3 years experience");
+      expect(members[1]?.querySelectorAll("p")[0]?.textContent).toBe(
+        "Designer - marcus@example.com",
+      );
+      expect(members[1]?.querySelectorAll("p")[1]?.textContent).toBe(
+        "Austin, TX",
+      );
+      expect(members[1]?.querySelectorAll("p")[2]?.textContent).toBe(
+        "3 years experience",
+      );
     });
   });
 
@@ -562,7 +591,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>Count: {count}</div>
@@ -574,9 +603,9 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
 
       // Update data
       script.textContent = JSON.stringify({ count: 42 });
-      
+
       // Wait for MutationObserver
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(container.querySelector("div")?.textContent).toBe("Count: 42");
     });
@@ -594,7 +623,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>{name}</div>
@@ -618,7 +647,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>Value: {nonexistent.path}</div>
@@ -631,7 +660,9 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
     });
 
     it("should require json-template-for attribute", () => {
-      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const container = document.createElement(tag, {
         is: webcomponentTag,
@@ -646,13 +677,15 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
     });
 
     it("should error if data source element not found", () => {
-      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "nonexistent");
+      container.setAttribute(attributes["json-template-for"], "nonexistent");
       container.innerHTML = `<template><div>{name}</div></template>`;
       document.body.appendChild(container);
 
@@ -668,19 +701,23 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       script.textContent = JSON.stringify({ foo: "bar" });
       document.body.appendChild(script);
 
-      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `<div>No template</div>`;
       document.body.appendChild(container);
 
       expect(consoleError).toHaveBeenCalled();
       const errorCall = consoleError.mock.calls[0];
-      expect(errorCall[0]).toContain("No <template> element found as direct child");
+      expect(errorCall[0]).toContain(
+        "No <template> element found as direct child",
+      );
     });
 
     it("should handle invalid JSON in data source", () => {
@@ -690,13 +727,15 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       script.textContent = "{ invalid json }";
       document.body.appendChild(script);
 
-      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const container = document.createElement(tag, {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `<template><div>{name}</div></template>`;
       document.body.appendChild(container);
 
@@ -717,7 +756,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       container.setAttribute("behavior", "json-template");
-      container.setAttribute("json-template-for", "data-source");
+      container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
           <div>Hello {name}</div>

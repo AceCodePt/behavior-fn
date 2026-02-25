@@ -1,10 +1,10 @@
 import definition from "./_behavior-definition";
 
-const { ATTRS } = definition;
+const { attributes } = definition;
 
 /**
  * Resolves a path in a data object using dot notation and bracket notation.
- * 
+ *
  * Examples:
  * - "name" → data.name
  * - "user.profile.name" → data.user.profile.name
@@ -69,12 +69,16 @@ function resolvePath(data: unknown, path: string): unknown {
     // 1. Access 'items'
     // 2. Access [0]
     // 3. Access ['item-title']
-    
+
     // Extract property name before any brackets (if exists)
     const beforeBrackets = part.match(/^([^[]+)(?=\[)/);
     if (beforeBrackets) {
       const propName = beforeBrackets[1];
-      if (typeof current === "object" && current !== null && propName in current) {
+      if (
+        typeof current === "object" &&
+        current !== null &&
+        propName in current
+      ) {
         current = (current as Record<string, unknown>)[propName];
         // Remove the property name from the part, leaving only brackets
         part = part.slice(propName.length);
@@ -86,7 +90,7 @@ function resolvePath(data: unknown, path: string): unknown {
     // Now process all bracket notations in sequence
     // Match all brackets: [0], ['name'], ["name"]
     const bracketMatches = part.matchAll(/\[(['"]?)(.+?)\1\]/g);
-    
+
     for (const match of bracketMatches) {
       if (current === null || current === undefined) {
         return undefined;
@@ -97,7 +101,11 @@ function resolvePath(data: unknown, path: string): unknown {
 
       if (quote) {
         // Quoted property access: obj["name"] or obj['name']
-        if (typeof current === "object" && current !== null && keyOrIndex in current) {
+        if (
+          typeof current === "object" &&
+          current !== null &&
+          keyOrIndex in current
+        ) {
           current = (current as Record<string, unknown>)[keyOrIndex];
         } else {
           return undefined;
@@ -132,19 +140,23 @@ function resolvePath(data: unknown, path: string): unknown {
  */
 function interpolateString(text: string, data: unknown): string {
   // Match all {path} patterns
-  return text.replace(/\{([^}]+)\}/g, (match, path) => {
+  return text.replace(/\{([^}]+)\}/g, (_, path) => {
     const value = resolvePath(data, path.trim());
-    
+
     // Return empty string for undefined/null (graceful degradation)
     if (value === undefined || value === null) {
       return "";
     }
-    
+
     // Convert to string for primitives
-    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
       return String(value);
     }
-    
+
     // For objects/arrays, return empty (can't interpolate complex types)
     return "";
   });
@@ -152,20 +164,17 @@ function interpolateString(text: string, data: unknown): string {
 
 /**
  * Processes interpolation on a cloned DOM tree.
- * 
+ *
  * 1. Interpolates all text nodes containing {path} patterns
  * 2. Interpolates all attribute values containing {path} patterns
  * 3. Detects and renders arrays using nested <template data-array="path">
  */
-function processInterpolation(
-  element: Node,
-  data: unknown,
-): void {
+function processInterpolation(element: Node, data: unknown): void {
   // Process text nodes
   if (element.nodeType === Node.TEXT_NODE) {
     const textNode = element as Text;
     const text = textNode.textContent || "";
-    
+
     if (text.includes("{")) {
       textNode.textContent = interpolateString(text, data);
     }
@@ -184,7 +193,7 @@ function processInterpolation(
   if (arrayPath && el instanceof HTMLTemplateElement) {
     // This is an array template marker - resolve the array data
     const arrayData = resolvePath(data, arrayPath);
-    
+
     if (!Array.isArray(arrayData)) {
       console.error(
         `[json-template] Expected array at path "${arrayPath}", got ${typeof arrayData}`,
@@ -195,16 +204,14 @@ function processInterpolation(
     // Find parent to insert rendered items
     const parent = el.parentElement;
     if (!parent) {
-      console.error(
-        `[json-template] Array template has no parent element`,
-      );
+      console.error(`[json-template] Array template has no parent element`);
       return;
     }
 
     // Render each array item
     for (const item of arrayData) {
       const itemClone = el.content.cloneNode(true) as DocumentFragment;
-      
+
       // Process interpolation for this item
       for (const child of Array.from(itemClone.childNodes)) {
         processInterpolation(child, item);
@@ -213,7 +220,7 @@ function processInterpolation(
       // Insert before the template
       parent.insertBefore(itemClone, el);
     }
-    
+
     // Array template processed - don't recurse into it
     return;
   }
@@ -238,8 +245,8 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
 
   const render = () => {
     // Get the data source ID (like "for" attribute in label)
-    const dataSourceId = el.getAttribute(ATTRS["json-template-for"]);
-    
+    const dataSourceId = el.getAttribute(attributes["json-template-for"]);
+
     if (!dataSourceId) {
       console.error("[json-template] json-template-for attribute is required");
       return;
@@ -256,11 +263,11 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
     sourceElement = sourceEl as HTMLScriptElement;
 
     // Find the template (should be a direct child of el)
-    const template = el.querySelector(':scope > template');
+    const template = el.querySelector(":scope > template");
     if (!template || !(template instanceof HTMLTemplateElement)) {
       console.error(
         "[json-template] No <template> element found as direct child. Container children:",
-        Array.from(el.children).map(c => c.tagName),
+        Array.from(el.children).map((c) => c.tagName),
       );
       return;
     }
@@ -269,19 +276,16 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
     // Parse JSON from source
     let jsonData: unknown;
     const jsonText = (sourceElement.textContent || "").trim();
-    
+
     // Skip rendering if source is empty (not an error - just waiting for data)
     if (!jsonText) {
       return;
     }
-    
+
     try {
       jsonData = JSON.parse(jsonText);
     } catch (error) {
-      console.error(
-        `[json-template] Invalid JSON in source element:`,
-        error,
-      );
+      console.error(`[json-template] Invalid JSON in source element:`, error);
       return;
     }
 
@@ -289,31 +293,33 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
     if (Array.isArray(jsonData)) {
       // Root is an array - render template once per item
       const fragment = document.createDocumentFragment();
-      
+
       for (const item of jsonData) {
-        const itemClone = templateElement.content.cloneNode(true) as DocumentFragment;
-        
+        const itemClone = templateElement.content.cloneNode(
+          true,
+        ) as DocumentFragment;
+
         // Process interpolation for this item
         for (const child of Array.from(itemClone.childNodes)) {
           processInterpolation(child, item);
         }
-        
+
         fragment.appendChild(itemClone);
       }
-      
+
       // Clear existing rendered content (preserve template)
       const nodesToRemove: Node[] = [];
-      el.childNodes.forEach(node => {
+      el.childNodes.forEach((node) => {
         if (node !== templateElement) {
           nodesToRemove.push(node);
         }
       });
-      nodesToRemove.forEach(node => {
+      nodesToRemove.forEach((node) => {
         if (node.parentNode) {
           node.parentNode.removeChild(node);
         }
       });
-      
+
       // Insert rendered content before the template
       el.insertBefore(fragment, templateElement);
       return;
@@ -330,17 +336,17 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
     // Clear existing rendered content (preserve template)
     // Remove all child nodes except the template element
     const nodesToRemove: Node[] = [];
-    el.childNodes.forEach(node => {
+    el.childNodes.forEach((node) => {
       if (node !== templateElement) {
         nodesToRemove.push(node);
       }
     });
-    nodesToRemove.forEach(node => {
+    nodesToRemove.forEach((node) => {
       if (node.parentNode) {
         node.parentNode.removeChild(node);
       }
     });
-    
+
     // Insert rendered content before the template
     // This keeps template at the end (hidden)
     el.insertBefore(clone, templateElement);

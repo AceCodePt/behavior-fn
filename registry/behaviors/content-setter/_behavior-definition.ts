@@ -4,7 +4,7 @@ import { schema } from "./schema";
 const definition = uniqueBehaviorDef({
   name: "content-setter",
   schema,
-  command: {
+  commands: {
     "--set-content": "--set-content",
   },
 });
