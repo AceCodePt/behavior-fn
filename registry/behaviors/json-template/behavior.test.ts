@@ -370,7 +370,7 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(items[2]?.classList.contains("priority-high")).toBe(true);
     });
 
-    it("should handle empty root-level array gracefully", () => {
+    it("should render template once for empty root-level array with empty context", () => {
       const script = document.createElement("script");
       script.type = "application/json";
       script.id = "data-source";
@@ -384,14 +384,15 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
-          <div class="item">{name}</div>
+          <div class="item">{name || "Guest"}</div>
         </template>
       `;
       document.body.appendChild(container);
 
-      // Should not render any items for empty array
+      // Should render template once with empty context (fallback value)
       const items = container.querySelectorAll(".item");
-      expect(items).toHaveLength(0);
+      expect(items).toHaveLength(1);
+      expect(items[0]?.textContent).toBe("Guest");
       
       // Template should still be present
       expect(container.querySelector("template")).toBeTruthy();
@@ -651,13 +652,14 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       container.setAttribute(attributes["json-template-for"], "data-source");
       container.innerHTML = `
         <template>
-          <div class="item">{name}</div>
+          <div class="item">{name || "Empty"}</div>
         </template>
       `;
       document.body.appendChild(container);
 
-      // Initially empty
-      expect(container.querySelectorAll(".item")).toHaveLength(0);
+      // Initially empty - renders once with empty context
+      expect(container.querySelectorAll(".item")).toHaveLength(1);
+      expect(container.querySelectorAll(".item")[0]?.textContent).toBe("Empty");
 
       // Add items
       script.textContent = JSON.stringify([
@@ -670,11 +672,12 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(container.querySelectorAll(".item")[0]?.textContent).toBe("Alice");
       expect(container.querySelectorAll(".item")[1]?.textContent).toBe("Bob");
 
-      // Clear array
+      // Clear array - back to single render with empty context
       script.textContent = JSON.stringify([]);
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(container.querySelectorAll(".item")).toHaveLength(0);
+      expect(container.querySelectorAll(".item")).toHaveLength(1);
+      expect(container.querySelectorAll(".item")[0]?.textContent).toBe("Empty");
       expect(container.querySelector("template")).toBeTruthy();
     });
 
@@ -714,6 +717,49 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(container.querySelectorAll(".item")[2]?.textContent).toBe(
         "Charlie",
       );
+    });
+
+    it("should enable forms with empty array using fallback operators", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <form>
+            <input name="query" placeholder="{query || 'Enter query'}">
+            <input name="session" value="{session || '-'}">
+            <button type="submit">Submit</button>
+          </form>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // Form should render with fallback values
+      const form = container.querySelector("form");
+      expect(form).toBeTruthy();
+
+      const queryInput = form?.querySelector(
+        'input[name="query"]',
+      ) as HTMLInputElement;
+      const sessionInput = form?.querySelector(
+        'input[name="session"]',
+      ) as HTMLInputElement;
+
+      expect(queryInput).toBeTruthy();
+      expect(queryInput?.placeholder).toBe("Enter query");
+
+      expect(sessionInput).toBeTruthy();
+      expect(sessionInput?.value).toBe("-");
+
+      expect(form?.querySelector("button")).toBeTruthy();
     });
   });
 
