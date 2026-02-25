@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
+- [-] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
 - [-] [Restructure CDN Build - Core + Behavior Modules](docs/tasks/cdn-core-plus-behaviors/task.md)
 - [x] [Fix CDN Build to Inline TypeBox Schemas](docs/tasks/fix-cdn-build-typebox/task.md)
 - [x] [Render json-template When Root Data is Empty Array](docs/tasks/json-template-render-empty-arrays/task.md)
