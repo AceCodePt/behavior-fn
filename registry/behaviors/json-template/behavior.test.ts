@@ -370,6 +370,33 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(items[2]?.classList.contains("priority-high")).toBe(true);
     });
 
+    it("should handle empty root-level array gracefully", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // Should not render any items for empty array
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(0);
+      
+      // Template should still be present
+      expect(container.querySelector("template")).toBeTruthy();
+    });
+
     it("should render arrays using implicit nested template", () => {
       const script = document.createElement("script");
       script.type = "application/json";
@@ -608,6 +635,85 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(container.querySelector("div")?.textContent).toBe("Count: 42");
+    });
+
+    it("should handle root array transitions (empty -> populated -> empty)", async () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // Initially empty
+      expect(container.querySelectorAll(".item")).toHaveLength(0);
+
+      // Add items
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+      ]);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(container.querySelectorAll(".item")).toHaveLength(2);
+      expect(container.querySelectorAll(".item")[0]?.textContent).toBe("Alice");
+      expect(container.querySelectorAll(".item")[1]?.textContent).toBe("Bob");
+
+      // Clear array
+      script.textContent = JSON.stringify([]);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(container.querySelectorAll(".item")).toHaveLength(0);
+      expect(container.querySelector("template")).toBeTruthy();
+    });
+
+    it("should update when root array items change", async () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([{ name: "Alice" }]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      expect(container.querySelectorAll(".item")).toHaveLength(1);
+      expect(container.querySelectorAll(".item")[0]?.textContent).toBe("Alice");
+
+      // Update array
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(container.querySelectorAll(".item")).toHaveLength(3);
+      expect(container.querySelectorAll(".item")[0]?.textContent).toBe("Alice");
+      expect(container.querySelectorAll(".item")[1]?.textContent).toBe("Bob");
+      expect(container.querySelectorAll(".item")[2]?.textContent).toBe(
+        "Charlie",
+      );
     });
   });
 

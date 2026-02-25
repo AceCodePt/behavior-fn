@@ -217,6 +217,43 @@ When the root data is an array, the template repeats automatically for each item
 
 **Result:** 3 todo items rendered.
 
+#### Empty Arrays
+
+Empty arrays are handled gracefully - no items are rendered but the template is preserved for future data updates.
+
+```html
+<script type="application/json" id="items">
+  []
+</script>
+
+<div behavior="json-template" json-template-for="items">
+  <template>
+    <div class="item">{name}</div>
+  </template>
+</div>
+```
+
+**Result:** No items rendered (empty output), but the behavior is active and will automatically render items when data is added.
+
+**Reactive behavior:** When the data changes from empty to populated (or vice versa), the template automatically re-renders:
+
+```javascript
+// Initially empty
+document.getElementById('items').textContent = '[]';
+// No items rendered
+
+// Add items dynamically
+document.getElementById('items').textContent = JSON.stringify([
+  { name: 'Item 1' },
+  { name: 'Item 2' }
+]);
+// Automatically renders 2 items
+
+// Clear items
+document.getElementById('items').textContent = '[]';
+// Automatically clears rendered content
+```
+
 ### Nested Arrays with `data-array`
 
 For arrays within objects, use the `data-array` attribute on a nested `<template>`.
@@ -250,6 +287,38 @@ For arrays within objects, use the `data-array` attribute on a nested `<template
 <ul>
   <li>BehaviorFN: 100 ⭐</li>
   <li>AutoWC: 50 ⭐</li>
+</ul>
+```
+
+#### Empty Nested Arrays
+
+Empty nested arrays are also handled gracefully - the outer content renders but no array items appear:
+
+```html
+<script type="application/json" id="user">
+  {
+    "name": "Alice",
+    "projects": []
+  }
+</script>
+
+<div behavior="json-template" json-template-for="user">
+  <template>
+    <h2>{name}</h2>
+    <ul>
+      <template data-array="projects">
+        <li>{title}</li>
+      </template>
+    </ul>
+  </template>
+</div>
+```
+
+**Result:**
+```html
+<h2>Alice</h2>
+<ul>
+  <!-- No <li> elements, but <ul> is rendered -->
 </ul>
 ```
 
