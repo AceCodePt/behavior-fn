@@ -44,11 +44,11 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Migrate request behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-request.md)
-- [ ] [Migrate element-counter behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-element-counter.md)
-- [ ] [Migrate compute behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-compute.md)
-- [ ] [Migrate compound-commands behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-compound-commands.md)
-- [ ] [Migrate content-setter behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-content-setter.md)
+- [-] [Migrate request behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-request.md)
+- [-] [Migrate element-counter behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-element-counter.md)
+- [-] [Migrate compute behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-compute.md)
+- [-] [Migrate compound-commands behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-compound-commands.md)
+- [-] [Migrate content-setter behavior to Option B pattern - TEST FILE ONLY](docs/tasks/migrate-behaviors-option-b/migrate-content-setter.md)
 - [x] [Migrate input-watcher behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-input-watcher.md)
 - [x] [Migrate json-template behavior to Option B pattern](docs/tasks/migrate-behaviors-option-b/migrate-json-template.md)
 - [x] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
