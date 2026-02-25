@@ -1,8 +1,6 @@
 import { type CommandEvent } from "~registry";
-import definition from "./_behavior-definition";
+import { REVEAL_COMMANDS, REVEAL_OBSERVED_ATTRIBUTES } from "./commands";
 import { REVEAL_ATTRS } from "./constants";
-
-const { command: REVEAL_COMMANDS } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   const isPopover = () => el.hasAttribute("popover");
@@ -305,3 +303,6 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
+
+// Attach observed attributes as a static property for auto-loader
+revealBehaviorFactory.observedAttributes = REVEAL_OBSERVED_ATTRIBUTES;

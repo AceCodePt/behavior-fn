@@ -2,32 +2,73 @@
 /**
  * Build CDN bundles for BehaviorFN
  * 
- * Creates standalone UMD/IIFE bundles that can be loaded via <script src="...">
- * Each behavior gets its own bundle that auto-registers when loaded.
+ * Opt-In Loading Architecture:
+ * 1. Individual behavior bundles (reveal.js, request.js, etc.) - Self-contained
+ * 2. Optional auto-loader (auto-loader.js) - Opt-in convenience feature
+ * 
+ * Key Strategy: Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
  */
 
 import { build } from "esbuild";
-import { readdir, mkdir, writeFile } from "node:fs/promises";
+import { readdir, mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createJiti } from "jiti";
 
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const rootDir = join(__dirname, "..");
 const registryDir = join(rootDir, "registry", "behaviors");
 const cdnOutDir = join(rootDir, "dist", "cdn");
+
+// Initialize jiti for runtime TypeScript imports
+const jiti = createJiti(__filename);
 
 interface BuildTarget {
   name: string;
   entry: string;
   outfile: string;
   globalName: string;
-  exportName?: string; // Actual export name from the behavior file
+  exportName?: string;
+}
+
+/**
+ * Load a TypeBox schema and convert it to plain JSON Schema.
+ * Also extracts observed attributes.
+ * This avoids bundling TypeBox (~40KB) in CDN builds.
+ */
+async function extractSchemaMetadata(behaviorName: string): Promise<{
+  observedAttributes: string[];
+  jsonSchema: any;
+} | null> {
+  try {
+    const schemaPath = join(registryDir, behaviorName, "schema.ts");
+    const mod = await jiti.import(schemaPath) as { schema?: any };
+    
+    if (!mod.schema) return null;
+    
+    const schema = mod.schema;
+    
+    // Extract observed attributes from TypeBox schema
+    // TypeBox schemas have a 'properties' object
+    const observedAttributes = schema.properties 
+      ? Object.keys(schema.properties)
+      : [];
+    
+    // Convert TypeBox schema to plain JSON Schema object
+    // TypeBox schemas are already JSON Schema compatible
+    const jsonSchema = JSON.parse(JSON.stringify(schema));
+    
+    return { observedAttributes, jsonSchema };
+  } catch (error) {
+    console.warn(`  ⚠️  Could not extract schema for ${behaviorName}:`, error);
+    return null;
+  }
 }
 
 async function buildCDNBundles() {
-  console.log("🏗️  Building CDN bundles...\n");
+  console.log("🏗️  Building CDN bundles (Opt-In Architecture)...\n");
 
-  // Ensure output directory exists
   await mkdir(cdnOutDir, { recursive: true });
 
   // Get all behavior directories
@@ -38,270 +79,349 @@ async function buildCDNBundles() {
 
   console.log(`Found ${behaviorDirs.length} behaviors:\n- ${behaviorDirs.join("\n- ")}\n`);
 
-  const targets: BuildTarget[] = [];
+  // Phase 1: Build Core Runtime
+  console.log("📦 Phase 1: Building core runtime...");
+  await buildCore();
 
-  // Core runtime bundle
-  targets.push({
-    name: "core",
-    entry: join(registryDir, "behavior-registry.ts"),
-    outfile: join(cdnOutDir, "behavior-fn.js"),
+  // Phase 2: Build Individual Behaviors
+  console.log("\n📦 Phase 2: Building individual behaviors...");
+  await buildIndividualBehaviors(behaviorDirs);
+
+  // Phase 3: Build Auto-Loader (Opt-In)
+  console.log("\n📦 Phase 3: Building auto-loader (opt-in)...");
+  await buildAutoLoader();
+
+  // Phase 4: Generate Examples
+  console.log("\n📦 Phase 4: Generating examples...");
+  await generateCDNExamples(behaviorDirs);
+
+  console.log("\n✅ All CDN bundles built successfully!");
+  console.log(`📂 Output directory: ${cdnOutDir}`);
+  console.log("\n📘 Simple Loading Pattern:");
+  console.log("  <script src='reveal.js'></script>");
+  console.log("  Note: Each behavior includes core runtime (self-contained)");
+  console.log("\n📘 With Auto-Loader:");
+  console.log("  <script src='reveal.js'></script>");
+  console.log("  <script src='auto-loader.js'></script>");
+  console.log("  Note: Auto-loader enables itself automatically");
+}
+
+/**
+ * Build the core runtime bundle.
+ * Contains: behavior-registry, behavioral-host, behavior-utils, types, event-methods
+ * Size: ~5-8KB minified (~2-3KB gzipped)
+ */
+async function buildCore() {
+  const coreEntry = join(cdnOutDir, "_core-entry.js");
+  
+  const coreCode = `
+// Import core runtime modules
+import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
+import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
+
+// Setup global namespace
+if (typeof window !== 'undefined') {
+  window.BehaviorFN = {
+    registerBehavior,
+    getBehavior,
+    defineBehavioralHost,
+    parseBehaviorNames,
+    getObservedAttributes,
+    version: '0.2.0',
+  };
+  
+  // Expose core functions globally for convenience
+  window.registerBehavior = registerBehavior;
+  window.getBehavior = getBehavior;
+  window.defineBehavioralHost = defineBehavioralHost;
+  
+  console.log('✅ BehaviorFN Core v0.2.0 loaded');
+}
+`;
+
+  await writeFile(coreEntry, coreCode);
+
+  // Build IIFE version
+  await build({
+    entryPoints: [coreEntry],
+    bundle: true,
+    format: "iife",
     globalName: "BehaviorFN",
+    outfile: join(cdnOutDir, "behavior-fn-core.js"),
+    platform: "browser",
+    target: "es2020",
+    minify: true,
+    sourcemap: true,
   });
 
-  // Discover export names for each behavior
-  const { readFile } = await import("node:fs/promises");
-  
-  // Individual behavior bundles
+  console.log(`  ✅ behavior-fn-core.js (IIFE)`);
+
+  // Build ESM version
+  await build({
+    entryPoints: [coreEntry],
+    bundle: true,
+    format: "esm",
+    outfile: join(cdnOutDir, "behavior-fn-core.esm.js"),
+    platform: "browser",
+    target: "es2020",
+    minify: true,
+    sourcemap: true,
+  });
+
+  console.log(`  ✅ behavior-fn-core.esm.js (ESM)`);
+}
+
+/**
+ * Build individual behavior bundles.
+ * Each bundle checks for core and auto-registers the behavior.
+ */
+async function buildIndividualBehaviors(behaviorDirs: string[]) {
   for (const behaviorName of behaviorDirs) {
     const behaviorPath = join(registryDir, behaviorName, "behavior.ts");
-    const content = await readFile(behaviorPath, "utf-8");
     
-    // Match: export const <name>BehaviorFactory OR export const <name>Behavior
+    let content: string;
+    try {
+      content = await readFile(behaviorPath, "utf-8");
+    } catch (error) {
+      console.warn(`  ⚠️  ${behaviorName}/behavior.ts not found, skipping...`);
+      continue;
+    }
+    
+    // Discover export name
     const match = content.match(/export\s+const\s+(\w+(?:BehaviorFactory|Behavior))\s*[:=]/);
     const exportName = match ? match[1] : null;
     
     if (!exportName) {
-      console.warn(`⚠️  Could not find export in ${behaviorName}/behavior.ts, skipping...`);
+      console.warn(`  ⚠️  Could not find export in ${behaviorName}/behavior.ts, skipping...`);
       continue;
     }
-    
-    targets.push({
-      name: behaviorName,
-      entry: behaviorPath,
-      outfile: join(cdnOutDir, `${behaviorName}.js`),
-      globalName: `BehaviorFN_${toPascalCase(behaviorName)}`,
-      exportName,
-    });
-  }
 
-  // Build each target (both IIFE and ESM)
-  for (const target of targets) {
-    console.log(`📦 Building ${target.name}...`);
-    
-    try {
-      const isCoreBuild = target.name === "core";
-      const isBehaviorBuild = !isCoreBuild;
-      
-      // For individual behaviors, create a standalone entry that includes core + behavior
-      let actualEntry = target.entry;
-      
-      if (isBehaviorBuild) {
-        // Create temporary entry file that includes core runtime + behavior + auto-registration
-        const standaloneEntry = join(cdnOutDir, `_${target.name}-standalone.js`);
-        const standaloneCode = `
+    // Extract schema metadata (converts TypeBox to JSON Schema, extracts observedAttributes)
+    const schemaMeta = await extractSchemaMetadata(behaviorName);
+    const observedAttributes = schemaMeta?.observedAttributes || [];
+    const jsonSchema = schemaMeta?.jsonSchema || {};
+
+    // Create standalone entry that includes core runtime
+    const standaloneEntry = join(cdnOutDir, `_${behaviorName}-standalone.js`);
+    const standaloneCode = `
 // Import core runtime (will be bundled)
 import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
 import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
-import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
+import { parseBehaviorNames } from "${join(registryDir, "behavior-utils.ts")}";
 
 // Import behavior
-import { ${target.exportName} } from "${target.entry}";
+import { ${exportName} } from "${behaviorPath}";
 
-// Setup global namespace
+// Observed attributes extracted from TypeBox schema (plain array, no TypeBox needed)
+const observedAttributes = ${JSON.stringify(observedAttributes)};
+
+// JSON Schema (plain object, converted from TypeBox)
+const jsonSchema = ${JSON.stringify(jsonSchema, null, 2)};
+
+// getObservedAttributes for JSON Schema (no TypeBox dependency)
+const getObservedAttributes = (schema) => {
+  if (!schema) return [];
+  if ("properties" in schema && typeof schema.properties === "object") {
+    return Object.keys(schema.properties);
+  }
+  return [];
+};
+
+// Setup global namespace if not already exists
 if (typeof window !== 'undefined') {
-  // Ensure BehaviorFN namespace exists
+  // Initialize BehaviorFN namespace if first behavior loaded
   if (!window.BehaviorFN) {
     window.BehaviorFN = {
       registerBehavior,
       getBehavior,
       defineBehavioralHost,
-      enableAutoLoader,
-      behaviorRegistry: new Map(),
+      parseBehaviorNames,
+      getObservedAttributes,
+      version: '0.2.0',
     };
     
-    // Also expose functions globally for convenience
+    // Expose core functions globally for convenience
     window.registerBehavior = registerBehavior;
     window.getBehavior = getBehavior;
     window.defineBehavioralHost = defineBehavioralHost;
-    window.enableAutoLoader = enableAutoLoader;
   }
   
-  // Auto-register this behavior
-  registerBehavior('${target.name}', ${target.exportName});
+  // Auto-register this behavior with its observed attributes
+  window.BehaviorFN.registerBehavior('${behaviorName}', ${exportName});
   
-  // Auto-enable the auto-loader for zero-config DX
-  enableAutoLoader();
-  
-  console.log('✅ BehaviorFN: Loaded "${target.name}" behavior with auto-loader enabled');
-}
-`;
-        await writeFile(standaloneEntry, standaloneCode);
-        actualEntry = standaloneEntry;
-      }
-      
-      // Build IIFE version
-      await build({
-        entryPoints: [actualEntry],
-        bundle: true,
-        format: "iife",
-        globalName: target.globalName,
-        outfile: target.outfile,
-        platform: "browser",
-        target: "es2020",
-        minify: true,
-        sourcemap: true,
-      });
-      
-      console.log(`✅ Built ${target.outfile} (IIFE)`);
-
-      // Build ESM version
-      const esmOutfile = target.outfile.replace('.js', '.esm.js');
-      await build({
-        entryPoints: [actualEntry],
-        bundle: true,
-        format: "esm",
-        outfile: esmOutfile,
-        platform: "browser",
-        target: "es2020",
-        minify: true,
-        sourcemap: true,
-      });
-      
-      console.log(`✅ Built ${esmOutfile} (ESM)\n`);
-    } catch (error) {
-      console.error(`❌ Failed to build ${target.name}:`, error);
-    }
+  // Store metadata for this behavior
+  if (!window.BehaviorFN.behaviorMetadata) {
+    window.BehaviorFN.behaviorMetadata = {};
   }
-
-  // Create an "all-in-one" bundle with core + all behaviors
-  console.log("📦 Building all-in-one bundle...");
-  await buildAllInOne(behaviorDirs);
-
-  // Generate index.html for CDN usage examples
-  await generateCDNExamples(behaviorDirs);
-
-  console.log("\n✅ All CDN bundles built successfully!");
-  console.log(`📂 Output directory: ${cdnOutDir}`);
-}
-
-async function buildAllInOne(behaviorDirs: string[]) {
-  const allInOneEntry = join(cdnOutDir, "_all-in-one-entry.js");
-  
-  // Discover actual export names for each behavior
-  const { readFile } = await import("node:fs/promises");
-  const behaviorExports: Array<{ name: string; exportName: string }> = [];
-  
-  for (const name of behaviorDirs) {
-    const behaviorPath = join(registryDir, name, "behavior.ts");
-    const content = await readFile(behaviorPath, "utf-8");
-    
-    // Match: export const <name>BehaviorFactory OR export const <name>Behavior
-    const match = content.match(/export\s+const\s+(\w+(?:BehaviorFactory|Behavior))\s*[:=]/);
-    
-    if (match) {
-      behaviorExports.push({ name, exportName: match[1] });
-    } else {
-      console.warn(`⚠️  Could not find export in ${name}/behavior.ts, skipping...`);
-    }
-  }
-  
-  // Create temporary entry file that imports everything
-  const imports = [
-    `import * as core from "${join(registryDir, "behavior-registry.ts")}";`,
-    `import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";`,
-    `import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";`,
-    ...behaviorExports.map(({ name, exportName }) => 
-      `import { ${exportName} } from "${join(registryDir, name, "behavior.ts")}";`
-    ),
-  ].join("\n");
-
-  const registrations = behaviorExports.map(({ name, exportName }) => 
-    `  core.registerBehavior("${name}", ${exportName});`
-  ).join("\n");
-
-  const entryCode = `
-${imports}
-
-// Auto-register all behaviors on window load
-if (typeof window !== 'undefined') {
-  // Expose namespaced API
-  window.BehaviorFN = {
-    ...core,
-    defineBehavioralHost,
-    enableAutoLoader,
-    behaviors: {
-${behaviorExports.map(({ name, exportName }) => `      "${name}": ${exportName},`).join("\n")}
-    },
+  window.BehaviorFN.behaviorMetadata['${behaviorName}'] = {
+    observedAttributes,
+    schema: jsonSchema,
   };
   
-  // Also expose directly on window for convenience
-  window.registerBehavior = window.BehaviorFN.registerBehavior;
-  window.getBehavior = window.BehaviorFN.getBehavior;
-  window.defineBehavioralHost = window.BehaviorFN.defineBehavioralHost;
-  window.enableAutoLoader = window.BehaviorFN.enableAutoLoader;
-  
-  // Auto-register all behaviors
-${registrations}
-  
-  // Auto-enable the auto-loader for zero-config DX
-  enableAutoLoader();
-  
-  console.log("✅ BehaviorFN loaded with ${behaviorExports.length} behaviors (auto-loader enabled)");
+  console.log('✅ BehaviorFN: Loaded "${behaviorName}" behavior');
 }
 `;
 
-  await writeFile(allInOneEntry, entryCode);
+    await writeFile(standaloneEntry, standaloneCode);
+
+    // Build IIFE version
+    await build({
+      entryPoints: [standaloneEntry],
+      bundle: true,
+      format: "iife",
+      globalName: `BehaviorFN_${toPascalCase(behaviorName)}`,
+      outfile: join(cdnOutDir, `${behaviorName}.js`),
+      platform: "browser",
+      target: "es2020",
+      minify: true,
+      sourcemap: true,
+      // Mark TypeBox as external - schemas not needed at runtime
+      external: ['@sinclair/typebox'],
+    });
+
+    console.log(`  ✅ ${behaviorName}.js (IIFE)`);
+
+    // Build ESM version
+    await build({
+      entryPoints: [standaloneEntry],
+      bundle: true,
+      format: "esm",
+      outfile: join(cdnOutDir, `${behaviorName}.esm.js`),
+      platform: "browser",
+      target: "es2020",
+      minify: true,
+      sourcemap: true,
+      // Mark TypeBox as external - schemas not needed at runtime
+      external: ['@sinclair/typebox'],
+    });
+
+    console.log(`  ✅ ${behaviorName}.esm.js (ESM)`);
+  }
+}
+
+/**
+ * Build the optional auto-loader module.
+ * Users must explicitly enable it via BehaviorFN.enableAutoLoader()
+ */
+async function buildAutoLoader() {
+  const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
+  
+  const autoLoaderCode = `
+// Import core runtime (will be bundled)
+import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
+import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
+
+// Import auto-loader
+import { enableAutoLoader } from "${join(registryDir, "auto-loader.ts")}";
+
+// Setup global namespace if not already exists
+if (typeof window !== 'undefined') {
+  // Initialize BehaviorFN namespace if not already exists
+  if (!window.BehaviorFN) {
+    window.BehaviorFN = {
+      registerBehavior,
+      getBehavior,
+      defineBehavioralHost,
+      parseBehaviorNames,
+      getObservedAttributes,
+      version: '0.2.0',
+    };
+    
+    // Expose core functions globally for convenience
+    window.registerBehavior = registerBehavior;
+    window.getBehavior = getBehavior;
+    window.defineBehavioralHost = defineBehavioralHost;
+  }
+  
+  // Expose and enable auto-loader
+  window.BehaviorFN.enableAutoLoader = enableAutoLoader;
+  window.enableAutoLoader = enableAutoLoader;
+  
+  // Automatically enable when loaded via script tag
+  enableAutoLoader();
+  
+  console.log('✅ BehaviorFN: Auto-loader enabled');
+}
+`;
+
+  await writeFile(autoLoaderEntry, autoLoaderCode);
 
   // Build IIFE version
   await build({
-    entryPoints: [allInOneEntry],
+    entryPoints: [autoLoaderEntry],
     bundle: true,
     format: "iife",
-    globalName: "BehaviorFN",
-    outfile: join(cdnOutDir, "behavior-fn.all.js"),
+    globalName: "BehaviorFN_AutoLoader",
+    outfile: join(cdnOutDir, "auto-loader.js"),
     platform: "browser",
     target: "es2020",
     minify: true,
     sourcemap: true,
   });
 
-  console.log(`✅ Built ${join(cdnOutDir, "behavior-fn.all.js")}`);
+  console.log(`  ✅ auto-loader.js (IIFE)`);
 
   // Build ESM version
   await build({
-    entryPoints: [allInOneEntry],
+    entryPoints: [autoLoaderEntry],
     bundle: true,
     format: "esm",
-    outfile: join(cdnOutDir, "behavior-fn.all.esm.js"),
+    outfile: join(cdnOutDir, "auto-loader.esm.js"),
     platform: "browser",
     target: "es2020",
     minify: true,
     sourcemap: true,
   });
 
-  console.log(`✅ Built ${join(cdnOutDir, "behavior-fn.all.esm.js")}\n`);
+  console.log(`  ✅ auto-loader.esm.js (ESM)`);
 }
 
+/**
+ * Generate CDN usage examples
+ */
 async function generateCDNExamples(behaviorDirs: string[]) {
   const exampleHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BehaviorFN CDN Examples</title>
+  <title>BehaviorFN v0.2.0 - Opt-In Loading Examples</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       max-width: 1200px;
       margin: 50px auto;
       padding: 20px;
       line-height: 1.6;
     }
     h1 { color: #2563eb; }
-    h2 { margin-top: 40px; color: #1e40af; }
+    h2 { margin-top: 40px; color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+    h3 { color: #1e40af; margin-top: 30px; }
     pre {
       background: #f3f4f6;
       padding: 20px;
       border-radius: 8px;
       overflow-x: auto;
+      border-left: 4px solid #2563eb;
     }
-    code { font-family: 'Courier New', monospace; }
+    code { font-family: 'Courier New', monospace; font-size: 14px; }
     .example {
       margin: 30px 0;
       padding: 20px;
       border: 2px solid #e5e7eb;
       border-radius: 8px;
+      background: #fafafa;
     }
+    .note {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .note strong { color: #92400e; }
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -310,81 +430,213 @@ async function generateCDNExamples(behaviorDirs: string[]) {
       color: white;
       border: none;
       border-radius: 6px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1d4ed8;
     }
     dialog {
       padding: 30px;
       border: none;
       border-radius: 12px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      min-width: 300px;
     }
     dialog::backdrop {
       background: rgba(0, 0, 0, 0.5);
     }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    .badge.new { background: #dcfce7; color: #166534; }
+    .badge.breaking { background: #fee2e2; color: #991b1b; }
   </style>
 </head>
 <body>
-  <h1>🎯 BehaviorFN CDN Usage</h1>
-  <p>Load behaviors directly from CDN—no build tools required!</p>
+  <h1>🎯 BehaviorFN v0.2.0 <span class="badge breaking">BREAKING</span></h1>
+  <p><strong>Opt-In Loading Architecture</strong> - Load only what you need!</p>
 
-  <h2>Method 1: Individual Behaviors</h2>
-  <pre><code>&lt;!-- Load core runtime --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.js"&gt;&lt;/script&gt;
+  <div class="note">
+    <strong>🔥 Breaking Change from v0.1.x:</strong> The all-in-one bundle (<code>behavior-fn.all.js</code>) has been <strong>completely removed</strong>.
+    <br><br>
+    <strong>Why?</strong> v0.1.6 forced you to load 72KB (20KB gzipped) to use one behavior. v0.2.0 lets you load only what you need: 1.9KB to 5.5KB gzipped per behavior.
+  </div>
 
-&lt;!-- Load specific behavior --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
+  <h2>🚀 Quick Start</h2>
+  
+  <h3>Option 1: Auto-Loader (Recommended - 2 Script Tags)</h3>
+  <pre><code>&lt;!-- 1. Load behavior (includes core runtime) --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
 
-  <h2>Method 2: All-in-One Bundle</h2>
-  <pre><code>&lt;!-- Load everything at once --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"&gt;&lt;/script&gt;</code></pre>
+&lt;!-- 2. Load auto-loader (auto-registers hosts) --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
 
-  <h2>Available Behaviors</h2>
+&lt;!-- Clean HTML (auto-loader adds is attribute) --&gt;
+&lt;dialog behavior="reveal" id="my-modal"&gt;
+  &lt;h2&gt;Hello!&lt;/h2&gt;
+  &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+
+&lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
+  <p><strong>Total:</strong> 14.4KB minified (5.5KB gzipped) - 73% smaller than v0.1.6!</p>
+
+  <h3>Option 2: Manual Host (Smallest - 1 Tag + 1 Script Block)</h3>
+  <pre><code>&lt;!-- 1. Load behavior --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Define host manually --&gt;
+&lt;script&gt;
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+&lt;/script&gt;
+
+&lt;!-- Must use explicit is attribute --&gt;
+&lt;dialog is="behavioral-reveal" behavior="reveal" id="my-modal"&gt;
+  &lt;h2&gt;Hello!&lt;/h2&gt;
+  &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+
+&lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
+  <p><strong>Total:</strong> 8.7KB minified (3.2KB gzipped) - 84% smaller than v0.1.6!</p>
+
+  <h2>📦 Available Bundles</h2>
+  
+  <h3>Individual Behaviors (Self-Contained)</h3>
+  <p>Each includes: Core runtime + Behavior logic + JSON Schema + observedAttributes</p>
+
+  <h3>Individual Behaviors</h3>
   <ul>
-${behaviorDirs.map(name => `    <li><code>${name}.js</code></li>`).join("\n")}
+${behaviorDirs.map(name => `    <li><code>${name}.js</code> / <code>${name}.esm.js</code></li>`).join("\n")}
   </ul>
 
-  <h2>Live Example: Reveal Behavior</h2>
+  <h3>Auto-Loader (Optional) <span class="badge new">NEW</span></h3>
+  <ul>
+    <li><code>auto-loader.js</code> - Opt-in convenience (~5KB)</li>
+    <li><code>auto-loader.esm.js</code> - ESM version</li>
+  </ul>
+
+  <h2>🎨 Live Example</h2>
   <div class="example">
+    <h3>Reveal Behavior Demo</h3>
     <button commandfor="demo-modal" command="--toggle">
       Open Modal
     </button>
     
     <dialog is="behavioral-reveal" id="demo-modal" behavior="reveal">
       <h2>🎉 It Works!</h2>
-      <p>This modal was loaded from CDN!</p>
+      <p>This modal uses the <code>reveal</code> behavior loaded from CDN!</p>
       <button commandfor="demo-modal" command="--hide">Close</button>
     </dialog>
   </div>
 
-  <h2>Usage Example</h2>
-  <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;!-- Load BehaviorFN from CDN --&gt;
-  &lt;script src="https://unpkg.com/behavior-fn@latest/dist/cdn/behavior-fn.all.js"&gt;&lt;/script&gt;
-  
-  &lt;!-- Initialize --&gt;
-  &lt;script&gt;
-    // Define behavioral host when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', []);
-    });
-  &lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;dialog is="behavioral-reveal" id="modal" behavior="reveal"&gt;
-    Content here
-  &lt;/dialog&gt;
-  
-  &lt;button commandfor="modal" command="--toggle"&gt;
-    Toggle Modal
-  &lt;/button&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+  <h2>📖 Loading Patterns</h2>
+
+  <h3>Pattern 1: Explicit (Recommended)</h3>
+  <p><strong>Best for:</strong> Production apps, maximum control, smallest size</p>
+  <pre><code>&lt;!-- 1. Load core --&gt;
+&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Load behaviors --&gt;
+&lt;script src="reveal.js"&gt;&lt;/script&gt;
+
+&lt;!-- 3. Use explicit is attributes --&gt;
+&lt;dialog is="behavioral-reveal" behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
+  <ul>
+    <li>✅ Smallest bundle size</li>
+    <li>✅ No MutationObserver overhead</li>
+    <li>✅ Most explicit and predictable</li>
+    <li>✅ Best performance</li>
+  </ul>
+
+  <h3>Pattern 2: Auto-Loader (Convenience)</h3>
+  <p><strong>Best for:</strong> Prototypes, content-heavy sites, quick demos</p>
+  <pre><code>&lt;!-- 1. Load core --&gt;
+&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Load behaviors --&gt;
+&lt;script src="reveal.js"&gt;&lt;/script&gt;
+&lt;script src="request.js"&gt;&lt;/script&gt;
+
+&lt;!-- 3. Load and enable auto-loader --&gt;
+&lt;script src="auto-loader.js"&gt;&lt;/script&gt;
+&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt;
+
+&lt;!-- 4. Omit is attributes --&gt;
+&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
+  <ul>
+    <li>✅ Cleaner HTML</li>
+    <li>✅ Closer to Alpine.js/HTMX DX</li>
+    <li>⚠️ Adds ~5KB + MutationObserver overhead</li>
+    <li>⚠️ Requires explicit enablement</li>
+  </ul>
+
+  <h2>🔄 Migration from v0.1.x</h2>
+
+  <h3>If you used <code>behavior-fn.all.js</code>:</h3>
+  <pre><code>&lt;!-- ❌ OLD (v0.1.x) --&gt;
+&lt;script src="behavior-fn.all.js"&gt;&lt;/script&gt;
+&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;
+
+&lt;!-- ✅ NEW (v0.2.0) - Option 1: Explicit --&gt;
+&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
+&lt;script src="reveal.js"&gt;&lt;/script&gt;
+&lt;dialog is="behavioral-reveal" behavior="reveal"&gt;...&lt;/dialog&gt;
+
+&lt;!-- ✅ NEW (v0.2.0) - Option 2: Auto-loader --&gt;
+&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt;
+&lt;script src="reveal.js"&gt;&lt;/script&gt;
+&lt;script src="auto-loader.js"&gt;&lt;/script&gt;
+&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt;
+&lt;dialog behavior="reveal"&gt;...&lt;/dialog&gt;</code></pre>
+
+  <h3>If you used individual bundles:</h3>
+  <pre><code>&lt;!-- ❌ OLD (v0.1.x) - bundles included core --&gt;
+&lt;script src="reveal.js"&gt;&lt;/script&gt;
+&lt;script src="auto-loader.js"&gt;&lt;/script&gt; &lt;!-- auto-enabled --&gt;
+
+&lt;!-- ✅ NEW (v0.2.0) - explicit core, explicit enable --&gt;
+&lt;script src="behavior-fn-core.js"&gt;&lt;/script&gt; &lt;!-- NEW: explicit core --&gt;
+&lt;script src="reveal.js"&gt;&lt;/script&gt;
+&lt;script src="auto-loader.js"&gt;&lt;/script&gt;
+&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt; &lt;!-- NEW: explicit call --&gt;</code></pre>
+
+  <h2>❓ FAQ</h2>
+
+  <h3>Q: Why was the all-in-one bundle removed?</h3>
+  <p><strong>A:</strong> To encourage intentional loading and better performance. Users should only load what they need, not bundle everything by default.</p>
+
+  <h3>Q: Do I need the auto-loader?</h3>
+  <p><strong>A:</strong> No! Use explicit <code>is</code> attributes for better performance. Auto-loader is a convenience feature for prototyping.</p>
+
+  <h3>Q: What's the load order?</h3>
+  <p><strong>A:</strong> Always load in this order:</p>
+  <ol>
+    <li>Core (<code>behavior-fn-core.js</code>)</li>
+    <li>Behaviors (<code>reveal.js</code>, etc.)</li>
+    <li>Auto-loader (optional, <code>auto-loader.js</code>)</li>
+    <li>Enable auto-loader (optional, <code>BehaviorFN.enableAutoLoader()</code>)</li>
+  </ol>
+
+  <h3>Q: Can I use ESM imports?</h3>
+  <p><strong>A:</strong> Yes! All bundles have <code>.esm.js</code> versions:</p>
+  <pre><code>import { registerBehavior } from 'behavior-fn/dist/cdn/behavior-fn-core.esm.js';
+import { revealBehaviorFactory } from 'behavior-fn/dist/cdn/reveal.esm.js';</code></pre>
+
+  <h2>📚 Resources</h2>
+  <ul>
+    <li><a href="https://github.com/AceCodePt/behavior-fn">GitHub Repository</a></li>
+    <li><a href="https://github.com/AceCodePt/behavior-fn/blob/main/README.md">Documentation</a></li>
+    <li><a href="https://github.com/AceCodePt/behavior-fn/issues">Report Issues</a></li>
+  </ul>
 
   <!-- Load BehaviorFN for this demo -->
   <script>
-    // For this demo, we'll use inline implementations
-    // In production, you'd load from actual CDN
+    // Inline implementation for demo purposes
     window.BehaviorFN = {
       behaviorRegistry: new Map(),
       
@@ -463,22 +715,16 @@ ${behaviorDirs.map(name => `    <li><code>${name}.js</code></li>`).join("\n")}
       };
     });
     
-    // Initialize hosts
+    // Initialize host
     BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal');
     
-    console.log('✅ BehaviorFN loaded from CDN');
+    console.log('✅ BehaviorFN demo loaded');
   </script>
 </body>
 </html>`;
 
   await writeFile(join(cdnOutDir, "index.html"), exampleHTML);
-  console.log(`✅ Generated ${join(cdnOutDir, "index.html")}\n`);
-}
-
-
-
-function toCamelCase(str: string): string {
-  return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+  console.log(`  ✅ index.html (examples)`);
 }
 
 function toPascalCase(str: string): string {

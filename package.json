@@ -1,7 +1,7 @@
 {
 	"name": "behavior-fn",
-	"description": "Copy-paste behavior mixins for Web Components - Own your code, not your dependencies",
-	"version": "0.1.6",
+	"description": "Copy-paste behavior mixins for Web Components - Own your code, not your dependencies. Opt-in loading for better performance.",
+	"version": "0.2.0",
 	"type": "module",
 	"bin": {
 		"behavior-fn": "./dist/index.js"
@@ -32,7 +32,10 @@
 		"custom-elements",
 		"zod",
 		"valibot",
-		"typebox"
+		"typebox",
+		"opt-in",
+		"tree-shakeable",
+		"cdn"
 	],
 	"author": "Sagi Carmel (https://github.com/AceCodePt)",
 	"license": "MIT",
