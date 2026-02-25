@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
+- [-] [Consolidate Constants and Commands into Behavioral Definition](docs/tasks/consolidate-constants-commands/task.md)
 - [-] [Refactor to Opt-In Loading Architecture](docs/tasks/refactor-opt-in-loading/LOG.md)
 - [-] [Implement Content Setter Behavior](docs/tasks/20260224-182306-content-setter-behavior/LOG.md)
 - [x] [JSON Template Behavior](docs/tasks/json-template-behavior/task.md)
