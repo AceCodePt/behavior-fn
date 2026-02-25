@@ -4,11 +4,18 @@
 
 BehaviorFN v0.2.0 introduces an **Opt-In Loading Architecture** where you explicitly choose what to load. This gives you better performance, smaller bundle sizes, and clearer mental models.
 
-## Breaking Change from v0.1.x
+## 🔥 Breaking Change from v0.1.x
 
-**Removed:** The all-in-one bundle (`behavior-fn.all.js`) has been removed.
+**⚠️ REMOVED:** The all-in-one bundle (`behavior-fn.all.js`) has been **completely removed** in v0.2.0.
 
-**Why?** To encourage intentional loading and prevent users from bundling behaviors they don't use. This results in better performance and forces explicit dependency management.
+**Why?**
+- v0.1.6 all-in-one: 72KB minified (20KB gzipped) with ALL 9 behaviors
+- v0.2.0 opt-in: 4.7KB to 14KB per behavior (1.9KB to 4.6KB gzipped)
+- **Savings: 77% to 90% for typical use cases**
+
+Users were loading 72KB to use one behavior. Now you load only what you need.
+
+**Migration:** See [Migration from v0.1.x](#migration-from-v01x) section below.
 
 ---
 
@@ -125,65 +132,22 @@ if (!window.BehaviorFN) {
 
 ## Loading Patterns
 
-### Pattern 1: Explicit (Recommended)
+### Pattern 1: Auto-Loader (Recommended - 2 Script Tags)
 
-**Best for:** Production apps, maximum control, best performance
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <!-- 1. Load core runtime -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-  
-  <!-- 2. Load behaviors you need -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-</head>
-<body>
-  <!-- 3. Use explicit is attributes -->
-  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
-    <h2>Hello!</h2>
-    <button commandfor="modal" command="--hide">Close</button>
-  </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
-</body>
-</html>
-```
-
-**Pros:**
-- ✅ Smallest bundle size
-- ✅ No MutationObserver overhead
-- ✅ Most explicit and predictable
-- ✅ Best performance
-- ✅ No JavaScript required to activate behaviors
-
-**Cons:**
-- ⚠️ Must add `is` attribute manually
-- ⚠️ More verbose HTML
-
----
-
-### Pattern 2: Auto-Loader (Convenience)
-
-**Best for:** Prototypes, content-heavy sites, quick demos
+**Best for:** Most use cases, simplest setup
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load core runtime -->
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"></script>
-  
-  <!-- 2. Load behaviors you need -->
+  <!-- 1. Load behavior (includes core runtime) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
-  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js"></script>
   
-  <!-- 3. Load auto-loader (auto-enables itself) -->
+  <!-- 2. Load auto-loader (auto-registers hosts) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 </head>
 <body>
-  <!-- 4. Omit is attributes (auto-loader adds them) -->
+  <!-- Clean HTML (auto-loader adds is attribute) -->
   <dialog behavior="reveal" id="modal">
     <h2>Hello!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -194,29 +158,147 @@ if (!window.BehaviorFN) {
 </html>
 ```
 
+**Total:** 14.4KB minified (5.5KB gzipped)
+
 **Pros:**
-- ✅ Cleaner HTML
-- ✅ Closer to Alpine.js/HTMX DX
-- ✅ Good for content-heavy sites
+- ✅ Simplest (just 2 script tags)
+- ✅ Clean HTML (no `is` attribute)
+- ✅ Auto-registers behavioral hosts
+- ✅ Works with dynamic content
+- ✅ 73% smaller than v0.1.6 all-in-one
 
 **Cons:**
-- ⚠️ Adds ~5KB + MutationObserver overhead
-- ⚠️ Requires explicit enablement
-- ⚠️ Less explicit (harder to debug)
-- ⚠️ May have timing issues with dynamic UIs
+- ⚠️ Adds 5.7KB (2.3KB gzipped) for auto-loader
+
+---
+
+### Pattern 2: Manual Host (Maximum Control)
+
+**Best for:** Production apps where every KB matters, maximum control
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- 1. Load behavior -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+  
+  <!-- 2. Define behavioral host manually -->
+  <script>
+    const meta = BehaviorFN.behaviorMetadata['reveal'];
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  </script>
+</head>
+<body>
+  <!-- Must use explicit is attribute -->
+  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
+    <h2>Hello!</h2>
+    <button commandfor="modal" command="--hide">Close</button>
+  </dialog>
+  
+  <button commandfor="modal" command="--toggle">Open Modal</button>
+</body>
+</html>
+```
+
+**Total:** 8.7KB minified (3.2KB gzipped)
+
+**Pros:**
+- ✅ Smallest bundle (no auto-loader)
+- ✅ No MutationObserver overhead
+- ✅ Most explicit and predictable
+- ✅ Best performance
+- ✅ 84% smaller than v0.1.6 all-in-one
+
+**Cons:**
+- ⚠️ Requires manual `defineBehavioralHost` call
+- ⚠️ Must add `is` attribute manually
+- ⚠️ More verbose HTML
 
 ---
 
 ## Migration from v0.1.x
 
-### If you used `behavior-fn.all.js`:
+### 🔥 If you used `behavior-fn.all.js` (REMOVED):
 
 **Before (v0.1.6):**
 ```html
-<!-- Single bundle, auto-loader auto-enabled -->
+<!-- ❌ REMOVED: All-in-one bundle (72KB / 20KB gzipped) -->
 <script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/behavior-fn.all.js"></script>
 <dialog behavior="reveal">Content</dialog>
 ```
+
+**After (v0.2.0) - Option 1: Auto-Loader (Recommended)**
+```html
+<!-- ✅ NEW: 2 script tags (14.4KB / 5.5KB gzipped) -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+
+<dialog behavior="reveal">Content</dialog>
+```
+
+**Savings:** 73% smaller! (5.5KB vs 20KB gzipped)
+
+**After (v0.2.0) - Option 2: Manual Host (Smallest)**
+```html
+<!-- ✅ NEW: 1 script tag + 1 script block (8.7KB / 3.2KB gzipped) -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+<script>
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+</script>
+
+<dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
+```
+
+**Savings:** 84% smaller! (3.2KB vs 20KB gzipped)
+
+---
+
+### If you used individual bundles + auto-loader:
+
+**Before (v0.1.6):**
+```html
+<script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/auto-loader.js"></script>
+<dialog behavior="reveal">Content</dialog>
+```
+
+**After (v0.2.0):**
+```html
+<!-- ✅ SAME: No changes needed! -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+<dialog behavior="reveal">Content</dialog>
+```
+
+**Bonus:** Bundles are now 75-90% smaller (TypeBox eliminated)!
+
+---
+
+### If you used explicit `is` attributes with manual host:
+
+**Before (v0.1.6):**
+```html
+<script src="https://unpkg.com/behavior-fn@0.1.6/dist/cdn/reveal.js"></script>
+<script>
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', [/* attrs */]);
+</script>
+<dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
+```
+
+**After (v0.2.0):**
+```html
+<!-- ✅ IMPROVED: Use behavior metadata instead of hardcoding -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+<script>
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+</script>
+<dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
+```
+
+**Bonus:** `observedAttributes` are now in metadata (no need to hardcode)!
 
 **After (v0.2.0) - Option 1: Explicit**
 ```html

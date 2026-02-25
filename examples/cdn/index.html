@@ -128,28 +128,28 @@
     <h2>Choose Your Pattern</h2>
 
     <div class="grid">
-      <a href="01-explicit-pattern.html" class="card">
-        <h3>1. Explicit Pattern <span class="badge">RECOMMENDED</span></h3>
-        <p>Use <code>is</code> attributes for best performance. Ideal for production apps.</p>
+      <a href="02-auto-loader-pattern.html" class="card">
+        <h3>1. Auto-Loader <span class="badge">RECOMMENDED</span></h3>
+        <p>Simplest pattern - just 2 script tags. Auto-registers everything.</p>
         <ul style="font-size: 13px; margin-top: 10px;">
-          <li>✅ Smallest size</li>
-          <li>✅ No MutationObserver</li>
-          <li>✅ Most predictable</li>
+          <li>✅ 2 script tags total</li>
+          <li>✅ Cleanest HTML</li>
+          <li>✅ 14.4KB / 5.5KB gzipped</li>
         </ul>
       </a>
 
-      <a href="02-auto-loader-pattern.html" class="card">
-        <h3>2. Auto-Loader Pattern <span class="badge">CONVENIENCE</span></h3>
-        <p>Automatically add <code>is</code> attributes. Great for prototypes and content sites.</p>
+      <a href="01-explicit-pattern.html" class="card">
+        <h3>2. Manual Host <span class="badge">MAX CONTROL</span></h3>
+        <p>Define behavioral host yourself. Smallest bundle.</p>
         <ul style="font-size: 13px; margin-top: 10px;">
-          <li>✅ Cleaner HTML</li>
-          <li>✅ Dynamic detection</li>
-          <li>⚠️ +5KB overhead</li>
+          <li>✅ 8.7KB / 3.2KB gzipped</li>
+          <li>✅ No MutationObserver</li>
+          <li>⚠️ Manual setup required</li>
         </ul>
       </a>
 
       <a href="03-esm-pattern.html" class="card">
-        <h3>3. ESM Pattern <span class="badge">MODERN</span></h3>
+        <h3>3. ESM Modules <span class="badge">MODERN</span></h3>
         <p>Use native ES modules with import/export. Modern browsers only.</p>
         <ul style="font-size: 13px; margin-top: 10px;">
           <li>✅ Tree-shakeable</li>
@@ -161,39 +161,40 @@
 
     <h2>Quick Start</h2>
 
-    <h3>Option 1: Explicit Pattern (Recommended)</h3>
-    <pre style="background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>&lt;!-- Load core --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
-
-&lt;!-- Load behaviors --&gt;
+    <h3>Option 1: Auto-Loader (Recommended - 2 Script Tags)</h3>
+    <pre style="background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>&lt;!-- Load behavior --&gt;
 &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
 
-&lt;!-- Use explicit is attributes --&gt;
-&lt;dialog is="behavioral-reveal" behavior="reveal" id="modal"&gt;
-  &lt;h2&gt;Hello!&lt;/h2&gt;
-  &lt;button commandfor="modal" command="--hide"&gt;Close&lt;/button&gt;
-&lt;/dialog&gt;
-
-&lt;button commandfor="modal" command="--toggle"&gt;Open&lt;/button&gt;</code></pre>
-
-    <h3>Option 2: Auto-Loader Pattern</h3>
-    <pre style="background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>&lt;!-- Load core --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
-
-&lt;!-- Load behaviors --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
-
-&lt;!-- Load and enable auto-loader --&gt;
+&lt;!-- Load auto-loader (auto-registers host) --&gt;
 &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
-&lt;script&gt;BehaviorFN.enableAutoLoader();&lt;/script&gt;
 
-&lt;!-- Omit is attribute --&gt;
+&lt;!-- Clean HTML (no is attribute needed) --&gt;
 &lt;dialog behavior="reveal" id="modal"&gt;
   &lt;h2&gt;Hello!&lt;/h2&gt;
   &lt;button commandfor="modal" command="--hide"&gt;Close&lt;/button&gt;
 &lt;/dialog&gt;
 
 &lt;button commandfor="modal" command="--toggle"&gt;Open&lt;/button&gt;</code></pre>
+    <p><strong>Total:</strong> 14.4KB minified (5.5KB gzipped)</p>
+
+    <h3>Option 2: Manual Host (Smallest Bundle)</h3>
+    <pre style="background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>&lt;!-- Load behavior --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+
+&lt;!-- Define host manually --&gt;
+&lt;script&gt;
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+&lt;/script&gt;
+
+&lt;!-- Must use explicit is attribute --&gt;
+&lt;dialog is="behavioral-reveal" behavior="reveal" id="modal"&gt;
+  &lt;h2&gt;Hello!&lt;/h2&gt;
+  &lt;button commandfor="modal" command="--hide"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+
+&lt;button commandfor="modal" command="--toggle"&gt;Open&lt;/button&gt;</code></pre>
+    <p><strong>Total:</strong> 8.7KB minified (3.2KB gzipped)</p>
 
     <h2>Available Behaviors</h2>
 

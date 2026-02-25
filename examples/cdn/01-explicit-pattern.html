@@ -75,31 +75,38 @@
   </style>
 </head>
 <body>
-  <h1>🎯 BehaviorFN v0.2.0 <span class="badge">Explicit Pattern</span></h1>
+  <h1>🎯 BehaviorFN v0.2.0 <span class="badge">Manual Pattern</span></h1>
   
   <div class="info">
-    <strong>This is the recommended pattern for production apps.</strong>
+    <strong>Maximum control, smallest bundle size.</strong>
     <ul>
-      <li>✅ Smallest bundle size</li>
+      <li>✅ Smallest bundle (no auto-loader)</li>
       <li>✅ No MutationObserver overhead</li>
       <li>✅ Most predictable and debuggable</li>
       <li>✅ Best performance</li>
+      <li>⚠️ Requires manual host definition</li>
     </ul>
   </div>
 
   <h2>How It Works</h2>
-  <p>The explicit pattern uses the <code>is</code> attribute to tell the browser which custom element to use. No JavaScript magic, no auto-loader, just standard Web Components.</p>
+  <p>The manual pattern gives you full control. You load the behavior and manually define the behavioral host.</p>
 
   <div class="card">
-    <h3>Step 1: Load Core Runtime</h3>
-    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;</code></pre>
-    <p>The core runtime (~4KB) provides the foundation: behavior registry, host management, and utilities.</p>
+    <h3>Step 1: Load Behavior</h3>
+    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
+    <p>Behavior auto-registers and stores metadata in <code>window.BehaviorFN.behaviorMetadata</code>.</p>
   </div>
 
   <div class="card">
-    <h3>Step 2: Load Behaviors You Need</h3>
-    <pre><code>&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;</code></pre>
-    <p>Each behavior auto-registers when loaded. Load only what you need!</p>
+    <h3>Step 2: Define Behavioral Host</h3>
+    <pre><code>&lt;script&gt;
+  // Get metadata (includes observedAttributes)
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  
+  // Define the behavioral host for this tag + behavior combo
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+&lt;/script&gt;</code></pre>
+    <p>This tells the browser how to upgrade <code>&lt;dialog is="behavioral-reveal"&gt;</code> elements.</p>
   </div>
 
   <div class="card">
@@ -111,7 +118,7 @@
 &lt;button commandfor="my-modal" command="--toggle"&gt;
   Open Modal
 &lt;/button&gt;</code></pre>
-    <p>The <code>is="behavioral-reveal"</code> attribute tells the browser to upgrade the element. The <code>behavior="reveal"</code> attribute tells which behavior to apply.</p>
+    <p>The <code>is="behavioral-reveal"</code> attribute tells the browser to use the behavioral host you defined.</p>
   </div>
 
   <h2>Live Demo</h2>
@@ -167,14 +174,16 @@
 &lt;html lang="en"&gt;
 &lt;head&gt;
   &lt;meta charset="UTF-8"&gt;
-  &lt;title&gt;Explicit Pattern Example&lt;/title&gt;
+  &lt;title&gt;Manual Pattern Example&lt;/title&gt;
   
-  &lt;!-- 1. Load core runtime --&gt;
-  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;
-  
-  &lt;!-- 2. Load behaviors --&gt;
+  &lt;!-- 1. Load behavior --&gt;
   &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
-  &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js"&gt;&lt;/script&gt;
+  
+  &lt;!-- 2. Define behavioral host --&gt;
+  &lt;script&gt;
+    const meta = BehaviorFN.behaviorMetadata['reveal'];
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  &lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
   &lt;!-- 3. Use explicit is attributes --&gt;
@@ -189,24 +198,32 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-  <h2>Why Explicit?</h2>
+  <h2>Why Manual Pattern?</h2>
   <ul>
-    <li><strong>Performance:</strong> No MutationObserver watching the DOM</li>
-    <li><strong>Predictability:</strong> Element behavior is visible in HTML</li>
+    <li><strong>Performance:</strong> Smallest bundle (no auto-loader)</li>
+    <li><strong>Control:</strong> Explicit host definition</li>
     <li><strong>Debugging:</strong> Easy to see what's applied where</li>
     <li><strong>Standard:</strong> Uses standard Web Components API</li>
-    <li><strong>Simple:</strong> No magic, no surprises</li>
+    <li><strong>Size:</strong> 8.7KB minified (3.2KB gzipped)</li>
   </ul>
 
   <h2>Other Patterns</h2>
   <ul>
-    <li><a href="02-auto-loader-pattern.html">Auto-Loader Pattern</a> - Convenience for prototypes</li>
+    <li><a href="02-auto-loader-pattern.html">Auto-Loader Pattern</a> - Simpler (recommended for most)</li>
     <li><a href="03-esm-pattern.html">ESM Pattern</a> - For bundlers</li>
   </ul>
 
   <!-- Load BehaviorFN -->
-  <script src="../../dist/cdn/behavior-fn-core.js"></script>
   <script src="../../dist/cdn/reveal.js"></script>
   <script src="../../dist/cdn/logger.js"></script>
+  <script>
+    // Define hosts manually
+    const revealMeta = BehaviorFN.behaviorMetadata['reveal'];
+    const loggerMeta = BehaviorFN.behaviorMetadata['logger'];
+    
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', revealMeta.observedAttributes);
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-logger-reveal', 
+      [...revealMeta.observedAttributes, ...loggerMeta.observedAttributes]);
+  </script>
 </body>
 </html>

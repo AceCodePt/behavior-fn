@@ -27,20 +27,22 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ### CDN Usage (v0.2.0+)
 
-**Option 1: Auto-Loader (Simplest - Recommended for CDN)**
+**⚠️ Breaking Change:** The all-in-one bundle (`behavior-fn.all.js`) has been **removed** in v0.2.0.
+
+**Option 1: Auto-Loader (Recommended - 2 Script Tags)**
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- 1. Load the behavior -->
+  <!-- 1. Load behavior (includes core runtime) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
   
   <!-- 2. Load auto-loader (auto-registers hosts) -->
   <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
 </head>
 <body>
-  <!-- Just use behavior attribute (auto-loader adds is attribute) -->
+  <!-- Clean HTML (no is attribute needed) -->
   <dialog behavior="reveal" id="modal">
     <h2>Hello World!</h2>
     <button commandfor="modal" command="--hide">Close</button>
@@ -50,6 +52,39 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 </body>
 </html>
 ```
+
+**Total:** 14.4KB minified (5.5KB gzipped) - **73% smaller than v0.1.6!**
+
+---
+
+**Option 2: Manual Host (Smallest Bundle - 1 Tag + 1 Script Block)**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- 1. Load behavior -->
+  <script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+  
+  <!-- 2. Define behavioral host manually -->
+  <script>
+    const meta = BehaviorFN.behaviorMetadata['reveal'];
+    BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+  </script>
+</head>
+<body>
+  <!-- Must use explicit is attribute -->
+  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
+    <h2>Hello World!</h2>
+    <button commandfor="modal" command="--hide">Close</button>
+  </dialog>
+  
+  <button commandfor="modal" command="--toggle">Open Modal</button>
+</body>
+</html>
+```
+
+**Total:** 8.7KB minified (3.2KB gzipped) - **84% smaller than v0.1.6!**
 
 **Total:** 2 script tags, 14.4KB minified (5.5KB gzipped)
 
@@ -92,17 +127,29 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ## 🆕 What's New in v0.2.0?
 
-### Breaking Changes
+### 🔥 Breaking Changes
 
-- **Removed All-in-One Bundle:** `behavior-fn.all.js` has been removed
-- **Opt-In Loading:** Load only the individual behaviors you need
+**⚠️ REMOVED: All-in-One Bundle (`behavior-fn.all.js`)**
 
-### Benefits
+The 72KB all-in-one bundle has been **completely removed**. You now load only the behaviors you need.
 
-- **Better Performance:** Load only what you need (50KB for one behavior vs 72KB for all)
-- **Simpler Usage:** Just load the behavior script - core runtime is bundled in
-- **No Dependencies:** Each behavior is self-contained (includes core)
-- **Same DX as v0.1.6:** Individual bundles work exactly like before
+**Migration:**
+```html
+<!-- ❌ v0.1.6: All-in-one (72KB / 20KB gzipped) -->
+<script src="behavior-fn.all.js"></script>
+
+<!-- ✅ v0.2.0: Auto-loader (14.4KB / 5.5KB gzipped) -->
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"></script>
+<script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"></script>
+```
+
+### ✨ Benefits
+
+- **Massive Size Reduction:** 73% to 90% smaller for typical use cases
+- **TypeBox Eliminated:** Transformed to JSON Schema at build time (0 bytes in bundles)
+- **Opt-In Loading:** Load only what you need (1.9KB to 4.6KB gzipped per behavior)
+- **Simple Usage:** Just 2 script tags with auto-loader
+- **Backward Compatible:** Individual bundle pattern still works
 
 **📋 [Migration Guide](CHANGELOG.md)** | **🔄 [Full Changelog](CHANGELOG.md)**
 

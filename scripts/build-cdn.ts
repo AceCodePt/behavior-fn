@@ -462,52 +462,52 @@ async function generateCDNExamples(behaviorDirs: string[]) {
   <p><strong>Opt-In Loading Architecture</strong> - Load only what you need!</p>
 
   <div class="note">
-    <strong>⚠️ Breaking Change from v0.1.x:</strong> The all-in-one bundle (<code>behavior-fn.all.js</code>) has been removed. 
-    You now explicitly load the core runtime + individual behaviors. This gives you better performance and smaller bundle sizes.
+    <strong>🔥 Breaking Change from v0.1.x:</strong> The all-in-one bundle (<code>behavior-fn.all.js</code>) has been <strong>completely removed</strong>.
+    <br><br>
+    <strong>Why?</strong> v0.1.6 forced you to load 72KB (20KB gzipped) to use one behavior. v0.2.0 lets you load only what you need: 1.9KB to 5.5KB gzipped per behavior.
   </div>
 
   <h2>🚀 Quick Start</h2>
   
-  <h3>Step 1: Load Core Runtime</h3>
-  <pre><code>&lt;!-- Required: Core runtime (~5-8KB minified, ~2-3KB gzipped) --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js"&gt;&lt;/script&gt;</code></pre>
-
-  <h3>Step 2: Load Behaviors You Need</h3>
-  <pre><code>&lt;!-- Load specific behaviors (~5-15KB each) --&gt;
+  <h3>Option 1: Auto-Loader (Recommended - 2 Script Tags)</h3>
+  <pre><code>&lt;!-- 1. Load behavior (includes core runtime) --&gt;
 &lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js"&gt;&lt;/script&gt;</code></pre>
 
-  <h3>Step 3a: Use Explicit \`is\` Attributes (Recommended)</h3>
-  <pre><code>&lt;!-- Explicit is attribute - no auto-loader needed --&gt;
+&lt;!-- 2. Load auto-loader (auto-registers hosts) --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
+
+&lt;!-- Clean HTML (auto-loader adds is attribute) --&gt;
+&lt;dialog behavior="reveal" id="my-modal"&gt;
+  &lt;h2&gt;Hello!&lt;/h2&gt;
+  &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+
+&lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
+  <p><strong>Total:</strong> 14.4KB minified (5.5KB gzipped) - 73% smaller than v0.1.6!</p>
+
+  <h3>Option 2: Manual Host (Smallest - 1 Tag + 1 Script Block)</h3>
+  <pre><code>&lt;!-- 1. Load behavior --&gt;
+&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Define host manually --&gt;
+&lt;script&gt;
+  const meta = BehaviorFN.behaviorMetadata['reveal'];
+  BehaviorFN.defineBehavioralHost('dialog', 'behavioral-reveal', meta.observedAttributes);
+&lt;/script&gt;
+
+&lt;!-- Must use explicit is attribute --&gt;
 &lt;dialog is="behavioral-reveal" behavior="reveal" id="my-modal"&gt;
   &lt;h2&gt;Hello!&lt;/h2&gt;
   &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
 &lt;/dialog&gt;
 
 &lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
-
-  <h3>Step 3b: Or Use Auto-Loader (Optional)</h3>
-  <pre><code>&lt;!-- Load auto-loader module --&gt;
-&lt;script src="https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js"&gt;&lt;/script&gt;
-
-&lt;!-- Explicitly enable it --&gt;
-&lt;script&gt;
-  BehaviorFN.enableAutoLoader();
-&lt;/script&gt;
-
-&lt;!-- Now you can omit the is attribute --&gt;
-&lt;dialog behavior="reveal" id="my-modal"&gt;
-  &lt;h2&gt;Hello!&lt;/h2&gt;
-  &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
-&lt;/dialog&gt;</code></pre>
+  <p><strong>Total:</strong> 8.7KB minified (3.2KB gzipped) - 84% smaller than v0.1.6!</p>
 
   <h2>📦 Available Bundles</h2>
   
-  <h3>Core Runtime <span class="badge new">NEW</span></h3>
-  <ul>
-    <li><code>behavior-fn-core.js</code> - Required foundation (~5-8KB)</li>
-    <li><code>behavior-fn-core.esm.js</code> - ESM version for modern bundlers</li>
-  </ul>
+  <h3>Individual Behaviors (Self-Contained)</h3>
+  <p>Each includes: Core runtime + Behavior logic + JSON Schema + observedAttributes</p>
 
   <h3>Individual Behaviors</h3>
   <ul>
