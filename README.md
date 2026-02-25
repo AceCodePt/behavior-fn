@@ -397,7 +397,8 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 - **Text interpolation:** `{name}`, `Username: {firstName} {lastName}`
 - **Attribute interpolation:** `data-type="{type}"`, `class="user-{role}"`
 - **Nested paths:** `{user.profile.name}`, `{items[0].title}`
-- **Array rendering:** Use `data-array="path"` on nested `<template>`
+- **Root array support:** If root data is an array, template repeats automatically (no `data-array` needed)
+- **Nested arrays:** Use `data-array="path"` on nested `<template>` for arrays within objects
 - **Web component support:** Preserves `is=""` attributes for behavioral hosts
 - **Reactive:** Watches data source for changes (MutationObserver)
 - **Graceful:** Missing values render as empty strings (no errors)

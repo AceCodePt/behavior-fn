@@ -283,7 +283,41 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
       return;
     }
 
-    // Clone template content
+    // Special case: If root data is an array, render template for each item
+    if (Array.isArray(jsonData)) {
+      // Root is an array - render template once per item
+      const fragment = document.createDocumentFragment();
+      
+      for (const item of jsonData) {
+        const itemClone = templateElement.content.cloneNode(true) as DocumentFragment;
+        
+        // Process interpolation for this item
+        for (const child of Array.from(itemClone.childNodes)) {
+          processInterpolation(child, item);
+        }
+        
+        fragment.appendChild(itemClone);
+      }
+      
+      // Clear existing rendered content (preserve template)
+      const nodesToRemove: Node[] = [];
+      el.childNodes.forEach(node => {
+        if (node !== templateElement) {
+          nodesToRemove.push(node);
+        }
+      });
+      nodesToRemove.forEach(node => {
+        if (node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
+      });
+      
+      // Insert rendered content before the template
+      el.insertBefore(fragment, templateElement);
+      return;
+    }
+
+    // Normal case: Root is an object
     const clone = templateElement.content.cloneNode(true) as DocumentFragment;
 
     // Process interpolation (all done off-DOM in the DocumentFragment)

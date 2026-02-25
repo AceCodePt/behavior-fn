@@ -210,50 +210,51 @@ The **outer `<template>`** is required because:
 
 ---
 
-## Root Data as Array?
+## Root Data as Array? ✨ Yes!
 
-If your **root data is an array**, you still need the outer template:
+If your **root data is an array**, you get an elegant, simplified pattern:
 
 ```html
 <script type="application/json" id="data">
 [
-  { "name": "Alice" },
-  { "name": "Bob" }
+  { "name": "Alice", "age": 25 },
+  { "name": "Bob", "age": 30 }
 ]
 </script>
 
-<!-- You might expect this to work, but it doesn't: -->
-<!-- ❌ DON'T -->
-<div behavior="json-template" json-template-for="data">
-  <template data-array=".">
-    <div>{name}</div>
-  </template>
-</div>
-
-<!-- ✅ DO: Wrap your data in an object -->
-<script type="application/json" id="data">
-{
-  "items": [
-    { "name": "Alice" },
-    { "name": "Bob" }
-  ]
-}
-</script>
-
+<!-- ✅ Simple! Template repeats automatically -->
 <div behavior="json-template" json-template-for="data">
   <template>
-    <template data-array="items">
-      <div>{name}</div>
-    </template>
+    <div class="person">
+      <h3>{name}</h3>
+      <p>Age: {age}</p>
+    </div>
   </template>
 </div>
 ```
 
-**Design Decision:** We require root data to be an object (not a raw array) because:
-1. It's more flexible (can add metadata later)
-2. Clearer intention (`data.users` vs just array)
-3. Matches common API response patterns
-4. Avoids ambiguity with context binding
+**Auto-Detection:** The behavior detects if root data is an array and automatically:
+1. Repeats the template once per array item
+2. Sets each item as the data context
+3. No `data-array` attribute needed!
+
+**Benefits:**
+- ✅ Cleaner JSON (no wrapper object)
+- ✅ Simpler templates (no nested array syntax)
+- ✅ More intuitive (template just repeats)
+- ✅ Perfect for API responses that return arrays
+
+**When to Use Root Array Pattern:**
+- Todo lists, product catalogs, user lists
+- API responses that return arrays directly
+- Social media feeds, news articles
+- Any scenario with a single array of items
+
+**When to Use Nested Object Pattern:**
+- Need metadata alongside array (`{total: 10, items: [...]}`)
+- Multiple arrays to render (`{users: [...], posts: [...]}`)
+- Static content mixed with arrays (`{title: "Users", users: [...]}`)
+- Complex nested structures
 
 ---
 

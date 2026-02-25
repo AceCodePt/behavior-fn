@@ -277,6 +277,77 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
   });
 
   describe("Array Rendering", () => {
+    it("should render root-level array (array as root data)", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice", age: 25 },
+        { name: "Bob", age: 30 },
+        { name: "Charlie", age: 35 },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="person">
+            <h3>{name}</h3>
+            <p>Age: {age}</p>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const people = container.querySelectorAll(".person");
+      expect(people).toHaveLength(3);
+      expect(people[0]?.querySelector("h3")?.textContent).toBe("Alice");
+      expect(people[0]?.querySelector("p")?.textContent).toBe("Age: 25");
+      expect(people[1]?.querySelector("h3")?.textContent).toBe("Bob");
+      expect(people[1]?.querySelector("p")?.textContent).toBe("Age: 30");
+      expect(people[2]?.querySelector("h3")?.textContent).toBe("Charlie");
+      expect(people[2]?.querySelector("p")?.textContent).toBe("Age: 35");
+    });
+
+    it("should render root-level array with compact template syntax", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { title: "Buy groceries", priority: "high" },
+        { title: "Walk the dog", priority: "medium" },
+        { title: "Write documentation", priority: "high" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div class="todo priority-{priority}">
+            {title}
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".todo");
+      expect(items).toHaveLength(3);
+      expect(items[0]?.textContent?.trim()).toBe("Buy groceries");
+      expect(items[0]?.classList.contains("priority-high")).toBe(true);
+      expect(items[1]?.textContent?.trim()).toBe("Walk the dog");
+      expect(items[1]?.classList.contains("priority-medium")).toBe(true);
+      expect(items[2]?.textContent?.trim()).toBe("Write documentation");
+      expect(items[2]?.classList.contains("priority-high")).toBe(true);
+    });
+
     it("should render arrays using implicit nested template", () => {
       const script = document.createElement("script");
       script.type = "application/json";
