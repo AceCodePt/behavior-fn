@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>json-template: Nested Objects in Arrays Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #f5f5f5;
+    }
+    
+    h1 {
+      color: #1a73e8;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .user-card {
+      border-left: 4px solid #1a73e8;
+    }
+    
+    .user-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    
+    .user-info h3 {
+      margin: 0;
+      color: #333;
+    }
+    
+    .user-info p {
+      margin: 0.25rem 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .badge.admin {
+      background: #fee;
+      color: #c33;
+    }
+    
+    .badge.moderator {
+      background: #fef3e0;
+      color: #f77f00;
+    }
+    
+    .badge.user {
+      background: #e0f7f0;
+      color: #06a77d;
+    }
+    
+    .address {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+    
+    .address h4 {
+      margin: 0 0 0.5rem 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    
+    .address p {
+      margin: 0.25rem 0;
+      color: #666;
+    }
+    
+    .skills {
+      margin: 1rem 0;
+    }
+    
+    .skills h4 {
+      margin: 0 0 0.5rem 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    
+    .skill-tag {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 0.25rem 0.75rem;
+      border-radius: 16px;
+      margin: 0.25rem;
+      font-size: 0.85rem;
+    }
+    
+    .projects {
+      margin: 1rem 0;
+    }
+    
+    .projects h4 {
+      margin: 0 0 0.75rem 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    
+    .project-item {
+      background: #f8f9fa;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border-radius: 4px;
+      border-left: 3px solid #1a73e8;
+    }
+    
+    .project-item h5 {
+      margin: 0 0 0.25rem 0;
+      color: #333;
+    }
+    
+    .project-item p {
+      margin: 0.25rem 0;
+      color: #666;
+      font-size: 0.85rem;
+    }
+    
+    .project-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #888;
+    }
+    
+    button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+    }
+    
+    button:hover {
+      background: #1557b0;
+    }
+    
+    .json-display {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 json-template: Nested Objects in Arrays</h1>
+  
+  <div class="card">
+    <h2>Complex Data Structure Example</h2>
+    <p>This example demonstrates how to render <strong>objects nested inside arrays</strong> using the new curly brace syntax.</p>
+    <p>Each user object contains nested objects (address, profile) and arrays (skills, projects).</p>
+  </div>
+
+  <div>
+    <button onclick="loadDefaultData()">Load Default Data</button>
+    <button onclick="loadAlternateData()">Load Alternate Team</button>
+    <button onclick="showJSON()">Show/Hide JSON</button>
+  </div>
+
+  <div id="json-container" style="display: none;">
+    <div class="card">
+      <h3>Current JSON Data:</h3>
+      <pre id="json-display" class="json-display"></pre>
+    </div>
+  </div>
+
+  <!-- JSON Data Source -->
+  <script type="application/json" id="team-data">
+  {
+    "teamName": "Engineering Team Alpha",
+    "department": "Product Development",
+    "members": [
+      {
+        "id": 1,
+        "name": "Sarah Chen",
+        "role": "admin",
+        "initials": "SC",
+        "profile": {
+          "email": "sarah.chen@example.com",
+          "title": "Senior Software Engineer",
+          "yearsExp": 8,
+          "department": "Backend"
+        },
+        "address": {
+          "street": "123 Tech Boulevard",
+          "city": "San Francisco",
+          "state": "CA",
+          "zip": "94105",
+          "country": "USA"
+        },
+        "skills": [
+          { "name": "TypeScript", "level": "Expert" },
+          { "name": "Node.js", "level": "Expert" },
+          { "name": "PostgreSQL", "level": "Advanced" }
+        ],
+        "projects": [
+          {
+            "name": "BehaviorFN",
+            "description": "Web component behavior system",
+            "status": "active",
+            "contributors": 5,
+            "stars": 150
+          },
+          {
+            "name": "API Gateway",
+            "description": "Microservices communication layer",
+            "status": "maintenance",
+            "contributors": 3,
+            "stars": 89
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Marcus Johnson",
+        "role": "moderator",
+        "initials": "MJ",
+        "profile": {
+          "email": "marcus.j@example.com",
+          "title": "Frontend Architect",
+          "yearsExp": 6,
+          "department": "Frontend"
+        },
+        "address": {
+          "street": "456 Innovation Way",
+          "city": "Austin",
+          "state": "TX",
+          "zip": "78701",
+          "country": "USA"
+        },
+        "skills": [
+          { "name": "React", "level": "Expert" },
+          { "name": "CSS", "level": "Expert" },
+          { "name": "Web Components", "level": "Advanced" }
+        ],
+        "projects": [
+          {
+            "name": "Design System",
+            "description": "Component library and style guide",
+            "status": "active",
+            "contributors": 8,
+            "stars": 234
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Aisha Patel",
+        "role": "user",
+        "initials": "AP",
+        "profile": {
+          "email": "aisha.patel@example.com",
+          "title": "Full Stack Developer",
+          "yearsExp": 3,
+          "department": "Full Stack"
+        },
+        "address": {
+          "street": "789 Startup Lane",
+          "city": "Seattle",
+          "state": "WA",
+          "zip": "98101",
+          "country": "USA"
+        },
+        "skills": [
+          { "name": "JavaScript", "level": "Advanced" },
+          { "name": "Python", "level": "Intermediate" },
+          { "name": "Docker", "level": "Intermediate" }
+        ],
+        "projects": [
+          {
+            "name": "Dashboard Analytics",
+            "description": "Real-time metrics visualization",
+            "status": "active",
+            "contributors": 4,
+            "stars": 67
+          },
+          {
+            "name": "User Portal",
+            "description": "Customer self-service interface",
+            "status": "planning",
+            "contributors": 2,
+            "stars": 12
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Template Renderer -->
+  <div is="behavioral-json-template" behavior="json-template" json-template-for="team-data">
+    <template>
+      <div class="card">
+        <h2>{teamName}</h2>
+        <p>Department: {department}</p>
+      </div>
+
+      <!-- Array of user objects, each with nested objects and arrays -->
+      <template data-array="members">
+        <div class="card user-card">
+          <!-- User Header with nested profile object -->
+          <div class="user-header">
+            <div class="avatar">{initials}</div>
+            <div class="user-info">
+              <h3>{name}</h3>
+              <p>{profile.title} • {profile.yearsExp} years experience</p>
+              <p>{profile.email}</p>
+              <span class="badge {role}">{role}</span>
+            </div>
+          </div>
+
+          <!-- Nested Address Object -->
+          <div class="address">
+            <h4>📍 Address</h4>
+            <p>{address.street}</p>
+            <p>{address.city}, {address.state} {address.zip}</p>
+            <p>{address.country}</p>
+          </div>
+
+          <!-- Nested Array of Skill Objects -->
+          <div class="skills">
+            <h4>💼 Skills</h4>
+            <div>
+              <template data-array="skills">
+                <span class="skill-tag">{name} ({level})</span>
+              </template>
+            </div>
+          </div>
+
+          <!-- Nested Array of Project Objects -->
+          <div class="projects">
+            <h4>🚀 Projects ({projects.length})</h4>
+            <template data-array="projects">
+              <div class="project-item">
+                <h5>{name}</h5>
+                <p>{description}</p>
+                <div class="project-meta">
+                  <span>Status: {status}</span>
+                  <span>Contributors: {contributors}</span>
+                  <span>⭐ {stars} stars</span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </template>
+  </div>
+
+  <div class="card">
+    <h3>🎯 Key Patterns Demonstrated</h3>
+    <ul>
+      <li><strong>Array of Objects:</strong> <code>data-array="members"</code> iterates over user objects</li>
+      <li><strong>Nested Object Access:</strong> <code>{literal}{profile.title}{literal}</code>, <code>{literal}{address.city}{literal}</code></li>
+      <li><strong>Deep Nesting:</strong> <code>{literal}{profile.email}{literal}</code> accesses object inside array item</li>
+      <li><strong>Nested Arrays:</strong> <code>data-array="skills"</code> inside <code>data-array="members"</code></li>
+      <li><strong>Array Properties:</strong> <code>{literal}{projects.length}{literal}</code> (won't work - length is not in data, just for demo)</li>
+      <li><strong>Attribute Interpolation:</strong> <code>class="badge {literal}{role}{literal}"</code> for dynamic styling</li>
+    </ul>
+  </div>
+
+  <script>
+    // Polyfill for behavioral host (minimal demo version)
+    if (!customElements.get('behavioral-json-template')) {
+      customElements.define('behavioral-json-template', class extends HTMLDivElement {
+        constructor() {
+          super();
+        }
+      }, { extends: 'div' });
+    }
+
+    function loadDefaultData() {
+      document.getElementById('team-data').textContent = JSON.stringify({
+        "teamName": "Engineering Team Alpha",
+        "department": "Product Development",
+        "members": [
+          {
+            "id": 1,
+            "name": "Sarah Chen",
+            "role": "admin",
+            "initials": "SC",
+            "profile": {
+              "email": "sarah.chen@example.com",
+              "title": "Senior Software Engineer",
+              "yearsExp": 8,
+              "department": "Backend"
+            },
+            "address": {
+              "street": "123 Tech Boulevard",
+              "city": "San Francisco",
+              "state": "CA",
+              "zip": "94105",
+              "country": "USA"
+            },
+            "skills": [
+              { "name": "TypeScript", "level": "Expert" },
+              { "name": "Node.js", "level": "Expert" },
+              { "name": "PostgreSQL", "level": "Advanced" }
+            ],
+            "projects": [
+              {
+                "name": "BehaviorFN",
+                "description": "Web component behavior system",
+                "status": "active",
+                "contributors": 5,
+                "stars": 150
+              },
+              {
+                "name": "API Gateway",
+                "description": "Microservices communication layer",
+                "status": "maintenance",
+                "contributors": 3,
+                "stars": 89
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "name": "Marcus Johnson",
+            "role": "moderator",
+            "initials": "MJ",
+            "profile": {
+              "email": "marcus.j@example.com",
+              "title": "Frontend Architect",
+              "yearsExp": 6,
+              "department": "Frontend"
+            },
+            "address": {
+              "street": "456 Innovation Way",
+              "city": "Austin",
+              "state": "TX",
+              "zip": "78701",
+              "country": "USA"
+            },
+            "skills": [
+              { "name": "React", "level": "Expert" },
+              { "name": "CSS", "level": "Expert" },
+              { "name": "Web Components", "level": "Advanced" }
+            ],
+            "projects": [
+              {
+                "name": "Design System",
+                "description": "Component library and style guide",
+                "status": "active",
+                "contributors": 8,
+                "stars": 234
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "name": "Aisha Patel",
+            "role": "user",
+            "initials": "AP",
+            "profile": {
+              "email": "aisha.patel@example.com",
+              "title": "Full Stack Developer",
+              "yearsExp": 3,
+              "department": "Full Stack"
+            },
+            "address": {
+              "street": "789 Startup Lane",
+              "city": "Seattle",
+              "state": "WA",
+              "zip": "98101",
+              "country": "USA"
+            },
+            "skills": [
+              { "name": "JavaScript", "level": "Advanced" },
+              { "name": "Python", "level": "Intermediate" },
+              { "name": "Docker", "level": "Intermediate" }
+            ],
+            "projects": [
+              {
+                "name": "Dashboard Analytics",
+                "description": "Real-time metrics visualization",
+                "status": "active",
+                "contributors": 4,
+                "stars": 67
+              },
+              {
+                "name": "User Portal",
+                "description": "Customer self-service interface",
+                "status": "planning",
+                "contributors": 2,
+                "stars": 12
+              }
+            ]
+          }
+        ]
+      }, null, 2);
+      updateJSONDisplay();
+    }
+
+    function loadAlternateData() {
+      document.getElementById('team-data').textContent = JSON.stringify({
+        "teamName": "Design Team Beta",
+        "department": "User Experience",
+        "members": [
+          {
+            "id": 10,
+            "name": "Elena Rodriguez",
+            "role": "admin",
+            "initials": "ER",
+            "profile": {
+              "email": "elena.r@example.com",
+              "title": "Lead UX Designer",
+              "yearsExp": 10,
+              "department": "Design"
+            },
+            "address": {
+              "street": "100 Creative Drive",
+              "city": "Portland",
+              "state": "OR",
+              "zip": "97201",
+              "country": "USA"
+            },
+            "skills": [
+              { "name": "Figma", "level": "Expert" },
+              { "name": "User Research", "level": "Expert" },
+              { "name": "Prototyping", "level": "Expert" }
+            ],
+            "projects": [
+              {
+                "name": "Mobile App Redesign",
+                "description": "Complete overhaul of iOS and Android apps",
+                "status": "active",
+                "contributors": 6,
+                "stars": 98
+              }
+            ]
+          },
+          {
+            "id": 11,
+            "name": "James Kim",
+            "role": "user",
+            "initials": "JK",
+            "profile": {
+              "email": "james.kim@example.com",
+              "title": "UI Designer",
+              "yearsExp": 2,
+              "department": "Design"
+            },
+            "address": {
+              "street": "250 Design Street",
+              "city": "Los Angeles",
+              "state": "CA",
+              "zip": "90012",
+              "country": "USA"
+            },
+            "skills": [
+              { "name": "Sketch", "level": "Advanced" },
+              { "name": "CSS", "level": "Intermediate" },
+              { "name": "Animation", "level": "Intermediate" }
+            ],
+            "projects": [
+              {
+                "name": "Icon Library",
+                "description": "Comprehensive icon set for all products",
+                "status": "active",
+                "contributors": 2,
+                "stars": 45
+              }
+            ]
+          }
+        ]
+      }, null, 2);
+      updateJSONDisplay();
+    }
+
+    function showJSON() {
+      const container = document.getElementById('json-container');
+      container.style.display = container.style.display === 'none' ? 'block' : 'none';
+      if (container.style.display === 'block') {
+        updateJSONDisplay();
+      }
+    }
+
+    function updateJSONDisplay() {
+      const jsonText = document.getElementById('team-data').textContent;
+      document.getElementById('json-display').textContent = jsonText;
+    }
+
+    // Initialize
+    loadDefaultData();
+  </script>
+</body>
+</html>

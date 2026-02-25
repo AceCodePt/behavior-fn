@@ -406,6 +406,77 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       expect(renderedItems?.length).toBe(1);
       expect(renderedItems?.[0]?.textContent).toBe("Alice");
     });
+
+    it("should handle objects nested in arrays with deep property access", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify({
+        team: [
+          {
+            name: "Sarah",
+            profile: {
+              email: "sarah@example.com",
+              title: "Engineer",
+              years: 5
+            },
+            address: {
+              city: "San Francisco",
+              state: "CA"
+            }
+          },
+          {
+            name: "Marcus",
+            profile: {
+              email: "marcus@example.com",
+              title: "Designer",
+              years: 3
+            },
+            address: {
+              city: "Austin",
+              state: "TX"
+            }
+          }
+        ]
+      });
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute("json-template-for", "data-source");
+      container.innerHTML = `
+        <template>
+          <div>
+            <template data-array="team">
+              <div class="member">
+                <h3>{name}</h3>
+                <p>{profile.title} - {profile.email}</p>
+                <p>{address.city}, {address.state}</p>
+                <p>{profile.years} years experience</p>
+              </div>
+            </template>
+          </div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const members = container.querySelectorAll(".member");
+      expect(members).toHaveLength(2);
+      
+      // First member
+      expect(members[0]?.querySelector("h3")?.textContent).toBe("Sarah");
+      expect(members[0]?.querySelectorAll("p")[0]?.textContent).toBe("Engineer - sarah@example.com");
+      expect(members[0]?.querySelectorAll("p")[1]?.textContent).toBe("San Francisco, CA");
+      expect(members[0]?.querySelectorAll("p")[2]?.textContent).toBe("5 years experience");
+      
+      // Second member
+      expect(members[1]?.querySelector("h3")?.textContent).toBe("Marcus");
+      expect(members[1]?.querySelectorAll("p")[0]?.textContent).toBe("Designer - marcus@example.com");
+      expect(members[1]?.querySelectorAll("p")[1]?.textContent).toBe("Austin, TX");
+      expect(members[1]?.querySelectorAll("p")[2]?.textContent).toBe("3 years experience");
+    });
   });
 
   describe("Reactivity", () => {
