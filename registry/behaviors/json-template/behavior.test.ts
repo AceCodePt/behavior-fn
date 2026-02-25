@@ -2075,4 +2075,359 @@ describe("JSON Template Behavior - Curly Brace Syntax", () => {
       });
     });
   });
+
+  describe("Array Slicing with json-template-slice", () => {
+    it("should render first item only with slice='0:1'", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "0:1");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(1);
+      expect(items[0]?.textContent).toBe("Alice");
+    });
+
+    it("should render last item only with slice='-1:'", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "-1:");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(1);
+      expect(items[0]?.textContent).toBe("Charlie");
+    });
+
+    it("should render last N items with slice='-2:'", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "-2:");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(2);
+      expect(items[0]?.textContent).toBe("Bob");
+      expect(items[1]?.textContent).toBe("Charlie");
+    });
+
+    it("should render range with slice='1:3'", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+        { name: "David" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "1:3");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(2);
+      expect(items[0]?.textContent).toBe("Bob");
+      expect(items[1]?.textContent).toBe("Charlie");
+    });
+
+    it("should render first N items with slice=':2'", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], ":2");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(2);
+      expect(items[0]?.textContent).toBe("Alice");
+      expect(items[1]?.textContent).toBe("Bob");
+    });
+
+    it("should render from index onwards with slice='1:'", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "1:");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(2);
+      expect(items[0]?.textContent).toBe("Bob");
+      expect(items[1]?.textContent).toBe("Charlie");
+    });
+
+    it("should handle empty array with slice", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "0:1");
+      container.innerHTML = `
+        <template>
+          <input class="input" value="{name || Guest}" />
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // Empty array with slice → renders once with empty context
+      const inputs = container.querySelectorAll(".input");
+      expect(inputs).toHaveLength(1);
+      expect((inputs[0] as HTMLInputElement).value).toBe("Guest");
+    });
+
+    it("should handle out of bounds slice gracefully", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([{ name: "Alice" }]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "10:20");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name || Empty}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // slice(10, 20) on 1-item array → []
+      // Empty result → render once with empty context
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(1);
+      expect(items[0]?.textContent).toBe("Empty");
+    });
+
+    it("should handle single number slice (negative)", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "-1");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // slice(-1) → last item only
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(1);
+      expect(items[0]?.textContent).toBe("Charlie");
+    });
+
+    it("should handle single number slice (positive)", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "1");
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // slice(1) → from index 1 onwards
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(2);
+      expect(items[0]?.textContent).toBe("Bob");
+      expect(items[1]?.textContent).toBe("Charlie");
+    });
+
+    it("should render all items when slice attribute is not present", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { name: "Alice" },
+        { name: "Bob" },
+        { name: "Charlie" },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      // No slice attribute
+      container.innerHTML = `
+        <template>
+          <div class="item">{name}</div>
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      // Default behavior: render all items
+      const items = container.querySelectorAll(".item");
+      expect(items).toHaveLength(3);
+      expect(items[0]?.textContent).toBe("Alice");
+      expect(items[1]?.textContent).toBe("Bob");
+      expect(items[2]?.textContent).toBe("Charlie");
+    });
+
+    it("should work with fallback operators in sliced template", () => {
+      const script = document.createElement("script");
+      script.type = "application/json";
+      script.id = "data-source";
+      script.textContent = JSON.stringify([
+        { session: { name: "session-123" } },
+        { session: { name: "session-456" } },
+      ]);
+      document.body.appendChild(script);
+
+      const container = document.createElement(tag, {
+        is: webcomponentTag,
+      }) as HTMLElement;
+      container.setAttribute("behavior", "json-template");
+      container.setAttribute(attributes["json-template-for"], "data-source");
+      container.setAttribute(attributes["json-template-slice"], "0:1");
+      container.innerHTML = `
+        <template>
+          <input class="session" value="{session.name || -}" />
+        </template>
+      `;
+      document.body.appendChild(container);
+
+      const inputs = container.querySelectorAll(".session");
+      expect(inputs).toHaveLength(1);
+      expect((inputs[0] as HTMLInputElement).value).toBe("session-123");
+    });
+  });
 });

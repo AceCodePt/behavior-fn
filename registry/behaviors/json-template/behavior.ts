@@ -332,6 +332,59 @@ function interpolateString(text: string, data: unknown): string {
 }
 
 /**
+ * Parses a slice expression into start and end indices.
+ *
+ * Supports JavaScript Array.slice() syntax:
+ * - "0:1" → { start: 0, end: 1 } (first item)
+ * - "-1:" → { start: -1, end: undefined } (last item)
+ * - "-5:" → { start: -5, end: undefined } (last 5 items)
+ * - ":10" → { start: undefined, end: 10 } (first 10 items)
+ * - "5:" → { start: 5, end: undefined } (from index 5)
+ * - "10:20" → { start: 10, end: 20 } (range)
+ * - "-1" → { start: -1, end: undefined } (single number)
+ *
+ * Invalid expressions return an empty object (no slice applied).
+ */
+function parseSlice(
+  expr: string,
+): { start?: number; end?: number } {
+  const trimmed = expr.trim();
+
+  // Empty expression
+  if (!trimmed) return {};
+
+  // Single number: "-1" or "5"
+  if (!trimmed.includes(":")) {
+    const num = Number.parseInt(trimmed, 10);
+    if (Number.isNaN(num)) {
+      console.warn(`[json-template] Invalid slice syntax: "${expr}"`);
+      return {};
+    }
+    return { start: num };
+  }
+
+  // Range: "start:end"
+  const [startStr, endStr] = trimmed.split(":");
+  const result: { start?: number; end?: number } = {};
+
+  if (startStr && startStr.trim()) {
+    const start = Number.parseInt(startStr.trim(), 10);
+    if (!Number.isNaN(start)) {
+      result.start = start;
+    }
+  }
+
+  if (endStr && endStr.trim()) {
+    const end = Number.parseInt(endStr.trim(), 10);
+    if (!Number.isNaN(end)) {
+      result.end = end;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Processes interpolation on a cloned DOM tree.
  *
  * 1. Interpolates all text nodes containing {path} patterns
@@ -460,12 +513,21 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
 
     // Special case: If root data is an array, render template for each item
     if (Array.isArray(jsonData)) {
-      // Root is an array - render template once per item
+      // Apply slice if specified
+      const sliceAttr = el.getAttribute(attributes["json-template-slice"]);
+      let itemsToRender = jsonData;
+
+      if (sliceAttr) {
+        const { start, end } = parseSlice(sliceAttr);
+        itemsToRender = jsonData.slice(start, end);
+      }
+
+      // Root is an array - render template once per item (or sliced subset)
       const fragment = document.createDocumentFragment();
 
       // NEW: If array is empty, render template once with empty context
       // This enables forms and UI that need to exist before data arrives
-      if (jsonData.length === 0) {
+      if (itemsToRender.length === 0) {
         const itemClone = templateElement.content.cloneNode(
           true,
         ) as DocumentFragment;
@@ -477,8 +539,8 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
 
         fragment.appendChild(itemClone);
       } else {
-        // Existing behavior: render once per item
-        for (const item of jsonData) {
+        // Existing behavior: render once per item (or per sliced item)
+        for (const item of itemsToRender) {
           const itemClone = templateElement.content.cloneNode(
             true,
           ) as DocumentFragment;
