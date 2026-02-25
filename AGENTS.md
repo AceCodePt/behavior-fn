@@ -265,96 +265,99 @@ export type DetectionResult = ReturnType<typeof detectEnvironment>;
 - One less thing to maintain manually
 - Refactoring-safe (change return → type updates)
 
-### 8. Schema Constants Pattern (Behavior Schemas)
+### 8. Behavior Definition Standard
 
-**All behavior schemas MUST define attribute name constants before the schema definition.**
+**All behaviors MUST follow the canonical definition pattern** where the schema is the single source of truth and `uniqueBehaviorDef` auto-extracts metadata.
 
-This is a critical pattern for maintaining consistency across behaviors. Every behavior schema file must follow this structure:
+For complete details, see: **[docs/guides/behavior-definition-standard.md](./docs/guides/behavior-definition-standard.md)**
+
+**Core Pattern: Key-Value Identity**
+
+Attribute and command names follow the pattern where **key === value**:
 
 ```typescript
-// ❌ BAD: String literals in schema
-import { Type } from "@sinclair/typebox";
-import { type InferSchema } from "../types";
+// Auto-extracted by uniqueBehaviorDef:
+ATTRS = {
+  "reveal-delay": "reveal-delay",
+  "reveal-duration": "reveal-duration",
+}
 
-export const schema = Type.Object({
-  "behavior-attribute": Type.String(),
-  "behavior-another": Type.Optional(Type.Number()),
-});
-
-export type SchemaType = InferSchema<typeof schema>;
+COMMANDS = {
+  "--show": "--show",
+  "--hide": "--hide",
+}
 ```
 
-```typescript
-// ✅ GOOD: Constants before schema
-import { Type } from "@sinclair/typebox";
-import { type InferSchema } from "../types";
+**File Structure (4 files per behavior):**
 
-// 1. Define constants at the top (single source of truth)
-export const BEHAVIOR_ATTRS = {
-  ATTRIBUTE: "behavior-attribute",
-  ANOTHER: "behavior-another",
-} as const;
-
-// 2. Use constants in schema definition
-export const schema = Type.Object({
-  [BEHAVIOR_ATTRS.ATTRIBUTE]: Type.String(),
-  [BEHAVIOR_ATTRS.ANOTHER]: Type.Optional(Type.Number()),
-});
-
-// 3. Export types derived from schema
-export type SchemaType = InferSchema<typeof schema>;
+```
+behavior-name/
+├── schema.ts                 # Literal string keys define attributes
+├── _behavior-definition.ts   # uniqueBehaviorDef auto-extracts metadata
+├── behavior.ts               # Access via definition.ATTRS, definition.COMMANDS
+└── behavior.test.ts          # Tests
 ```
 
-**Naming Convention for Constants:**
-- Constant object: `{BEHAVIOR_NAME}_ATTRS` (e.g., `REVEAL_ATTRS`, `COMPUTE_ATTRS`)
-- Keys: SCREAMING_SNAKE_CASE (e.g., `WHEN_TARGET`, `FORMULA`)
-- Values: kebab-case matching HTML attribute convention (e.g., `"reveal-when-target"`, `"compute-formula"`)
-
-**Implementation Usage:**
+**schema.ts** - Define attributes as literal keys:
 
 ```typescript
-// behavior.ts
-import { BEHAVIOR_ATTRS } from "./schema";
+import { Type } from "@sinclair/typebox";
 
-export const behaviorFactory = (el: HTMLElement) => {
-  // ✅ GOOD: Use constants
-  const value = el.getAttribute(BEHAVIOR_ATTRS.ATTRIBUTE);
+export const schema = Type.Object({
+  /** Delay before revealing */
+  "reveal-delay": Type.Optional(Type.String()),
   
-  // ❌ BAD: String literals
-  const value = el.getAttribute("behavior-attribute");
+  /** Duration of reveal animation */
+  "reveal-duration": Type.Optional(Type.String()),
+});
+```
+
+**_behavior-definition.ts** - Auto-extract metadata:
+
+```typescript
+import { uniqueBehaviorDef } from "~utils";
+import { schema } from "./schema";
+
+const definition = uniqueBehaviorDef({
+  name: "reveal",
+  schema,  // ATTRS auto-extracted from schema keys
+  command: {
+    "--show": "--show",
+    "--hide": "--hide",
+  },
+});
+
+export default definition;
+```
+
+**behavior.ts** - Access via definition object:
+
+```typescript
+import definition from "./_behavior-definition";
+
+const { ATTRS, COMMANDS } = definition;
+
+export const revealBehaviorFactory = (el: HTMLElement) => {
+  // ✅ Access using bracket notation
+  const delay = el.getAttribute(ATTRS["reveal-delay"]);
   
   return {
-    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-      // ✅ GOOD: Compare with constant
-      if (name === BEHAVIOR_ATTRS.ATTRIBUTE && oldValue !== newValue) {
-        // handle change
+    onCommand(e: CommandEvent<string>) {
+      if (!COMMANDS) return;
+      
+      if (e.command === COMMANDS["--show"]) {
+        // Handle command
       }
-    }
+    },
   };
 };
-```
 
-**Benefits:**
-- Single source of truth for attribute names
-- Refactor-safe: change attribute name once in schema, applies everywhere
-- No typos in getAttribute/setAttribute calls
-- TypeScript autocomplete for attribute names
-- Easy to grep for attribute usage
-- Self-documenting: constants show all available attributes at a glance
-
-**Standard HTML Attributes Exception:**
-Standard HTML attributes (`hidden`, `open`, `popover`) should be used directly, not as constants:
-
-```typescript
-// ✅ GOOD: Standard HTML attributes used directly
-const isHidden = el.hasAttribute("hidden");
-const isOpen = (el as HTMLDialogElement).open;
-
-// ✅ GOOD: Behavior-specific attributes use constants
-const delay = el.getAttribute(REVEAL_ATTRS.DELAY);
+// Attach observed attributes from definition
+revealBehaviorFactory.observedAttributes = definition.OBSERVED_ATTRIBUTES;
 ```
 
 **Attribute Naming Convention:**
+
 Every behavior-specific attribute MUST follow: `{behavior-name}-{attribute-name}`
 
 Examples:
@@ -362,10 +365,22 @@ Examples:
 - ✅ `compute-formula`
 - ✅ `request-url`, `request-method`, `request-trigger`
 - ✅ `input-watcher-target`, `input-watcher-format`
-- ✅ `element-counter-root`, `element-counter-selector`
-- ✅ `logger-trigger`
 
-This prevents attribute name collisions and makes ownership clear.
+**Command Naming Convention:**
+
+All commands MUST use double-dash prefix: `--{command-name}`
+
+Examples:
+- ✅ `--show`, `--hide`, `--toggle`
+- ✅ `--trigger`, `--close-sse`
+
+**Benefits:**
+- ✅ Schema is single source of truth
+- ✅ Strong literal types: `ATTRS["reveal-delay"]` has type `"reveal-delay"`
+- ✅ No manual duplication (DRY)
+- ✅ Auto-extracted metadata (ATTRS, COMMANDS, OBSERVED_ATTRIBUTES)
+- ✅ Runtime validation ensures key-value identity
+- ✅ Type-safe attribute access throughout
 
 ## Operational Rules
 
