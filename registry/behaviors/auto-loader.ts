@@ -1,6 +1,6 @@
 import { defineBehavioralHost } from "./behavioral-host";
-import { getBehavior } from "./behavior-registry";
-import { parseBehaviorNames } from "./behavior-utils";
+import { getBehavior, getBehaviorDef } from "./behavior-registry";
+import { parseBehaviorNames, getObservedAttributes } from "./behavior-utils";
 
 /**
  * Opt-in utility that automatically adds `is="behavioral-*"` attributes
@@ -124,12 +124,12 @@ export function enableAutoLoader(): () => void {
             continue;
           }
 
-          // Get observed attributes from behavior metadata (stored by individual bundles)
-          // @ts-ignore - behaviorMetadata is added by CDN build script
-          const metadata = window.BehaviorFN?.behaviorMetadata?.[behaviorName];
-          if (metadata?.observedAttributes) {
+          // Get observed attributes from behavior definition
+          const def = getBehaviorDef(behaviorName);
+          if (def) {
+            const attrs = getObservedAttributes(def.schema);
             // Merge observed attributes from all behaviors
-            for (const attr of metadata.observedAttributes) {
+            for (const attr of attrs) {
               if (!observedAttributes.includes(attr)) {
                 observedAttributes.push(attr);
               }

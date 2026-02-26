@@ -195,12 +195,12 @@ async function buildCore() {
   
   const coreCode = `
 // Import core runtime modules
-import { registerBehavior, getBehavior } from "${join(registryDir, "behavior-registry.ts")}";
+import { registerBehavior, getBehavior, getBehaviorDef } from "${join(registryDir, "behavior-registry.ts")}";
 import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
 import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
 
 // Export all core functions as ESM
-export { registerBehavior, getBehavior, defineBehavioralHost, parseBehaviorNames, getObservedAttributes };
+export { registerBehavior, getBehavior, getBehaviorDef, defineBehavioralHost, parseBehaviorNames, getObservedAttributes };
 
 // Version info
 export const version = '0.2.0';
@@ -275,8 +275,14 @@ export const metadata = {
   schema: ${JSON.stringify(jsonSchema, null, 2)},
 };
 
-// Auto-register on import (side-effect)
-registerBehavior('${behaviorName}', ${exportName});
+// Behavior definition for registration
+const definition = {
+  name: '${behaviorName}',
+  schema: ${JSON.stringify(jsonSchema, null, 2)},
+};
+
+// Auto-register on import with definition (side-effect)
+registerBehavior(definition, ${exportName});
 
 // Log when loaded and registered
 console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
@@ -314,7 +320,7 @@ async function buildAutoLoader() {
   
   const autoLoaderCode = `
 // Import ALL dependencies from core bundle (external - not bundled)
-import { getBehavior, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
+import { getBehavior, getBehaviorDef, getObservedAttributes, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
 
 // Inline auto-loader logic (don't import auto-loader.ts - it imports registry which gets bundled!)
 export function enableAutoLoader() {
@@ -359,9 +365,11 @@ export function enableAutoLoader() {
             continue;
           }
           
-          const metadata = window.BehaviorFN?.behaviorMetadata?.[name];
-          if (metadata?.observedAttributes) {
-            for (const attr of metadata.observedAttributes) {
+          // Get observed attributes from behavior definition in registry
+          const def = getBehaviorDef(name);
+          if (def) {
+            const attrs = getObservedAttributes(def.schema);
+            for (const attr of attrs) {
               if (!observedAttrs.includes(attr)) {
                 observedAttrs.push(attr);
               }

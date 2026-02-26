@@ -34,28 +34,16 @@ export function hasValue(
 /**
  * Extract strongly-typed attribute keys from a TypeBox schema.
  * Creates an object where each key-value pair is identical: { "attr-name": "attr-name" }
- * 
+ *
  * @example
  * Schema with keys: "reveal-delay", "reveal-duration"
  * Result: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
  */
-type ExtractAttributes<S extends BehaviorSchema> = 
-  S extends { properties: infer P } 
-    ? { readonly [K in keyof P & string]: K }
-    : Record<string, never>;
-
-/**
- * Extract strongly-typed command keys from a command object.
- * Creates an object where each key-value pair is identical: { "--cmd": "--cmd" }
- *
- * @example
- * Commands: { "--show": "--show", "--hide": "--hide" }
- * Result: { "--show": "--show", "--hide": "--hide" }
- */
-type ExtractCommandKeys<C> =
-  C extends Record<string, any>
-    ? { readonly [K in keyof C & string]: K }
-    : never;
+type ExtractAttributes<S extends BehaviorSchema> = S extends {
+  properties: infer P;
+}
+  ? { readonly [K in keyof P & string]: K }
+  : Record<string, never>;
 
 export interface BehaviorDef<
   S extends BehaviorSchema = BehaviorSchema,
@@ -104,7 +92,11 @@ export type ValidateBehaviorDef<
  * @returns Extended definition with attributes
  */
 export const uniqueBehaviorDef = <
-  const T extends { name: string; schema: BehaviorSchema; commands?: Record<string, string> }
+  const T extends {
+    name: string;
+    schema: BehaviorSchema;
+    commands?: Record<string, string>;
+  },
 >(
   def: T & ValidateBehaviorDef<T>,
 ) => {
@@ -120,11 +112,15 @@ export const uniqueBehaviorDef = <
   }
 
   // Extract attributes from schema properties
-  const schemaKeys = "properties" in def.schema ? Object.keys(def.schema.properties) : [];
-  const attributes = schemaKeys.reduce((acc, key) => {
-    acc[key] = key;
-    return acc;
-  }, {} as Record<string, string>) as ExtractAttributes<T["schema"]>;
+  const schemaKeys =
+    "properties" in def.schema ? Object.keys(def.schema.properties) : [];
+  const attributes = schemaKeys.reduce(
+    (acc, key) => {
+      acc[key] = key;
+      return acc;
+    },
+    {} as Record<string, string>,
+  ) as ExtractAttributes<T["schema"]>;
 
   return {
     ...def,
