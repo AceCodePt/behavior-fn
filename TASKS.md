@@ -44,10 +44,10 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Add Negative Array Index Support to json-template](docs/tasks/json-template-negative-indices/task.md)
-- [-] [Add json-template-slice Attribute for Array Slicing](docs/tasks/json-template-slice/task.md)
-- [-] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
-- [-] [Restructure CDN Build - Core + Behavior Modules](docs/tasks/cdn-core-plus-behaviors/task.md)
+- [x] [Add Negative Array Index Support to json-template](docs/tasks/json-template-negative-indices/task.md)
+- [x] [Add json-template-slice Attribute for Array Slicing](docs/tasks/json-template-slice/task.md)
+- [x] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
+- [x] [Restructure CDN Build - Core + Behavior Modules](docs/tasks/cdn-core-plus-behaviors/task.md)
 - [x] [Fix CDN Build to Inline TypeBox Schemas](docs/tasks/fix-cdn-build-typebox/task.md)
 - [x] [Render json-template When Root Data is Empty Array](docs/tasks/json-template-render-empty-arrays/task.md)
 - [x] [Add Fallback Operator to JSON-Template Behavior](docs/tasks/add-fallback-operator/task.md)
