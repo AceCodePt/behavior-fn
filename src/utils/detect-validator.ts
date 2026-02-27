@@ -19,15 +19,15 @@ export function detectValidatorFromPackageJson(cwd: string = process.cwd()): Pac
     const detectedValidators: PackageName[] = [];
 
     // Special case: Zod and Zod Mini both use "zod" package
-    if (allDeps["zod"]) {
+    if (allDeps[zodValidator.packageName]) {
       detectedValidators.push(zodValidator.packageName);
       detectedValidators.push(zodMiniValidator.packageName);
     }
 
     // Check other validators' package names
     for (const validator of validators) {
-      // Skip "zod" since we handled it above
-      if (validator.packageName === "zod") continue;
+      // Skip "zod" since we handled it above (zod and zod-mini share same package)
+      if (validator.packageName === zodValidator.packageName) continue;
       
       if (allDeps[validator.packageName]) {
         detectedValidators.push(validator.packageName);
