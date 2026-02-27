@@ -413,15 +413,14 @@ describe("CLI (index.ts)", () => {
     );
   });
 
-  it("should prompt when config is missing validator field and multiple validators are detected", async () => {
+  it("should fail with clear error when config is missing validator field (schema validation)", async () => {
     process.argv = ["node", "behavior-fn", "add", "test-behavior"];
 
-    // Mock package.json with multiple validators
+    // Mock invalid config (missing required validator field)
     mocks.fs.existsSync.mockImplementation((p: string) => {
       if (p.endsWith("behavior.config.json")) return true;
       if (p.endsWith("behaviors-registry.json")) return true;
       if (p.endsWith("package.json")) return true;
-      if (p.includes("src/registry.ts")) return true;
       return false;
     });
 
@@ -435,7 +434,7 @@ describe("CLI (index.ts)", () => {
         });
       }
       if (p.endsWith("behavior.config.json")) {
-        // Config without validator field (old config or corrupted)
+        // Config without validator field (invalid - should fail validation)
         return JSON.stringify({
           paths: {
             behaviors: "src/behaviors",
@@ -464,8 +463,7 @@ describe("CLI (index.ts)", () => {
     });
     mocks.fs.readdirSync.mockReturnValue([]);
 
-    // Mock prompt response to choose Valibot
-    mocks.prompts.mockResolvedValue({ validator: "valibot" });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const { main } = await import("../index");
     try {
@@ -474,23 +472,17 @@ describe("CLI (index.ts)", () => {
       if (!e.message.includes("Process.exit")) throw e;
     }
 
-    // Verify prompts was called
-    expect(mocks.prompts).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "select",
-        message: expect.stringContaining("Multiple validators detected"),
-        choices: expect.arrayContaining([
-          expect.objectContaining({ title: "Zod", value: "zod" }),
-          expect.objectContaining({ title: "Valibot", value: "valibot" }),
-        ]),
-      }),
+    // Verify validation error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("❌ Invalid behavior.config.json")
     );
 
-    // Verify validator was saved to config
-    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
-      expect.stringContaining("behavior.config.json"),
-      expect.stringMatching(/"validator":\s*"valibot"/),
-    );
+    // Verify error includes missing validator field
+    const errorCalls = consoleErrorSpy.mock.calls.map(call => call.join(" "));
+    const hasValidatorError = errorCalls.some(msg => msg.includes("validator"));
+    expect(hasValidatorError).toBe(true);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should fail if config is missing for "add"', async () => {

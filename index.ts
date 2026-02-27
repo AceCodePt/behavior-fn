@@ -20,9 +20,12 @@ import {
   type PackageName,
 } from "./src/validators/index";
 import { detectPlatform, type PlatformStrategy } from "./src/platforms/index";
-import type { BehaviorRegistry } from "./src/types/registry";
+import type { BehaviorRegistry } from "./src/schemas/registry";
+import { BehaviorRegistrySchema } from "./src/schemas/registry";
 import type { AttributeSchema } from "./src/types/schema";
-import type { InitConfig } from "./src/types/init";
+import type { Config } from "./src/schemas/config";
+import { ConfigSchema } from "./src/schemas/config";
+import { validateJson, validateJsonFile } from "./src/schemas/validation";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,33 +33,13 @@ let jiti: {
   import: <T>(id: string) => Promise<T>;
 } | null = null;
 
-// Load registry
+// Load and validate registry
 const registryPath = path.join(__dirname, "registry/behaviors-registry.json");
-const registry: BehaviorRegistry = JSON.parse(
-  fs.readFileSync(registryPath, "utf-8"),
+const registry: BehaviorRegistry = validateJsonFile<BehaviorRegistry>(
+  BehaviorRegistrySchema,
+  registryPath,
+  "behaviors registry"
 );
-
-interface Config {
-  validator: PackageName;
-  paths: {
-    behaviors: string;
-    utils: string;
-    registry: string;
-    testUtils: string;
-    host: string;
-    types: string;
-  };
-  aliases: {
-    utils: string;
-    registry: string;
-    testUtils: string;
-    host: string;
-    types: string;
-  };
-  optionalFiles?: {
-    tests?: boolean; // Default: false (production-first, lean installations)
-  };
-}
 
 const CONFIG_FILE = "behavior.config.json";
 
@@ -66,7 +49,11 @@ function loadConfig(): Config | null {
 
   // Check for new config first
   if (fs.existsSync(newConfigPath)) {
-    const config = JSON.parse(fs.readFileSync(newConfigPath, "utf-8"));
+    const config = validateJsonFile<Config>(
+      ConfigSchema,
+      newConfigPath,
+      CONFIG_FILE
+    );
 
     // Warn if old config also exists
     if (fs.existsSync(oldConfigPath)) {
@@ -88,15 +75,22 @@ function loadConfig(): Config | null {
 
     // Create new config with validator field
     // If old config doesn't have validator, it will be prompted in add command
-    const newConfig: Config = {
+    const newConfig = {
       ...oldConfig,
       validator: oldConfig.validator || ("zod" as PackageName),
     };
 
-    fs.writeFileSync(newConfigPath, JSON.stringify(newConfig, null, 2));
+    // Validate new config before writing
+    const validated = validateJson<Config>(
+      ConfigSchema,
+      newConfig,
+      "migrated config"
+    );
+
+    fs.writeFileSync(newConfigPath, JSON.stringify(validated, null, 2));
     console.log("✓ Migration complete. You can now delete behavior.json");
 
-    return newConfig;
+    return validated;
   }
 
   return null;
@@ -389,13 +383,15 @@ async function removeBehavior(name: string) {
     ? __dirname
     : path.join(__dirname, "..");
 
-  // Reload registry to get latest state
+  // Reload and validate registry to get latest state
   const registryJsonPath = path.join(
     registryRoot,
     "registry/behaviors-registry.json",
   );
-  const currentRegistry = JSON.parse(
-    fs.readFileSync(registryJsonPath, "utf-8"),
+  const currentRegistry = validateJsonFile<BehaviorRegistry>(
+    BehaviorRegistrySchema,
+    registryJsonPath,
+    "behaviors registry"
   );
 
   // Check if behavior exists
