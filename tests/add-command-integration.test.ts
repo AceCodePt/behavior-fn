@@ -20,8 +20,9 @@ describe("behavior-fn add - integration tests with test files", () => {
     }
     fs.mkdirSync(testDir, { recursive: true });
     
-    // Create a basic behavior.json config
+    // Create a basic behavior.config.json config
     const config = {
+      validator: "zod",
       paths: {
         behaviors: "src/behaviors",
         utils: "src/behavior-utils.ts",
@@ -35,7 +36,7 @@ describe("behavior-fn add - integration tests with test files", () => {
       },
     };
     fs.writeFileSync(
-      path.join(testDir, "behavior.json"),
+      path.join(testDir, "behavior.config.json"),
       JSON.stringify(config, null, 2),
     );
     
@@ -57,7 +58,7 @@ describe("behavior-fn add - integration tests with test files", () => {
   });
 
   it("should install behavior without test files by default (no config)", () => {
-    const configPath = path.join(testDir, "behavior.json");
+    const configPath = path.join(testDir, "behavior.config.json");
     const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     
     // Simulate what would happen: check if test files would be filtered
@@ -84,7 +85,7 @@ describe("behavior-fn add - integration tests with test files", () => {
 
   it("should install behavior with test files when config.optionalFiles.tests is true", () => {
     // Update config to include tests
-    const configPath = path.join(testDir, "behavior.json");
+    const configPath = path.join(testDir, "behavior.config.json");
     const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     config.optionalFiles = { tests: true };
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -109,7 +110,7 @@ describe("behavior-fn add - integration tests with test files", () => {
   });
 
   it("should default to excluding tests when config.optionalFiles is undefined", () => {
-    const configPath = path.join(testDir, "behavior.json");
+    const configPath = path.join(testDir, "behavior.config.json");
     const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     
     // Ensure optionalFiles is undefined

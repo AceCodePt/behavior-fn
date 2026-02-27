@@ -104,16 +104,10 @@ describe("CLI (index.ts)", () => {
       if (!e.message.includes("Process.exit")) throw e;
     }
 
-    // Verify new config was written
+    // Verify config was written
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("behavior.config.json"),
       expect.stringContaining('"validator": "zod"'),
-    );
-    
-    // Verify legacy config was also written (backward compatibility)
-    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
-      expect.stringContaining("behavior.json"),
-      expect.anything(),
     );
 
     // Verify detection message was logged
@@ -170,7 +164,7 @@ describe("CLI (index.ts)", () => {
     
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("behavior.config.json"),
-      expect.stringMatching(/"behaviorsPath": ".\/src\/behaviors"/),
+      expect.stringMatching(/"behaviors": ".\/src\/behaviors"/),
     );
     
     // Verify default message was logged
@@ -254,7 +248,7 @@ describe("CLI (index.ts)", () => {
     // Verify custom path was used
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("behavior.config.json"),
-      expect.stringMatching(/"behaviorsPath": ".\/custom\/path"/),
+      expect.stringMatching(/"behaviors": ".\/custom\/path"/),
     );
     
     expect(console.log).toHaveBeenCalledWith(
@@ -293,10 +287,10 @@ describe("CLI (index.ts)", () => {
       if (!e.message.includes("Process.exit")) throw e;
     }
 
-    // Verify JavaScript was detected
+    // Verify config was written (unified format doesn't include typescript field)
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("behavior.config.json"),
-      expect.stringMatching(/"typescript": false/),
+      expect.stringMatching(/"validator": "zod"/),
     );
     
     expect(console.log).toHaveBeenCalledWith(
@@ -353,7 +347,7 @@ describe("CLI (index.ts)", () => {
 
     // Mock existing config
     mocks.fs.existsSync.mockImplementation((p: string) => {
-      if (p.endsWith("behavior.json")) return true;
+      if (p.endsWith("behavior.config.json")) return true;
       if (p.endsWith("behaviors-registry.json")) return true;
       // Pretend core is installed (registry file exists)
       if (p.includes("src/registry.ts")) return true;
@@ -361,8 +355,9 @@ describe("CLI (index.ts)", () => {
     });
 
     mocks.fs.readFileSync.mockImplementation((p: string) => {
-      if (p.endsWith("behavior.json")) {
+      if (p.endsWith("behavior.config.json")) {
         return JSON.stringify({
+          validator: "zod",
           paths: {
             behaviors: "src/behaviors",
             utils: "src/utils.ts",
@@ -418,12 +413,12 @@ describe("CLI (index.ts)", () => {
     );
   });
 
-  it("should prompt when multiple validators are detected", async () => {
+  it("should prompt when config is missing validator field and multiple validators are detected", async () => {
     process.argv = ["node", "behavior-fn", "add", "test-behavior"];
 
     // Mock package.json with multiple validators
     mocks.fs.existsSync.mockImplementation((p: string) => {
-      if (p.endsWith("behavior.json")) return true;
+      if (p.endsWith("behavior.config.json")) return true;
       if (p.endsWith("behaviors-registry.json")) return true;
       if (p.endsWith("package.json")) return true;
       if (p.includes("src/registry.ts")) return true;
@@ -439,7 +434,8 @@ describe("CLI (index.ts)", () => {
           },
         });
       }
-      if (p.endsWith("behavior.json")) {
+      if (p.endsWith("behavior.config.json")) {
+        // Config without validator field (old config or corrupted)
         return JSON.stringify({
           paths: {
             behaviors: "src/behaviors",
@@ -489,6 +485,12 @@ describe("CLI (index.ts)", () => {
         ]),
       }),
     );
+
+    // Verify validator was saved to config
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(/"validator":\s*"valibot"/),
+    );
   });
 
   it('should fail if config is missing for "add"', async () => {
@@ -506,7 +508,7 @@ describe("CLI (index.ts)", () => {
     }
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining("Configuration file behavior.json not found"),
+      expect.stringContaining("Configuration file behavior.config.json not found"),
     );
   });
 
@@ -521,7 +523,7 @@ describe("CLI (index.ts)", () => {
 
     mocks.fs.existsSync.mockImplementation((p: string) => {
       // Return true for config files
-      if (p.endsWith("behavior.json") || p.endsWith("behaviors-registry.json")) return true;
+      if (p.endsWith("behavior.config.json") || p.endsWith("behaviors-registry.json")) return true;
       // Return true for package.json to trigger validator detection
       if (p.endsWith("package.json")) return true;
       return false; 
@@ -536,8 +538,9 @@ describe("CLI (index.ts)", () => {
           },
         });
       }
-      if (p.endsWith("behavior.json")) {
+      if (p.endsWith("behavior.config.json")) {
         return JSON.stringify({
+          validator: "@sinclair/typebox",
           paths: {
             behaviors: "src/behaviors",
             utils: "src/utils.ts",

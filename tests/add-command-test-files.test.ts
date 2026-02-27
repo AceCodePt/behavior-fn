@@ -10,7 +10,7 @@ const projectRoot = path.resolve(__dirname, "..");
 
 describe("behavior-fn add - test files option", () => {
   const testDir = path.join(projectRoot, "tests", "fixtures", "test-files-option");
-  const configFile = path.join(testDir, "behavior.json");
+  const configFile = path.join(testDir, "behavior.config.json");
   
   beforeEach(() => {
     // Create test directory
@@ -19,8 +19,9 @@ describe("behavior-fn add - test files option", () => {
     }
     fs.mkdirSync(testDir, { recursive: true });
     
-    // Create a basic behavior.json config
+    // Create a basic behavior.config.json config
     const config = {
+      validator: "zod",
       paths: {
         behaviors: "src/behaviors",
         utils: "src/behavior-utils.ts",

@@ -37,6 +37,7 @@ const registry: BehaviorRegistry = JSON.parse(
 );
 
 interface Config {
+  validator: PackageName;
   paths: {
     behaviors: string;
     utils: string;
@@ -57,14 +58,47 @@ interface Config {
   };
 }
 
-const CONFIG_FILE = "behavior.json";
-const NEW_CONFIG_FILE = "behavior.config.json";
+const CONFIG_FILE = "behavior.config.json";
 
 function loadConfig(): Config | null {
-  const configPath = path.join(process.cwd(), CONFIG_FILE);
-  if (fs.existsSync(configPath)) {
-    return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  const newConfigPath = path.join(process.cwd(), CONFIG_FILE);
+  const oldConfigPath = path.join(process.cwd(), "behavior.json");
+
+  // Check for new config first
+  if (fs.existsSync(newConfigPath)) {
+    const config = JSON.parse(fs.readFileSync(newConfigPath, "utf-8"));
+
+    // Warn if old config also exists
+    if (fs.existsSync(oldConfigPath)) {
+      console.warn(
+        "⚠️  Warning: Both behavior.json and behavior.config.json exist.",
+      );
+      console.warn(
+        "   Using behavior.config.json. You can safely delete behavior.json.",
+      );
+    }
+
+    return config;
   }
+
+  // Migrate from old config
+  if (fs.existsSync(oldConfigPath)) {
+    console.log("📦 Migrating behavior.json to behavior.config.json...");
+    const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, "utf-8"));
+
+    // Create new config with validator field
+    // If old config doesn't have validator, it will be prompted in add command
+    const newConfig: Config = {
+      ...oldConfig,
+      validator: oldConfig.validator || ("zod" as PackageName),
+    };
+
+    fs.writeFileSync(newConfigPath, JSON.stringify(newConfig, null, 2));
+    console.log("✓ Migration complete. You can now delete behavior.json");
+
+    return newConfig;
+  }
+
   return null;
 }
 
@@ -231,6 +265,12 @@ async function installBehavior(
     // Transform types.ts based on validator
     if (file.path === "types.ts") {
       content = validator.getTypesFileContent();
+    }
+
+    // Ensure all parent directories exist before writing
+    const fileDir = path.dirname(filePath);
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
     }
 
     fs.writeFileSync(filePath, content);
@@ -547,16 +587,9 @@ export async function main() {
       ? (flags.pm as string)
       : detected.packageManager;
 
-    // Create new config format
-    const newConfig: InitConfig = {
+    // Create unified config
+    const config: Config = {
       validator: validatorChoice,
-      typescript: useTypeScript,
-      behaviorsPath: pathChoice,
-      packageManager: packageManager as "pnpm" | "bun" | "npm" | "yarn",
-    };
-
-    // Also create old format for backward compatibility
-    const legacyConfig: Config = {
       paths: {
         behaviors: pathChoice,
         utils: path.join(pathChoice, "../behavior-utils.ts"),
@@ -574,19 +607,13 @@ export async function main() {
       },
     };
 
-    // Write new config
-    fs.writeFileSync(
-      path.join(process.cwd(), NEW_CONFIG_FILE),
-      JSON.stringify(newConfig, null, 2),
-    );
-
-    // Write legacy config for backward compatibility
+    // Write config
     fs.writeFileSync(
       path.join(process.cwd(), CONFIG_FILE),
-      JSON.stringify(legacyConfig, null, 2),
+      JSON.stringify(config, null, 2),
     );
 
-    console.log(`✓ Created ${NEW_CONFIG_FILE}`);
+    console.log(`✓ Created ${CONFIG_FILE}`);
 
     // Create behaviors directory
     const behaviorsDir = path.resolve(process.cwd(), pathChoice);
@@ -597,7 +624,7 @@ export async function main() {
 
     // Detect platform once
     const platform = detectAndValidatePlatform();
-    await installBehavior("core", legacyConfig, validatorChoice, platform);
+    await installBehavior("core", config, validatorChoice, platform);
     process.exit(0);
   }
 
@@ -615,13 +642,30 @@ export async function main() {
       process.exit(1);
     }
 
+    // Get validator from config or prompt if missing
+    let validatorChoice: PackageName = config.validator;
+    if (!validatorChoice) {
+      console.log(
+        "⚠️  Config missing validator field. Prompting for validator...",
+      );
+      validatorChoice = await getValidatorType(behaviorName);
+
+      // Save validator to config
+      config.validator = validatorChoice;
+      fs.writeFileSync(
+        path.join(process.cwd(), CONFIG_FILE),
+        JSON.stringify(config, null, 2),
+      );
+      console.log(`✓ Saved validator choice (${validatorChoice}) to config`);
+    }
+
     // Detect platform once
     const platform = detectAndValidatePlatform();
 
     // Resolve includeTests decision (flags > config > default)
     // Default: false (production-first, lean installations)
     let includeTests = false;
-    
+
     if (flags.withTests) {
       // Explicit opt-in via flag
       includeTests = true;
@@ -636,14 +680,14 @@ export async function main() {
       const registryPath = path.resolve(process.cwd(), config.paths.registry);
       if (!fs.existsSync(registryPath)) {
         console.log("Core files not found. Installing core...");
-        await installBehavior("core", config, "zod", platform);
+        await installBehavior("core", config, validatorChoice, platform);
       }
     }
 
     await installBehavior(
       behaviorName,
       config,
-      await getValidatorType(behaviorName),
+      validatorChoice,
       platform,
       includeTests,
     );
