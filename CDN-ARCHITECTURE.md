@@ -46,7 +46,6 @@ Users were loading 72KB to use one behavior. Now you load only what you need.
 - `behavioral-host` - Custom element host logic
 - `behavior-utils` - Utility functions (parseBehaviorNames, getObservedAttributes)
 - `types` - TypeScript types
-- `event-methods` - Event handler utilities
 
 **Exports (ESM):**
 ```javascript

@@ -143,10 +143,6 @@ async function installBehavior(
     } else if (file.path === "command-test-harness.ts") {
       targetDir = path.dirname(config.paths.testUtils);
       fileName = path.basename(config.paths.testUtils);
-    } else if (file.path === "event-methods.ts") {
-      // event-methods.ts should be in the same directory as registry
-      targetDir = path.dirname(config.paths.registry);
-      fileName = "event-methods.ts";
     }
 
     // Resolve absolute path
