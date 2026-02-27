@@ -6,6 +6,6 @@ export default defineConfig({
   clean: true,
   target: "node20",
   platform: "node",
-  noExternal: ["jiti"],
+  external: ["jiti"], // Keep jiti external - it has dynamic requires that break when bundled
   onSuccess: "cp -r registry dist/ && chmod +x dist/index.js",
 });
