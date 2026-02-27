@@ -5,7 +5,7 @@ import { type InferSchema } from "../types";
  * Schema for reveal behavior.
  * 
  * The schema keys define the HTML attributes that control reveal behavior.
- * uniqueBehaviorDef automatically extracts these keys to create definition.ATTRS.
+ * uniqueBehaviorDef automatically extracts these keys to create definition.attributes.
  * 
  * Pattern: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration", ... }
  */

@@ -11,10 +11,12 @@ import {
 import { MathParser, computeBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "../behavioral-host";
+import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
 // Extract at module level for cleaner test code (Behavior Definition Standard)
 const { name, attributes } = definition;
+const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("MathParser", () => {
   it("should parse and evaluate simple addition", () => {
@@ -78,13 +80,13 @@ describe("Compute Behavior Integration", () => {
   let container: HTMLDivElement;
 
   beforeAll(() => {
-    // Register the behavior once
-    registerBehavior(name, computeBehaviorFactory);
+    // Register behavior with full definition (not just name)
+    registerBehavior(definition, computeBehaviorFactory);
 
     defineBehavioralHost(
       tag,
       webcomponentTag,
-      Object.keys(definition.schema.properties),
+      observedAttributes,
     );
   });
 
@@ -155,7 +157,7 @@ describe("Compute Behavior Integration", () => {
     defineBehavioralHost(
       "input",
       inputTag,
-      Object.keys(definition.schema.properties),
+      observedAttributes,
     );
 
     container.innerHTML = `
@@ -226,7 +228,7 @@ describe("Compute Behavior Integration", () => {
     defineBehavioralHost(
       "input",
       inputTag,
-      Object.keys(definition.schema.properties),
+      observedAttributes,
     );
 
     // Trigger a change to start the loop if it didn't start automatically

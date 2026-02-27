@@ -17,7 +17,7 @@ export const TriggerSchema = Type.Object({
  * Schema for request behavior.
  * 
  * The request behavior provides HTMX-style declarative HTTP requests.
- * uniqueBehaviorDef automatically extracts attribute keys to create definition.ATTRS.
+ * uniqueBehaviorDef automatically extracts attribute keys to create definition.attributes.
  */
 export const schema = Type.Object({
   /** URL to send the request to */

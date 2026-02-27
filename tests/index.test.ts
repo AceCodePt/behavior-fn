@@ -304,55 +304,48 @@ describe("CLI (index.ts)", () => {
     );
   });
 
-  it('should support all validator options (zod, valibot, arktype, typebox, zod-mini)', async () => {
-    const validators = [
-      { name: "zod" },
-      { name: "valibot" },
-      { name: "arktype" },
-      { name: "@sinclair/typebox" },
-      { name: "zod-mini" },
-    ];
+  it.each([
+    { name: "zod" },
+    { name: "valibot" },
+    { name: "arktype" },
+    { name: "@sinclair/typebox" },
+    { name: "zod-mini" },
+  ])('should support validator: $name', async ({ name }) => {
+    process.argv = ["node", "behavior-fn", "init", "--defaults", `--validator=${name}`];
 
-    for (const { name } of validators) {
-      vi.resetModules();
-      vi.clearAllMocks();
-      
-      process.argv = ["node", "behavior-fn", "init", "--defaults", `--validator=${name}`];
-
-      mocks.fs.existsSync.mockImplementation((p: string) => {
-        if (p.toString().endsWith("tsconfig.json")) return true;
-        if (p.toString().endsWith("pnpm-lock.yaml")) return true;
-        if (p.toString().endsWith("/src")) return true;
-        return false;
-      });
-      
-      mocks.fs.readFileSync.mockImplementation((p: string) => {
-        if (p.includes("behaviors-registry.json")) {
-          return JSON.stringify([
-            {
-              name: "core",
-              dependencies: [],
-              files: [{ path: "behavior-registry.ts" }],
-            },
-          ]);
-        }
-        return "";
-      });
-      mocks.fs.readdirSync.mockReturnValue([]);
-
-      const { main } = await import("../index");
-      try {
-        await main();
-      } catch (e: any) {
-        if (!e.message.includes("Process.exit")) throw e;
+    mocks.fs.existsSync.mockImplementation((p: string) => {
+      if (p.toString().endsWith("tsconfig.json")) return true;
+      if (p.toString().endsWith("pnpm-lock.yaml")) return true;
+      if (p.toString().endsWith("/src")) return true;
+      return false;
+    });
+    
+    mocks.fs.readFileSync.mockImplementation((p: string) => {
+      if (p.includes("behaviors-registry.json")) {
+        return JSON.stringify([
+          {
+            name: "core",
+            dependencies: [],
+            files: [{ path: "behavior-registry.ts" }],
+          },
+        ]);
       }
+      return "";
+    });
+    mocks.fs.readdirSync.mockReturnValue([]);
 
-      // Verify the validator was used
-      expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining("behavior.config.json"),
-        expect.stringMatching(new RegExp(`"validator": "${name}"`)),
-      );
+    const { main } = await import("../index");
+    try {
+      await main();
+    } catch (e: any) {
+      if (!e.message.includes("Process.exit")) throw e;
     }
+
+    // Verify the validator was used
+    expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("behavior.config.json"),
+      expect.stringMatching(new RegExp(`"validator": "${name}"`)),
+    );
   });
 
   it('should add a behavior with "add"', async () => {

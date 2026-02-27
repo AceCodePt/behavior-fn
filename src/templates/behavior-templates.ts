@@ -101,7 +101,7 @@ const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("${capitalize(behaviorName)} Behavior", () => {
   beforeAll(() => {
-    registerBehavior(name, ${factoryName});
+    registerBehavior(definition, ${factoryName});
   });
 
   beforeEach(() => {

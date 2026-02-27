@@ -14,15 +14,15 @@ import { registerBehavior } from "../behavior-registry";
 import { jsonTemplateBehaviorFactory } from "./behavior";
 import definition from "./_behavior-definition";
 
-const { name, schema, attributes } = definition;
+const { name, attributes } = definition;
 
 describe("JSON Template Behavior - Curly Brace Syntax", () => {
   const tag = "div";
   const webcomponentTag = "test-json-template";
 
   beforeAll(() => {
-    registerBehavior(name, jsonTemplateBehaviorFactory);
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
+    registerBehavior(definition, jsonTemplateBehaviorFactory);
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
   });
 
   beforeEach(() => {

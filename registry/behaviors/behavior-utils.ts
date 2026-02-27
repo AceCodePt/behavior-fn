@@ -51,7 +51,7 @@ export interface BehaviorDef<
 > {
   name: string;
   schema: S;
-  command?: C;
+  commands?: C;
 }
 
 export type ValidateBehaviorDef<
@@ -60,7 +60,7 @@ export type ValidateBehaviorDef<
   name: Def["name"];
   schema: Def["schema"];
   commands?: {
-    [K in keyof Def["command"]]: Def["command"][K] extends K
+    [K in keyof Def["commands"]]: Def["commands"][K] extends K
       ? K
       : K | `Error: Key '${K & string}' should match value`;
   };

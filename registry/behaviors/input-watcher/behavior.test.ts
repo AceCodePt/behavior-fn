@@ -6,8 +6,8 @@ import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name, schema, attributes } = definition;
-const observedAttributes = getObservedAttributes(schema);
+const { name, attributes } = definition;
+const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Input Watcher Behavior", () => {
   const tag = "div";
@@ -15,7 +15,7 @@ describe("Input Watcher Behavior", () => {
 
   beforeAll(() => {
     try {
-      registerBehavior(name, inputWatcherBehavior);
+      registerBehavior(definition, inputWatcherBehavior);
     } catch (e) {
       // ignore
     }

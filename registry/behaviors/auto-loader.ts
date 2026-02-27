@@ -139,6 +139,7 @@ export function enableAutoLoader(): () => void {
 
         // Register the behavioral host with collected observed attributes
         try {
+          // Type assertion needed: tagName is string at runtime, but defineBehavioralHost expects literal TagName
           defineBehavioralHost(
             tagName as any,
             customElementName,

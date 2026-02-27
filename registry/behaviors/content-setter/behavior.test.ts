@@ -15,7 +15,7 @@ describe("Content Setter Behavior", () => {
   const webcomponentTag = "test-content-setter-div";
 
   beforeAll(() => {
-    registerBehavior(name, contentSetterBehaviorFactory);
+    registerBehavior(definition, contentSetterBehaviorFactory);
     defineBehavioralHost(tag, webcomponentTag, observedAttributes);
   });
 

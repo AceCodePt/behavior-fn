@@ -13,7 +13,7 @@ describe("Compound Commands Behavior", () => {
   const webcomponentTag = "test-compound-commands-btn";
 
   beforeAll(() => {
-    registerBehavior(definition.name, compoundCommandsBehaviorFactory);
+    registerBehavior(definition, compoundCommandsBehaviorFactory);
     defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
   });
 

@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 import { withBehaviors } from "./behavioral-host";
-import { registerBehavior, type BehaviorInstance } from "~registry";
+import { registerBehavior, type BehaviorInstance, type CommandEvent } from "~registry";
 
 describe("Behavioral Host", () => {
   const behaviorName = "mock-behavior";
@@ -18,7 +18,7 @@ describe("Behavioral Host", () => {
     onClick(e: MouseEvent) {
       // Base implementation
     }
-    onCommand(e: any) {
+    onCommand(e: CommandEvent<string>) {
       // Base implementation
     }
     attributeChangedCallback(

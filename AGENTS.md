@@ -433,10 +433,10 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 - **File Structure:** Every behavior MUST follow this exact 4-file structure:
   ```text
   registry/behaviors/<name>/
-  ├── schema.ts                 # TypeBox schema with literal attribute keys
-  ├── _behavior-definition.ts   # Behavior definition (auto-extracts metadata)
-  ├── behavior.ts               # Behavior logic (accesses via definition object)
-  └── behavior.test.ts          # Tests
+  ├── _behavior-definition.ts  # The Contract (name + schema + commands)
+  ├── schema.ts                # TypeBox schema definition
+  ├── behavior.ts              # The Logic (factory function)
+  └── behavior.test.ts         # The Verification (tests)
   ```
   
   **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 4 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.

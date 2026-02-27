@@ -4,7 +4,7 @@ import { type InferSchema } from "../types";
 /**
  * Schema for logger behavior.
  * 
- * uniqueBehaviorDef automatically extracts attribute keys to create definition.ATTRS.
+ * uniqueBehaviorDef automatically extracts attribute keys to create definition.attributes.
  */
 export const schema = Type.Object({
   /** Event that triggers logging (e.g., "click", "mouseenter") */

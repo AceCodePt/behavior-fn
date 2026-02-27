@@ -184,13 +184,14 @@ This copies the `reveal` behavior into your project at the configured path.
 import { defineBehavioralHost } from "./behaviors/behavioral-host";
 import { registerBehavior } from "./behaviors/behavior-registry";
 import { revealBehaviorFactory } from "./behaviors/reveal/behavior";
-import { getObservedAttributes } from "./behaviors/utils";
+import definition from "./behaviors/reveal/_behavior-definition";
+import { getObservedAttributes } from "./behaviors/behavior-utils";
 
-// Register the reveal behavior
-registerBehavior("reveal", revealBehaviorFactory);
+// Register the reveal behavior with its definition
+registerBehavior(definition, revealBehaviorFactory);
 
 // Register dialog as a behavioral host for the "reveal" behavior
-defineBehavioralHost("dialog", "behavioral-reveal", getObservedAttributes(revealSchema));
+defineBehavioralHost("dialog", "behavioral-reveal", getObservedAttributes(definition.schema));
 ```
 
 Then in your HTML:

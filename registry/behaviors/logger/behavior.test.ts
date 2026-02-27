@@ -6,12 +6,12 @@ import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 
-const { name, attributes, schema } = definition;
-const observedAttributes = getObservedAttributes(schema);
+const { name, attributes } = definition;
+const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Logger Behavior", () => {
   beforeAll(() => {
-    registerBehavior(name, loggerBehaviorFactory);
+    registerBehavior(definition, loggerBehaviorFactory);
   });
   beforeEach(() => {
     document.body.innerHTML = "";
