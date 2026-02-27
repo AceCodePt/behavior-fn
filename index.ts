@@ -9,7 +9,6 @@ import { detectEnvironment } from "./src/utils/detect";
 import { validateBehaviorName, behaviorExists } from "./src/utils/validation";
 import {
   generateBehaviorDefinition,
-  generateConstants,
   generateSchema,
   generateBehavior,
   generateTest,
@@ -319,13 +318,12 @@ async function createBehavior(name: string) {
   console.log(`Creating behavior: ${name}...`);
   fs.mkdirSync(behaviorDir, { recursive: true });
 
-  // Generate and write files
+  // Generate and write files (4-file standard structure)
   const files = [
     {
       name: "_behavior-definition.ts",
       content: generateBehaviorDefinition(name),
     },
-    { name: "constants.ts", content: generateConstants(name) },
     { name: "schema.ts", content: generateSchema(name) },
     { name: "behavior.ts", content: generateBehavior(name) },
     { name: "behavior.test.ts", content: generateTest(name) },
@@ -337,13 +335,12 @@ async function createBehavior(name: string) {
     console.log(`  Created ${path.relative(__dirname, filePath)}`);
   }
 
-  // Update registry
+  // Update registry (4-file standard structure)
   const newEntry = {
     name,
     dependencies: [],
     files: [
       { path: `${name}/_behavior-definition.ts` },
-      { path: `${name}/constants.ts` },
       { path: `${name}/schema.ts` },
       { path: `${name}/behavior.ts` },
       { path: `${name}/behavior.test.ts` },

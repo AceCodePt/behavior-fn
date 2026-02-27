@@ -49,9 +49,6 @@
         "path": "compute/_behavior-definition.ts"
       },
       {
-        "path": "compute/constants.ts"
-      },
-      {
         "path": "compute/schema.ts"
       },
       {
@@ -68,9 +65,6 @@
     "files": [
       {
         "path": "element-counter/_behavior-definition.ts"
-      },
-      {
-        "path": "element-counter/constants.ts"
       },
       {
         "path": "element-counter/schema.ts"
@@ -109,9 +103,6 @@
         "path": "json-template/_behavior-definition.ts"
       },
       {
-        "path": "json-template/constants.ts"
-      },
-      {
         "path": "json-template/schema.ts"
       },
       {
@@ -128,9 +119,6 @@
     "files": [
       {
         "path": "logger/_behavior-definition.ts"
-      },
-      {
-        "path": "logger/constants.ts"
       },
       {
         "path": "logger/schema.ts"
@@ -151,9 +139,6 @@
         "path": "request/_behavior-definition.ts"
       },
       {
-        "path": "request/constants.ts"
-      },
-      {
         "path": "request/schema.ts"
       },
       {
@@ -172,9 +157,6 @@
         "path": "reveal/_behavior-definition.ts"
       },
       {
-        "path": "reveal/constants.ts"
-      },
-      {
         "path": "reveal/schema.ts"
       },
       {
@@ -191,9 +173,6 @@
     "files": [
       {
         "path": "compound-commands/_behavior-definition.ts"
-      },
-      {
-        "path": "compound-commands/constants.ts"
       },
       {
         "path": "compound-commands/schema.ts"
