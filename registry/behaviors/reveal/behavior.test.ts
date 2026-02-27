@@ -14,7 +14,8 @@ import { defineBehavioralHost } from "../behavioral-host";
 import { registerBehavior } from "../behavior-registry";
 import { revealBehaviorFactory } from "./behavior";
 import definition from "./_behavior-definition";
-const { name, schema, attributes, commands } = definition;
+
+const { name, attributes, commands } = definition;
 
 describe("Reveal Behavior", () => {
   const tag = "div";
@@ -22,12 +23,12 @@ describe("Reveal Behavior", () => {
   const webcomponentTagForDialog = "test-reveal-dialog";
 
   beforeAll(() => {
-    // Behavior is already registered by the import of behavior.ts
-    registerBehavior(name, revealBehaviorFactory);
+    // Register behavior with full definition (not just name)
+    registerBehavior(definition, revealBehaviorFactory);
     defineBehavioralHost(
       tag,
       webcomponentTagForDiv,
-      getObservedAttributes(schema),
+      getObservedAttributes(definition.schema),
     );
   });
 
@@ -111,7 +112,7 @@ describe("Reveal Behavior", () => {
     const tag = "div";
     const webcomponentTag = "test-reveal-div-popover";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
     const el = document.createElement(tag, {
       is: webcomponentTag,
@@ -155,7 +156,7 @@ describe("Reveal Behavior", () => {
     const webcomponentTag = "test-reveal-div-popover-aria";
     const targetId = "popover-target";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
     // Create trigger
     const trigger = document.createElement("button");
@@ -202,7 +203,7 @@ describe("Reveal Behavior", () => {
     const tag = "dialog";
     const webcomponentTag = "test-reveal-dialog";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
     const el = document.createElement(tag, {
       is: webcomponentTag,
@@ -244,7 +245,7 @@ describe("Reveal Behavior", () => {
     const webcomponentTag = "test-reveal-dialog-aria";
     const targetId = "dialog-target";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
     // Create trigger
     const trigger = document.createElement("button");
@@ -286,7 +287,7 @@ describe("Reveal Behavior", () => {
     const tag = "div";
     const webcomponentTag = "test-reveal-auto";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(schema));
+    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
     const el = document.createElement(tag, {
       is: webcomponentTag,
