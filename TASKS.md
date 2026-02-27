@@ -44,8 +44,8 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Fix Config File Handling and Add Command Issues](docs/tasks/fix-config-and-add-command/task.md)
-- [ ] [Remove event-methods.ts Stale Reference](docs/tasks/remove-event-methods-stale-reference/task.md)
+- [-] [Fix Config File Handling and Add Command Issues](docs/tasks/fix-config-and-add-command/task.md)
+- [x] [Remove event-methods.ts Stale Reference](docs/tasks/remove-event-methods-stale-reference/task.md)
 - [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
 - [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
 - [ ] [Registry Discovery and Directory](docs/tasks/registry-discovery-directory/task.md) 🔒 Blocked by: [Multi-Registry Support]
