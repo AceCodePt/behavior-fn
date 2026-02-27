@@ -277,12 +277,12 @@ Attribute and command names follow the pattern where **key === value**:
 
 ```typescript
 // Auto-extracted by uniqueBehaviorDef:
-ATTRS = {
+attributes = {
   "reveal-delay": "reveal-delay",
   "reveal-duration": "reveal-duration",
 }
 
-COMMANDS = {
+commands = {
   "--show": "--show",
   "--hide": "--hide",
 }
@@ -294,7 +294,7 @@ COMMANDS = {
 behavior-name/
 ├── schema.ts                 # Literal string keys define attributes
 ├── _behavior-definition.ts   # uniqueBehaviorDef auto-extracts metadata
-├── behavior.ts               # Access via definition.ATTRS, definition.COMMANDS
+├── behavior.ts               # Access via definition.attributes, definition.commands
 └── behavior.test.ts          # Tests
 ```
 
@@ -320,8 +320,8 @@ import { schema } from "./schema";
 
 const definition = uniqueBehaviorDef({
   name: "reveal",
-  schema,  // ATTRS auto-extracted from schema keys
-  command: {
+  schema,  // attributes auto-extracted from schema keys
+  commands: {
     "--show": "--show",
     "--hide": "--hide",
   },
@@ -335,25 +335,22 @@ export default definition;
 ```typescript
 import definition from "./_behavior-definition";
 
-const { ATTRS, COMMANDS } = definition;
+const { attributes, commands } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   // ✅ Access using bracket notation
-  const delay = el.getAttribute(ATTRS["reveal-delay"]);
+  const delay = el.getAttribute(attributes["reveal-delay"]);
   
   return {
     onCommand(e: CommandEvent<string>) {
-      if (!COMMANDS) return;
+      if (!commands) return;
       
-      if (e.command === COMMANDS["--show"]) {
+      if (e.command === commands["--show"]) {
         // Handle command
       }
     },
   };
 };
-
-// Attach observed attributes from definition
-revealBehaviorFactory.observedAttributes = definition.OBSERVED_ATTRIBUTES;
 ```
 
 **Attribute Naming Convention:**
@@ -376,9 +373,9 @@ Examples:
 
 **Benefits:**
 - ✅ Schema is single source of truth
-- ✅ Strong literal types: `ATTRS["reveal-delay"]` has type `"reveal-delay"`
+- ✅ Strong literal types: `attributes["reveal-delay"]` has type `"reveal-delay"`
 - ✅ No manual duplication (DRY)
-- ✅ Auto-extracted metadata (ATTRS, COMMANDS, OBSERVED_ATTRIBUTES)
+- ✅ Auto-extracted metadata (attributes, commands from definition)
 - ✅ Runtime validation ensures key-value identity
 - ✅ Type-safe attribute access throughout
 
@@ -433,17 +430,16 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   - Improve consistency across the codebase
   - Enhance type safety or DX
   - **Do NOT hesitate to break APIs if it makes the codebase better.** Document migrations for users, but prioritize correctness over backward compatibility.
-- **File Structure:** Every behavior MUST follow this exact 5-file structure:
+- **File Structure:** Every behavior MUST follow this exact 4-file structure:
   ```text
   registry/behaviors/<name>/
-  ├── _behavior-definition.ts  # The Contract (name + schema)
-  ├── constants.ts             # Attribute name constants (BEHAVIOR_ATTRS)
+  ├── _behavior-definition.ts  # The Contract (name + schema + commands)
   ├── schema.ts                # TypeBox schema definition
   ├── behavior.ts              # The Logic (factory function)
   └── behavior.test.ts         # The Verification (tests)
   ```
   
-  **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 5 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.
+  **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 4 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.
   
   **Example Mistake to Avoid:**
   ```text
@@ -452,7 +448,6 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   
   ✅ registry/behaviors/my-feature/
      ├── _behavior-definition.ts
-     ├── constants.ts
      ├── schema.ts
      ├── behavior.ts
      └── behavior.test.ts
