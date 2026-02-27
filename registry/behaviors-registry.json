@@ -27,6 +27,24 @@
     ]
   },
   {
+    "name": "content-setter",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "content-setter/_behavior-definition.ts"
+      },
+      {
+        "path": "content-setter/schema.ts"
+      },
+      {
+        "path": "content-setter/behavior.ts"
+      },
+      {
+        "path": "content-setter/behavior.test.ts"
+      }
+    ]
+  },
+  {
     "name": "compute",
     "dependencies": [],
     "files": [
@@ -65,6 +83,24 @@
       },
       {
         "path": "element-counter/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "input-watcher",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "input-watcher/_behavior-definition.ts"
+      },
+      {
+        "path": "input-watcher/schema.ts"
+      },
+      {
+        "path": "input-watcher/behavior.ts"
+      },
+      {
+        "path": "input-watcher/behavior.test.ts"
       }
     ]
   },
@@ -170,24 +206,6 @@
       },
       {
         "path": "compound-commands/behavior.test.ts"
-      }
-    ]
-  },
-  {
-    "name": "test-remove-behavior",
-    "dependencies": [],
-    "files": [
-      {
-        "path": "test-remove-behavior/_behavior-definition.ts"
-      },
-      {
-        "path": "test-remove-behavior/schema.ts"
-      },
-      {
-        "path": "test-remove-behavior/behavior.ts"
-      },
-      {
-        "path": "test-remove-behavior/behavior.test.ts"
       }
     ]
   }

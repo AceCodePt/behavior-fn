@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9%2B-blue)
-![Version](https://img.shields.io/badge/version-0.2.0-green)
+![Version](https://img.shields.io/badge/version-0.2.2-green)
 
 **Copy-paste behavior mixins for Web Components.** Own your code, not your dependencies. Opt-in loading for better performance.
 
@@ -224,8 +224,9 @@ Prefer cleaner HTML without the `is` attribute? You can enable the **auto-loader
 ```typescript
 import { enableAutoLoader } from "./behaviors/auto-loader";
 
-// Automatically discovers behaviors and registers behavioral hosts
-// Then adds is="behavioral-*" to elements with behavior attribute
+// Automatically discovers elements with behavior attributes,
+// registers behavioral hosts if needed, and adds is="behavioral-*" attributes
+// Note: Behaviors must be registered BEFORE enabling auto-loader
 enableAutoLoader();
 ```
 
@@ -372,6 +373,35 @@ Watch form inputs and update the element's content with their values.
 - Custom format strings with `{value}` placeholder
 - Configurable event listeners
 - Updates element's `textContent` with formatted value
+
+---
+
+### 📝 **content-setter**
+Set or modify attributes and properties on elements programmatically.
+
+**Attributes:**
+- `content-setter-attribute` — The attribute to modify (use `textContent` for text content)
+- `content-setter-value` — The value to set
+- `content-setter-mode` — How to apply: `set` (default), `toggle`, or `remove`
+
+**Example:**
+```html
+<button 
+  is="behavioral-content-setter"
+  behavior="content-setter" 
+  content-setter-attribute="data-theme"
+  content-setter-value="dark"
+  content-setter-mode="toggle"
+>
+  Toggle Theme
+</button>
+```
+
+**Features:**
+- Set attributes, data attributes, or text content
+- Toggle mode for boolean-like attributes
+- Remove mode to delete attributes
+- Works with ARIA attributes for accessibility
 
 ---
 
@@ -665,8 +695,9 @@ Then register it:
 ```typescript
 import { registerBehavior } from "./behaviors/behavior-registry";
 import { compoundCommandsBehaviorFactory } from "./behaviors/compound-commands/behavior";
+import definition from "./behaviors/compound-commands/_behavior-definition";
 
-registerBehavior("compound-commands", compoundCommandsBehaviorFactory);
+registerBehavior(definition, compoundCommandsBehaviorFactory);
 ```
 
 ### Features
@@ -842,14 +873,17 @@ If you prefer automatic activation, use the opt-in `enableAutoLoader()` utility.
 
 ### Behavior Structure
 
-Every behavior consists of three files:
+Every behavior consists of four core files:
 
 ```
 behaviors/my-behavior/
 ├── _behavior-definition.ts  # Metadata (name, commands, schema)
 ├── schema.ts                 # Runtime schema (Zod/Valibot/TypeBox)
-└── behavior.ts               # Implementation (factory function)
+├── behavior.ts               # Implementation (factory function)
+└── behavior.test.ts          # Test suite
 ```
+
+Some behaviors may also include additional helper files like `constants.ts` for shared values.
 
 ### Behavior Factory Pattern
 
