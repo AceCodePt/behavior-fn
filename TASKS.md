@@ -44,7 +44,13 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Investigate Slow Test Execution Times](docs/tasks/investigate-slow-tests/TASK.md)
+- [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
+- [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
+- [ ] [Registry Discovery and Directory](docs/tasks/registry-discovery-directory/task.md) 🔒 Blocked by: [Multi-Registry Support]
+- [ ] [Consolidated Registry Format Support](docs/tasks/consolidated-registry-format/task.md) 🔒 Blocked by: [Multi-Registry Support]
+- [ ] [Security Hardening for Multi-Registry](docs/tasks/security-hardening-registries/task.md) 🔒 Blocked by: [Multi-Registry Support]
+- [ ] [Create Documentation Site](docs/tasks/docs-site/task.md)
+- [x] [Investigate Slow Test Execution Times](docs/tasks/investigate-slow-tests/TASK.md)
 - [x] [Audit Documentation and Align with Current Implementation](docs/tasks/20260226-182707-audit-documentation/TASK.md)
 - [x] [Audit Core Implementation Files for Consistency](docs/tasks/20260226-182800-audit-core-files/TASK.md)
 - [x] [Add Negative Array Index Support to json-template](docs/tasks/json-template-negative-indices/task.md)
@@ -66,11 +72,6 @@ This file is managed via **Optimistic Concurrency**.
 - [x] [Fix Behavior Parsing Inconsistency Between Auto-Loader and Behavioral Host](docs/tasks/fix-behavior-parsing-inconsistency/task.md)
 - [x] [Opt-In Auto-Loader for Behavioral Hosts](docs/tasks/opt-in-auto-loader/task.md)
 - [x] [Replace @standard-schema/spec with auto-wc in Core Dependencies](docs/tasks/replace-standard-schema-with-auto-wc/task.md)
-- [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
-- [ ] [Multi-Registry Support](docs/tasks/multi-registry-support/task.md)
-- [ ] [Registry Discovery and Directory](docs/tasks/registry-discovery-directory/task.md) 🔒 Blocked by: [Multi-Registry Support]
-- [ ] [Consolidated Registry Format Support](docs/tasks/consolidated-registry-format/task.md) 🔒 Blocked by: [Multi-Registry Support]
-- [ ] [Security Hardening for Multi-Registry](docs/tasks/security-hardening-registries/task.md) 🔒 Blocked by: [Multi-Registry Support]
 - [x] [Add Test Files Import Option](docs/tasks/add-test-files-option/task.md)
 - [x] [Refactor Strategies to Validators with Directory Structure](docs/tasks/refactor-strategies-to-validators/task.md)
 - [x] [Remove Jiti Dependency - Build Registry Instead](docs/tasks/remove-jiti-build-registry/task.md)
@@ -108,5 +109,3 @@ This file is managed via **Optimistic Concurrency**.
 - [x] [Add Platform Detection to Init](docs/tasks/platform-detection/task.md)
 - [x] [Implement Import Rewriting](docs/tasks/import-rewriting/task.md)
 - [x] [Add Test Harness to Core](docs/tasks/test-harness/task.md)
-
-- [ ] [Create Documentation Site](docs/tasks/docs-site/task.md)
