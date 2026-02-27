@@ -187,7 +187,7 @@ async function buildCDNBundles() {
 
 /**
  * Build the core runtime bundle.
- * Contains: behavior-registry, behavioral-host, behavior-utils, types, event-methods
+ * Contains: behavior-registry, behavioral-host, behavior-utils, types
  * Size: ~5-8KB minified (~2-3KB gzipped)
  */
 async function buildCore() {
