@@ -1,6 +1,6 @@
-import { defineBehavioralHost } from "./behavioral-host";
-import { getBehavior, getBehaviorDef } from "./behavior-registry";
-import { parseBehaviorNames, getObservedAttributes } from "./behavior-utils";
+import { defineBehavioralHost } from "~host";
+import { getBehavior, getBehaviorDef } from "~registry";
+import { parseBehaviorNames, getObservedAttributes } from "~utils";
 
 /**
  * Opt-in utility that automatically adds `is="behavioral-*"` attributes

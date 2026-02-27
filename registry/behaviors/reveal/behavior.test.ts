@@ -8,10 +8,10 @@ import {
   vi,
   afterEach,
 } from "vitest";
-import { dispatchCommand } from "~test-utils";
+import { dispatchCommand, createBehavioralElement } from "~test-utils";
 import { getObservedAttributes } from "~utils";
-import { defineBehavioralHost } from "../behavioral-host";
-import { registerBehavior } from "../behavior-registry";
+import { registerBehavior } from "~registry";
+import { defineBehavioralHost } from "~host";
 import { revealBehaviorFactory } from "./behavior";
 import definition from "./_behavior-definition";
 
@@ -114,24 +114,25 @@ describe("Reveal Behavior", () => {
 
     defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as any;
-    el.setAttribute("behavior", "reveal");
-    el.setAttribute("popover", "auto");
+    const el = createBehavioralElement(tag, webcomponentTag, {
+      behavior: "reveal",
+      popover: "auto",
+    });
 
-    // Mock Popover API
-    el.showPopover = vi.fn();
-    el.hidePopover = vi.fn();
+    // Mock Popover API (cast to any for mock properties, unavoidable for testing)
+    const showPopoverMock = vi.fn();
+    const hidePopoverMock = vi.fn();
+    el.showPopover = showPopoverMock as any;
+    el.hidePopover = hidePopoverMock as any;
     const originalMatches = el.matches;
     el.matches = vi.fn((selector: string) => {
       if (selector === ":popover-open") {
         return (
-          el.showPopover.mock.calls.length > el.hidePopover.mock.calls.length
+          showPopoverMock.mock.calls.length > hidePopoverMock.mock.calls.length
         );
       }
       return originalMatches.call(el, selector);
-    });
+    }) as any;
 
     document.body.appendChild(el);
     await vi.runAllTimersAsync();
@@ -164,12 +165,11 @@ describe("Reveal Behavior", () => {
     trigger.setAttribute("command", commands["--toggle"]);
     document.body.appendChild(trigger);
 
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as any;
-    el.id = targetId;
-    el.setAttribute("behavior", "reveal");
-    el.setAttribute("popover", "auto");
+    const el = createBehavioralElement(tag, webcomponentTag, {
+      id: targetId,
+      behavior: "reveal",
+      popover: "auto",
+    });
 
     // Mock matches
     let isOpen = false;
@@ -289,27 +289,26 @@ describe("Reveal Behavior", () => {
 
     defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
 
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as any;
-    el.setAttribute("behavior", "reveal");
-    el.setAttribute(attributes["reveal-auto"], "true");
-    el.setAttribute(attributes["popover"], "auto");
+    const el = createBehavioralElement(tag, webcomponentTag, {
+      behavior: "reveal",
+      [attributes["reveal-auto"]]: "true",
+      [attributes["popover"]]: "auto",
+    });
 
-    // Mock Popover API
-    el.showPopover = vi.fn();
-    el.hidePopover = vi.fn();
+    // Mock Popover API (cast to any for mock properties, unavoidable for testing)
     let isOpen = false;
+    const showPopoverMock2 = vi.fn(() => {
+      isOpen = true;
+    });
+    const hidePopoverMock2 = vi.fn(() => {
+      isOpen = false;
+    });
+    el.showPopover = showPopoverMock2 as any;
+    el.hidePopover = hidePopoverMock2 as any;
     el.matches = vi.fn((selector: string) => {
       if (selector === ":popover-open") return isOpen;
       return false;
-    });
-    el.showPopover.mockImplementation(() => {
-      isOpen = true;
-    });
-    el.hidePopover.mockImplementation(() => {
-      isOpen = false;
-    });
+    }) as any;
 
     document.body.appendChild(el);
     await vi.runAllTimersAsync();
@@ -415,38 +414,38 @@ describe("Reveal Behavior", () => {
       document.body.appendChild(opener);
       opener.focus();
 
-      const el = document.createElement("div", {
-        is: webcomponentTagForDiv,
+      const el = createBehavioralElement("div", webcomponentTagForDiv, {
+        behavior: "reveal",
+        [attributes["popover"]]: "auto",
+      });
+
+      // Mock Popover API (cast to any for mock assignment, unavoidable for testing)
+      let isPopoverOpen = false;
+      el.showPopover = vi.fn(() => {
+        isPopoverOpen = true;
+        el.dispatchEvent(new Event("toggle"));
       }) as any;
 
-      el.setAttribute("behavior", "reveal");
-      el.setAttribute(attributes["popover"], "auto");
-
-      // Mock Popover API
-      let isOpen = false;
-      el.showPopover = vi.fn(() => {
-        isOpen = true;
-        el.dispatchEvent(new Event("toggle"));
-      });
       el.hidePopover = vi.fn(() => {
-        isOpen = false;
+        isPopoverOpen = false;
         el.dispatchEvent(new Event("toggle"));
-      });
+      }) as any;
+      
       el.matches = vi.fn((selector: string) => {
-        if (selector === ":popover-open") return isOpen;
+        if (selector === ":popover-open") return isPopoverOpen;
         return false;
-      });
+      }) as any;
 
       document.body.appendChild(el);
       await vi.runAllTimersAsync();
 
       // Show with opener
       dispatchCommand(el, commands["--show"], opener);
-      expect(isOpen).toBe(true);
+      expect(isPopoverOpen).toBe(true);
 
       // Hide
       el.hidePopover();
-      expect(isOpen).toBe(false);
+      expect(isPopoverOpen).toBe(false);
       expect(document.activeElement).toBe(opener);
     });
 

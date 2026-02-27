@@ -368,11 +368,15 @@ describe("CLI (index.ts)", () => {
             utils: "src/utils.ts",
             registry: "src/registry.ts",
             testUtils: "src/test-utils.ts",
+            host: "src/host.ts",
+            types: "src/types.ts",
           },
           aliases: {
             utils: "@/utils",
             registry: "@/registry",
             testUtils: "@/test-utils",
+            host: "@/host",
+            types: "@/types",
           },
         });
       }
@@ -442,11 +446,15 @@ describe("CLI (index.ts)", () => {
             utils: "src/utils",
             registry: "src/registry",
             testUtils: "src/testUtils",
+            host: "src/host",
+            types: "src/types",
           },
           aliases: {
             utils: "@utils",
             registry: "@registry",
             testUtils: "@testUtils",
+            host: "@host",
+            types: "@types",
           },
         });
       }
@@ -535,11 +543,15 @@ describe("CLI (index.ts)", () => {
             utils: "src/utils.ts",
             registry: "src/registry.ts",
             testUtils: "src/testUtils.ts",
+            host: "src/host.ts",
+            types: "src/types.ts",
           },
           aliases: {
             utils: "@/utils",
             registry: "@/registry",
             testUtils: "@/testUtils",
+            host: "@/host",
+            types: "@/types",
           },
         });
       }

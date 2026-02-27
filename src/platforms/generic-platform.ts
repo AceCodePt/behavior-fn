@@ -1,7 +1,6 @@
-import type { PlatformStrategy } from "./platform-strategy";
+import type { PlatformStrategy, ValidationResult } from "./platform-strategy";
 
 export class GenericPlatform implements PlatformStrategy {
-  readonly id = 99;
   readonly name = "generic";
   readonly label = "Generic";
 
@@ -10,7 +9,7 @@ export class GenericPlatform implements PlatformStrategy {
     return true;
   }
 
-  validate(_cwd: string): { valid: boolean; errors?: string[] } {
+  validate(_cwd: string): ValidationResult {
     // Generic platform has no specific requirements
     return { valid: true };
   }

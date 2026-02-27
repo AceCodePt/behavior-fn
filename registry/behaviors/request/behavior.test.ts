@@ -3,15 +3,16 @@ import {
   describe,
   it,
   expect,
+  vi,
   beforeEach,
   afterEach,
   beforeAll,
 } from "vitest";
-import { dispatchCommand } from "~test-utils";
+import { dispatchCommand, createMockResponse, type MockResponse } from "~test-utils";
 import { getObservedAttributes } from "~utils";
 import { requestBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
-import { defineBehavioralHost } from "../behavioral-host";
+import { defineBehavioralHost } from "~host";
 import definition from "./_behavior-definition";
 
 const { name, commands, attributes } = definition;
@@ -311,7 +312,7 @@ describe("Request Behavior", () => {
       const fetchPromise = new Promise((resolve) => {
         resolveFetch = resolve;
       });
-      vi.mocked(fetch).mockReturnValue(fetchPromise as any);
+      vi.mocked(fetch).mockReturnValue(fetchPromise as Promise<Response>);
 
       await vi.runAllTimersAsync();
 
@@ -486,7 +487,7 @@ describe("Request Behavior", () => {
       const fetchPromise = new Promise((resolve) => {
         resolveFetch = resolve;
       });
-      vi.mocked(fetch).mockReturnValue(fetchPromise as any);
+      vi.mocked(fetch).mockReturnValue(fetchPromise as Promise<Response>);
 
       const el1 = document.createElement("div", {
         is: TEST_TAGS.div,
@@ -527,7 +528,7 @@ describe("Request Behavior", () => {
       vi.mocked(fetch).mockImplementation(() => {
         return new Promise((resolve) => {
           resolvers.push(resolve);
-        }) as any;
+        }) as Promise<Response>;
       });
 
       const el1 = document.createElement("button", {
@@ -789,7 +790,7 @@ describe("Request Behavior", () => {
       const fetchPromise = new Promise((resolve) => {
         resolveFetch = resolve;
       });
-      vi.mocked(fetch).mockReturnValue(fetchPromise as any);
+      vi.mocked(fetch).mockReturnValue(fetchPromise as Promise<Response>);
 
       await vi.runAllTimersAsync();
 

@@ -15,7 +15,8 @@
       "~registry": ["./registry/behaviors/behavior-registry.ts"],
       "~utils": ["./registry/behaviors/behavior-utils.ts"],
       "~test-utils": ["./registry/behaviors/command-test-harness.ts"],
-      "~host": ["./registry/behaviors/behavioral-host.ts"]
+      "~host": ["./registry/behaviors/behavioral-host.ts"],
+      "~types": ["./registry/behaviors/types.ts"]
     }
   },
   "include": ["types.d.ts", "index.ts", "registry/**/*"]

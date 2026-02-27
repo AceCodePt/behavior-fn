@@ -1,9 +1,10 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, beforeEach, beforeAll, vi, afterEach } from "vitest";
-import { defineBehavioralHost } from "../behavioral-host";
+import { defineBehavioralHost } from "~host";
 import { compoundCommandsBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";
+import { getCommandEvent } from "~test-utils";
 import definition from "./_behavior-definition";
 
 const { attributes } = definition;
@@ -45,7 +46,7 @@ describe("Compound Commands Behavior", () => {
       button.click();
 
       expect(commandHandler).toHaveBeenCalledTimes(1);
-      const event = commandHandler.mock.calls[0][0] as any;
+      const event = getCommandEvent(commandHandler);
       expect(event.type).toBe("command");
       expect(event.command).toBe("--show");
       expect(event.source).toBe(button);
@@ -73,11 +74,11 @@ describe("Compound Commands Behavior", () => {
 
       expect(commandHandler).toHaveBeenCalledTimes(2);
 
-      const event1 = commandHandler.mock.calls[0][0] as any;
+      const event1 = getCommandEvent(commandHandler, 0);
       expect(event1.command).toBe("--show");
       expect(event1.source).toBe(button);
 
-      const event2 = commandHandler.mock.calls[1][0] as any;
+      const event2 = getCommandEvent(commandHandler, 1);
       expect(event2.command).toBe("--focus");
       expect(event2.source).toBe(button);
     });
@@ -110,11 +111,11 @@ describe("Compound Commands Behavior", () => {
       expect(handler1).toHaveBeenCalledTimes(1);
       expect(handler2).toHaveBeenCalledTimes(1);
 
-      const event1 = handler1.mock.calls[0][0] as any;
+      const event1 = getCommandEvent(handler1);
       expect(event1.command).toBe("--hide");
       expect(event1.source).toBe(button);
 
-      const event2 = handler2.mock.calls[0][0] as any;
+      const event2 = getCommandEvent(handler2);
       expect(event2.command).toBe("--hide");
       expect(event2.source).toBe(button);
     });
@@ -147,11 +148,11 @@ describe("Compound Commands Behavior", () => {
       expect(handler1).toHaveBeenCalledTimes(1);
       expect(handler2).toHaveBeenCalledTimes(1);
 
-      const event1 = handler1.mock.calls[0][0] as any;
+      const event1 = getCommandEvent(handler1);
       expect(event1.command).toBe("--toggle");
       expect(event1.source).toBe(button);
 
-      const event2 = handler2.mock.calls[0][0] as any;
+      const event2 = getCommandEvent(handler2);
       expect(event2.command).toBe("--clear");
       expect(event2.source).toBe(button);
     });
@@ -191,13 +192,13 @@ describe("Compound Commands Behavior", () => {
       expect(handlerB).toHaveBeenCalledTimes(1);
       expect(handlerC).toHaveBeenCalledTimes(1);
 
-      const eventA = handlerA.mock.calls[0][0] as any;
+      const eventA = getCommandEvent(handlerA);
       expect(eventA.command).toBe("--x");
 
-      const eventB = handlerB.mock.calls[0][0] as any;
+      const eventB = getCommandEvent(handlerB);
       expect(eventB.command).toBe("--y");
 
-      const eventC = handlerC.mock.calls[0][0] as any;
+      const eventC = getCommandEvent(handlerC);
       expect(eventC.command).toBe("--z");
     });
   });
@@ -364,7 +365,7 @@ describe("Compound Commands Behavior", () => {
       button.click();
 
       expect(commandHandler).toHaveBeenCalledTimes(1);
-      const event = commandHandler.mock.calls[0][0] as any;
+      const event = getCommandEvent(commandHandler);
       expect(event.source).toBe(button);
       expect(event.source.id).toBe("trigger-btn");
     });
@@ -386,7 +387,7 @@ describe("Compound Commands Behavior", () => {
 
     // Simulate reveal behavior's onCommand handler
     modal.addEventListener("command", (e: Event) => {
-      const commandEvent = e as any;
+      const commandEvent = e as Event & { command?: string };
       if (commandEvent.command === "--toggle") {
         if (modal.hasAttribute("hidden")) {
           modal.removeAttribute("hidden");

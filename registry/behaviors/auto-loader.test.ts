@@ -1,8 +1,8 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { enableAutoLoader } from "./auto-loader";
-import { registerBehavior, type BehaviorFactory } from "./behavior-registry";
-import { defineBehavioralHost } from "./behavioral-host";
+import { registerBehavior, type BehaviorFactory } from "~registry";
+import { defineBehavioralHost } from "~host";
 
 describe("Auto-Loader", () => {
   let disconnect: (() => void) | undefined;

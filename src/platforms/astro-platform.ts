@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { PlatformStrategy } from "./platform-strategy";
+import type { PlatformStrategy, ValidationResult } from "./platform-strategy";
 
 export class AstroPlatform implements PlatformStrategy {
   readonly name = "astro";
@@ -11,7 +11,7 @@ export class AstroPlatform implements PlatformStrategy {
     return files.some((f) => f.startsWith("astro.config."));
   }
 
-  validate(cwd: string): { valid: boolean; errors?: string[] } {
+  validate(cwd: string): ValidationResult {
     const errors: string[] = [];
     
     // Check for package.json

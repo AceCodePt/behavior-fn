@@ -42,11 +42,15 @@ interface Config {
     utils: string;
     registry: string;
     testUtils: string;
+    host: string;
+    types: string;
   };
   aliases: {
     utils: string;
     registry: string;
     testUtils: string;
+    host: string;
+    types: string;
   };
   optionalFiles?: {
     tests?: boolean; // Default: false (production-first, lean installations)
@@ -90,7 +94,9 @@ function rewriteImports(content: string, config: Config): string {
   return content
     .replace(/~utils/g, config.aliases.utils)
     .replace(/~registry/g, config.aliases.registry)
-    .replace(/~test-utils/g, config.aliases.testUtils);
+    .replace(/~test-utils/g, config.aliases.testUtils)
+    .replace(/~host/g, config.aliases.host)
+    .replace(/~types/g, config.aliases.types);
 }
 
 async function installBehavior(
@@ -126,11 +132,14 @@ async function installBehavior(
       targetDir = path.dirname(config.paths.utils);
       fileName = path.basename(config.paths.utils);
     } else if (file.path === "types.ts") {
-      targetDir = path.dirname(config.paths.utils);
-      fileName = "types.ts";
+      targetDir = path.dirname(config.paths.types);
+      fileName = path.basename(config.paths.types);
     } else if (file.path === "behavior-registry.ts") {
       targetDir = path.dirname(config.paths.registry);
       fileName = path.basename(config.paths.registry);
+    } else if (file.path === "behavioral-host.ts") {
+      targetDir = path.dirname(config.paths.host);
+      fileName = path.basename(config.paths.host);
     } else if (file.path === "command-test-harness.ts") {
       targetDir = path.dirname(config.paths.testUtils);
       fileName = path.basename(config.paths.testUtils);
@@ -557,11 +566,15 @@ export async function main() {
         utils: path.join(pathChoice, "../behavior-utils.ts"),
         registry: path.join(pathChoice, "behavior-registry.ts"),
         testUtils: "tests/utils/command-test-harness.ts",
+        host: path.join(pathChoice, "../behavioral-host.ts"),
+        types: path.join(pathChoice, "../types.ts"),
       },
       aliases: {
         utils: "@/behavior-utils",
         registry: "@/behavior-registry",
         testUtils: "@/test-utils",
+        host: "@/behavioral-host",
+        types: "@/types",
       },
     };
 
