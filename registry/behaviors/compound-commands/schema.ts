@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { type InferSchema } from "../types";
+import { type InferSchema } from "~types";
 
 /**
  * Schema for compound-commands behavior.

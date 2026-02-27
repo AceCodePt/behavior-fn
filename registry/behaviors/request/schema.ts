@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { type InferSchema } from "../types";
+import { type InferSchema } from "~types";
 
 export const TriggerSchema = Type.Object({
   event: Type.String(),

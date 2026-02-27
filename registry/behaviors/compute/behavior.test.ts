@@ -10,8 +10,9 @@ import {
 } from "vitest";
 import { MathParser, computeBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
-import { defineBehavioralHost } from "../behavioral-host";
+import { defineBehavioralHost } from "~host";
 import { getObservedAttributes } from "~utils";
+import { createBehavioralElement } from "~test-utils";
 import definition from "./_behavior-definition";
 
 // Extract at module level for cleaner test code (Behavior Definition Standard)
@@ -318,12 +319,10 @@ describe("Compute Behavior Integration", () => {
       <input type="number" id="base" value="10">
     `;
 
-    const output = document.createElement(tag, {
-      is: webcomponentTag,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any) as HTMLOutputElement;
-    output.setAttribute("behavior", "compute");
-    output.setAttribute(attributes["compute-formula"], "#base * #multiplier");
+    const output = createBehavioralElement(tag, webcomponentTag, {
+      behavior: "compute",
+      [attributes["compute-formula"]]: "#base * #multiplier",
+    }) as HTMLOutputElement;
     container.appendChild(output);
 
     await vi.runAllTimersAsync();

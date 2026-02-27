@@ -51,11 +51,7 @@ export function detectPackageManager(cwd: string = process.cwd()): PackageManage
  * @param cwd - Current working directory (defaults to process.cwd())
  * @returns Object with structure detection results and suggested path
  */
-export function detectProjectStructure(cwd: string = process.cwd()): {
-  hasSrc: boolean;
-  hasLib: boolean;
-  suggestedPath: string;
-} {
+export function detectProjectStructure(cwd: string = process.cwd()) {
   const hasSrc = fs.existsSync(path.join(cwd, "src"));
   const hasLib = fs.existsSync(path.join(cwd, "lib"));
 
@@ -75,6 +71,11 @@ export function detectProjectStructure(cwd: string = process.cwd()): {
     suggestedPath,
   };
 }
+
+/**
+ * Project structure detection result type (inferred from function)
+ */
+export type ProjectStructure = ReturnType<typeof detectProjectStructure>;
 
 /**
  * Run all detection checks and return combined results.

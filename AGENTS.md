@@ -535,13 +535,41 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   ```
   
   **6. Test Helpers Location:**
-  - Test helpers are in `registry/behaviors/test-helpers.ts`
-  - Import as: `import { createBehavioralElement, getCommandEvent, MockResponse } from "../test-helpers";`
+  - Test helpers are in `registry/behaviors/command-test-harness.ts` (aliased as `~test-utils`)
+  - Import as: `import { createBehavioralElement, getCommandEvent, MockResponse } from "~test-utils";`
   - Available helpers:
+    - `dispatchCommand<T>(target, command, source?)` - Dispatch CommandEvent to target
+    - `createCommandSource(id?)` - Create mock button for command source
     - `createBehavioralElement<K>(tagName, webcomponentTag, attributes?)` - Type-safe element creation
     - `getCommandEvent<T>(mockFn, callIndex?)` - Extract CommandEvent from mock
     - `createMockResponse(overrides?)` - Create mock Response for fetch tests
     - `MockResponse` type - For typing fetch mocks
+  
+  **7. Import Conventions:**
+  
+  **ALWAYS use aliases** for cross-directory imports to ensure refactoring safety:
+  ```typescript
+  // ✅ CORRECT: Use aliases
+  import { registerBehavior } from "~registry";
+  import { defineBehavioralHost } from "~host";
+  import { getObservedAttributes } from "~utils";
+  import { dispatchCommand } from "~test-utils";
+  
+  // ❌ WRONG: Relative paths for cross-directory imports
+  import { registerBehavior } from "../behavior-registry";
+  import { defineBehavioralHost } from "../behavioral-host";
+  ```
+  
+  **Same-directory imports:** Core modules (`behavior-registry.ts`, `behavioral-host.ts`, `behavior-utils.ts`) MAY use relative imports among themselves since they are tightly coupled, but aliases are preferred for consistency.
+  
+  **Available aliases:**
+  - `~registry` → `registry/behaviors/behavior-registry.ts`
+  - `~host` → `registry/behaviors/behavioral-host.ts`
+  - `~utils` → `registry/behaviors/behavior-utils.ts`
+  - `~test-utils` → `registry/behaviors/command-test-harness.ts`
+  - `~types` → `registry/behaviors/types.ts`
+  
+  **Note:** The CLI `init` command automatically configures all 5 aliases in `behavior.json` and handles import rewriting during installation.
 
 ### 4. Git Protocol
 

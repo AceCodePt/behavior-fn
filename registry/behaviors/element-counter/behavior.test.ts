@@ -9,8 +9,8 @@ import {
   afterEach,
 } from "vitest";
 import { getObservedAttributes } from "~utils";
-import { defineBehavioralHost } from "../behavioral-host";
-import { registerBehavior } from "../behavior-registry";
+import { registerBehavior } from "~registry";
+import { defineBehavioralHost } from "~host";
 import { elementCounterBehaviorFactory } from "./behavior";
 import definition from "./_behavior-definition";
 

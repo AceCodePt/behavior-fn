@@ -48,21 +48,26 @@ function dispatchCommandEvent(
   command: string,
   source: HTMLButtonElement,
 ): void {
-  const event = new Event("command", {
+  // Create a basic Event and extend it to CommandEvent
+  const baseEvent = new Event("command", {
     bubbles: true,
     cancelable: true,
     composed: true,
-  }) as any;
+  });
 
-  // Attach command and source properties
+  // Attach command and source properties to make it a CommandEvent
+  const event = baseEvent as CommandEvent<string>;
+  
   Object.defineProperty(event, "command", {
     value: command,
+    writable: false,
     enumerable: true,
     configurable: false,
   });
 
   Object.defineProperty(event, "source", {
     value: source,
+    writable: false,
     enumerable: true,
     configurable: false,
   });

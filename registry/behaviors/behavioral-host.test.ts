@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
-import { withBehaviors } from "./behavioral-host";
+import { withBehaviors } from "~host";
 import { registerBehavior, type BehaviorInstance, type CommandEvent } from "~registry";
 
 describe("Behavioral Host", () => {
@@ -127,14 +127,22 @@ describe("Behavioral Host", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(mockBehavior.connectedCallback).toHaveBeenCalled();
 
-    const commandEvent = new CustomEvent("command", {
+    // Create a CommandEvent by extending Event (not CustomEvent)
+    // This avoids type conflicts between CustomEvent detail and CommandEvent properties
+    const baseEvent = new Event("command", {
       bubbles: true,
-      detail: { command: "test" },
     });
-    // @ts-ignore
-    commandEvent.command = "test";
-    // @ts-ignore
-    commandEvent.source = document.createElement("button");
+    
+    // Type assert to CommandEvent after adding required properties
+    const commandEvent = baseEvent as CommandEvent<string>;
+    Object.defineProperty(commandEvent, "command", {
+      value: "test",
+      writable: false,
+    });
+    Object.defineProperty(commandEvent, "source", {
+      value: document.createElement("button"),
+      writable: false,
+    });
 
     el.dispatchEvent(commandEvent);
 

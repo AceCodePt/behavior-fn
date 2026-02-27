@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { type InferSchema } from "../types";
+import { type InferSchema } from "~types";
 
 export const schema = Type.Object({
   /** Selector or ID list of input elements to watch */

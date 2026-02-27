@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, beforeEach, beforeAll, vi } from "vitest";
-import { defineBehavioralHost } from "../behavioral-host";
+import { defineBehavioralHost } from "~host";
 import { contentSetterBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
 import { getObservedAttributes } from "~utils";

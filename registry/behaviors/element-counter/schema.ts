@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { type InferSchema } from "../types";
+import { type InferSchema } from "~types";
 
 export const schema = Type.Object({
   /** Root element to search within (selector or "document") */

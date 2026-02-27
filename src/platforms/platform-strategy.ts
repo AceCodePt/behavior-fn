@@ -1,4 +1,13 @@
 /**
+ * Platform validation result
+ * Inferred from platform validate methods
+ */
+export type ValidationResult = {
+  valid: boolean;
+  errors?: string[];
+};
+
+/**
  * Platform Strategy Interface
  * 
  * Defines the contract for platform-specific integrations.
@@ -31,7 +40,7 @@ export interface PlatformStrategy {
    * @param cwd - Current working directory to validate
    * @returns Validation result with optional error messages
    */
-  validate(cwd: string): { valid: boolean; errors?: string[] };
+  validate(cwd: string): ValidationResult;
 
   /**
    * Transform the `isServer` check for this platform.
