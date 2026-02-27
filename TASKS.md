@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Investigate Slow Test Execution Times](docs/tasks/investigate-slow-tests/TASK.md)
+- [-] [Investigate Slow Test Execution Times](docs/tasks/investigate-slow-tests/TASK.md)
 - [x] [Audit Documentation and Align with Current Implementation](docs/tasks/20260226-182707-audit-documentation/TASK.md)
 - [x] [Audit Core Implementation Files for Consistency](docs/tasks/20260226-182800-audit-core-files/TASK.md)
 - [x] [Add Negative Array Index Support to json-template](docs/tasks/json-template-negative-indices/task.md)
