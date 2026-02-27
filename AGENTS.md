@@ -277,12 +277,12 @@ Attribute and command names follow the pattern where **key === value**:
 
 ```typescript
 // Auto-extracted by uniqueBehaviorDef:
-ATTRS = {
+attributes = {
   "reveal-delay": "reveal-delay",
   "reveal-duration": "reveal-duration",
 }
 
-COMMANDS = {
+commands = {
   "--show": "--show",
   "--hide": "--hide",
 }
@@ -294,7 +294,7 @@ COMMANDS = {
 behavior-name/
 ├── schema.ts                 # Literal string keys define attributes
 ├── _behavior-definition.ts   # uniqueBehaviorDef auto-extracts metadata
-├── behavior.ts               # Access via definition.ATTRS, definition.COMMANDS
+├── behavior.ts               # Access via definition.attributes, definition.commands
 └── behavior.test.ts          # Tests
 ```
 
@@ -320,8 +320,8 @@ import { schema } from "./schema";
 
 const definition = uniqueBehaviorDef({
   name: "reveal",
-  schema,  // ATTRS auto-extracted from schema keys
-  command: {
+  schema,  // attributes auto-extracted from schema keys
+  commands: {
     "--show": "--show",
     "--hide": "--hide",
   },
@@ -335,25 +335,22 @@ export default definition;
 ```typescript
 import definition from "./_behavior-definition";
 
-const { ATTRS, COMMANDS } = definition;
+const { attributes, commands } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   // ✅ Access using bracket notation
-  const delay = el.getAttribute(ATTRS["reveal-delay"]);
+  const delay = el.getAttribute(attributes["reveal-delay"]);
   
   return {
     onCommand(e: CommandEvent<string>) {
-      if (!COMMANDS) return;
+      if (!commands) return;
       
-      if (e.command === COMMANDS["--show"]) {
+      if (e.command === commands["--show"]) {
         // Handle command
       }
     },
   };
 };
-
-// Attach observed attributes from definition
-revealBehaviorFactory.observedAttributes = definition.OBSERVED_ATTRIBUTES;
 ```
 
 **Attribute Naming Convention:**
@@ -376,9 +373,9 @@ Examples:
 
 **Benefits:**
 - ✅ Schema is single source of truth
-- ✅ Strong literal types: `ATTRS["reveal-delay"]` has type `"reveal-delay"`
+- ✅ Strong literal types: `attributes["reveal-delay"]` has type `"reveal-delay"`
 - ✅ No manual duplication (DRY)
-- ✅ Auto-extracted metadata (ATTRS, COMMANDS, OBSERVED_ATTRIBUTES)
+- ✅ Auto-extracted metadata (attributes, commands from uniqueBehaviorDef)
 - ✅ Runtime validation ensures key-value identity
 - ✅ Type-safe attribute access throughout
 
@@ -433,17 +430,16 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   - Improve consistency across the codebase
   - Enhance type safety or DX
   - **Do NOT hesitate to break APIs if it makes the codebase better.** Document migrations for users, but prioritize correctness over backward compatibility.
-- **File Structure:** Every behavior MUST follow this exact 5-file structure:
+- **File Structure:** Every behavior MUST follow this exact 4-file structure:
   ```text
   registry/behaviors/<name>/
-  ├── _behavior-definition.ts  # The Contract (name + schema)
-  ├── constants.ts             # Attribute name constants (BEHAVIOR_ATTRS)
-  ├── schema.ts                # TypeBox schema definition
-  ├── behavior.ts              # The Logic (factory function)
-  └── behavior.test.ts         # The Verification (tests)
+  ├── schema.ts                 # TypeBox schema with literal attribute keys
+  ├── _behavior-definition.ts   # Behavior definition (auto-extracts metadata)
+  ├── behavior.ts               # Behavior logic (accesses via definition object)
+  └── behavior.test.ts          # Tests
   ```
   
-  **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 5 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.
+  **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 4 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.
   
   **Example Mistake to Avoid:**
   ```text
@@ -451,12 +447,101 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   ❌ registry/behaviors/my-feature.test.ts
   
   ✅ registry/behaviors/my-feature/
-     ├── _behavior-definition.ts
-     ├── constants.ts
      ├── schema.ts
+     ├── _behavior-definition.ts
      ├── behavior.ts
      └── behavior.test.ts
   ```
+
+- **Testing Standards:** All tests **MUST** follow these patterns for consistency:
+
+  **1. Module-Level Extraction Pattern (REQUIRED):**
+  ```typescript
+  import definition from "./_behavior-definition";
+  import { getObservedAttributes } from "~utils";
+  
+  // ✅ Extract at module level (REQUIRED)
+  const { name, attributes, commands } = definition;
+  const observedAttributes = getObservedAttributes(definition.schema);
+  
+  describe("Behavior Name", () => {
+    // Tests use name, attributes, commands, observedAttributes
+  });
+  ```
+  
+  **Why:** DRY principle, type-safe literal types, consistent with Behavior Definition Standard
+  
+  **2. Behavior Registration (REQUIRED):**
+  ```typescript
+  beforeAll(() => {
+    // ✅ CORRECT: Pass full definition object
+    registerBehavior(definition, behaviorFactory);
+    defineBehavioralHost(tag, webcomponentTag, observedAttributes);
+  });
+  
+  // ❌ WRONG: Do NOT use definition.name or just name
+  registerBehavior(name, behaviorFactory);  // Loses schema information!
+  registerBehavior(definition.name, behaviorFactory);  // Loses schema information!
+  ```
+  
+  **Why:** Registry needs full schema and commands metadata for proper functionality
+  
+  **3. getObservedAttributes Pattern (REQUIRED):**
+  ```typescript
+  // ✅ CORRECT: Use definition.schema (single source of truth)
+  const observedAttributes = getObservedAttributes(definition.schema);
+  
+  // ❌ WRONG: Do NOT extract schema separately
+  const { name, schema, attributes } = definition;  // Redundant extraction
+  const observedAttributes = getObservedAttributes(schema);
+  
+  // ❌ WRONG: Do NOT use Object.keys directly
+  Object.keys(definition.schema.properties);  // Bypasses abstraction
+  ```
+  
+  **Why:** Single source of truth, consistent abstraction, resilient to schema format changes
+  
+  **4. Type Safety Over Type Assertions:**
+  ```typescript
+  // ✅ CORRECT: Use test helper utilities
+  import { createBehavioralElement, getCommandEvent } from "../test-helpers";
+  
+  const el = createBehavioralElement("div", "test-tag", {
+    behavior: "reveal",
+    "reveal-delay": "100ms",
+  });
+  
+  const event = getCommandEvent(commandHandler);
+  expect(event.command).toBe("--show");
+  
+  // ❌ AVOID: Type assertions (use only when helpers don't apply)
+  const el = document.createElement("div", { is: "test-tag" }) as any;
+  const event = mockFn.mock.calls[0][0] as any;
+  ```
+  
+  **Why:** Type safety catches errors, better IDE support, clearer intent
+  
+  **5. Proper Cleanup:**
+  ```typescript
+  beforeEach(() => {
+    document.body.innerHTML = "";  // Clean slate
+    vi.useFakeTimers();  // Deterministic timing
+  });
+  
+  afterEach(() => {
+    vi.useRealTimers();  // Restore real timers
+    vi.restoreAllMocks();  // Restore mocks
+  });
+  ```
+  
+  **6. Test Helpers Location:**
+  - Test helpers are in `registry/behaviors/test-helpers.ts`
+  - Import as: `import { createBehavioralElement, getCommandEvent, MockResponse } from "../test-helpers";`
+  - Available helpers:
+    - `createBehavioralElement<K>(tagName, webcomponentTag, attributes?)` - Type-safe element creation
+    - `getCommandEvent<T>(mockFn, callIndex?)` - Extract CommandEvent from mock
+    - `createMockResponse(overrides?)` - Create mock Response for fetch tests
+    - `MockResponse` type - For typing fetch mocks
 
 ### 4. Git Protocol
 
