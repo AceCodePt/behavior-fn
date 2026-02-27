@@ -20,7 +20,7 @@ const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Element Counter Behavior", () => {
   beforeAll(() => {
-    registerBehavior(name, elementCounterBehaviorFactory);
+    registerBehavior(definition, elementCounterBehaviorFactory);
   });
 
   beforeEach(() => {
