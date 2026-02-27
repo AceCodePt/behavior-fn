@@ -1,8 +1,8 @@
+/** @vitest-environment jsdom */
 import {
   describe,
   it,
   expect,
-  vi,
   beforeEach,
   afterEach,
   beforeAll,

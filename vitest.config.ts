@@ -10,7 +10,7 @@ export default defineConfig({
       "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
     ],
     globals: true,
-    environment: "jsdom",
+    environment: "node",
     browser: {
       enabled: false,
     },

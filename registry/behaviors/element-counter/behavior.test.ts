@@ -25,13 +25,14 @@ describe("Element Counter Behavior", () => {
 
   beforeEach(() => {
     document.body.innerHTML = "";
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
+
+  // Helper to flush MutationObserver callbacks
+  const flushMutations = () => new Promise(resolve => setTimeout(resolve, 0));
 
   it("should count elements in the root and update textContent", async () => {
     const tag = "span";
@@ -60,25 +61,22 @@ describe("Element Counter Behavior", () => {
     item1.className = "item";
     root.appendChild(item1);
 
-    // Wait for MutationObserver
-    await vi.waitFor(() => {
-      expect(el.textContent).toBe("1");
-    });
+    // Flush MutationObserver callbacks
+    await flushMutations();
+    expect(el.textContent).toBe("1");
 
     const item2 = document.createElement("div");
     item2.className = "item";
     root.appendChild(item2);
 
-    await vi.waitFor(() => {
-      expect(el.textContent).toBe("2");
-    });
+    await flushMutations();
+    expect(el.textContent).toBe("2");
 
     // Remove an item
     root.removeChild(item1);
 
-    await vi.waitFor(() => {
-      expect(el.textContent).toBe("1");
-    });
+    await flushMutations();
+    expect(el.textContent).toBe("1");
   });
 
   it("should update value if the element is an input", async () => {
@@ -104,8 +102,7 @@ describe("Element Counter Behavior", () => {
     item.className = "item";
     root.appendChild(item);
 
-    await vi.waitFor(() => {
-      expect(el.value).toBe("1");
-    });
+    await flushMutations();
+    expect(el.value).toBe("1");
   });
 });
