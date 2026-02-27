@@ -10,9 +10,6 @@
         "path": "behavior-registry.ts"
       },
       {
-        "path": "event-methods.ts"
-      },
-      {
         "path": "behavior-utils.ts"
       },
       {
