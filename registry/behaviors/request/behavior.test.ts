@@ -26,8 +26,8 @@ const TEST_TAGS = {
 
 describe("Request Behavior", () => {
   beforeAll(async () => {
-    // Register behavior manually using the factory to avoid side-effects/loaders
-    registerBehavior(name, requestBehaviorFactory);
+    // Register behavior with full definition (not just name)
+    registerBehavior(definition, requestBehaviorFactory);
     defineBehavioralHost("button", TEST_TAGS.button, observedAttributes);
     defineBehavioralHost("div", TEST_TAGS.div, observedAttributes);
     defineBehavioralHost("form", TEST_TAGS.form, observedAttributes);
@@ -65,7 +65,6 @@ describe("Request Behavior", () => {
     el.setAttribute("behavior", name);
     el.setAttribute(attributes["request-url"], "http://example.com");
     document.body.appendChild(el);
-    console.log("request-url", el.getAttribute("request-url"))
 
     await vi.runAllTimersAsync();
 
