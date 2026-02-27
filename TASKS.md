@@ -44,8 +44,9 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Audit Documentation and Align with Current Implementation](docs/tasks/20260226-182707-audit-documentation/TASK.md)
-- [-] [Audit Core Implementation Files for Consistency](docs/tasks/20260226-182800-audit-core-files/TASK.md)
+- [ ] [Investigate Slow Test Execution Times](docs/tasks/investigate-slow-tests/TASK.md)
+- [x] [Audit Documentation and Align with Current Implementation](docs/tasks/20260226-182707-audit-documentation/TASK.md)
+- [x] [Audit Core Implementation Files for Consistency](docs/tasks/20260226-182800-audit-core-files/TASK.md)
 - [x] [Add Negative Array Index Support to json-template](docs/tasks/json-template-negative-indices/task.md)
 - [x] [Add json-template-slice Attribute for Array Slicing](docs/tasks/json-template-slice/task.md)
 - [x] [Remove IIFE Support - ESM Only](docs/tasks/esm-only-drop-iife/task.md)
