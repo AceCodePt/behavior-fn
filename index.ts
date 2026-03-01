@@ -10,6 +10,7 @@ import { reapplyBehaviors } from "./src/commands/reapply";
 import { listBehaviors } from "./src/commands/list";
 import { initCommand } from "./src/commands/init";
 import { addCommand } from "./src/commands/add";
+import { applyTsConfigFlag } from "./src/commands/apply-tsconfig-flag";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,6 +77,11 @@ export async function main() {
     process.exit(0);
   }
 
+  if (command === "apply-tsconfig-flag") {
+    await applyTsConfigFlag(args.slice(1));
+    process.exit(0);
+  }
+
   console.error("Usage: behavior-fn <command> [args]");
   console.error("Commands:");
   console.error(
@@ -96,6 +102,12 @@ export async function main() {
   );
   console.error(
     "  list [options]         List all available behaviors in the registry",
+  );
+  console.error(
+    "  apply-tsconfig-flag [options]",
+  );
+  console.error(
+    "                         Apply BehaviorFN TypeScript configuration",
   );
   console.error("");
   console.error("Options for 'init' command:");
@@ -128,6 +140,20 @@ export async function main() {
   console.error("Options for 'list' command:");
   console.error(
     "  -j, --json             Output as JSON",
+  );
+  console.error("");
+  console.error("Options for 'apply-tsconfig-flag' command:");
+  console.error(
+    "  --config <path>        Specify tsconfig file (skip discovery)",
+  );
+  console.error(
+    "  -y, --yes              Skip confirmation prompt",
+  );
+  console.error(
+    "  --dry-run              Preview changes without writing",
+  );
+  console.error(
+    "  --no-backup            Skip backup creation",
   );
   if (process.env.NODE_ENV !== "test") {
     process.exit(1);
