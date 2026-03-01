@@ -29,7 +29,13 @@ function transformToZod(schema: AttributeSchema): string {
     // 3. Booleans
     if ('type' in s && s.type === 'boolean') return 'z.boolean()';
 
-    // 4. Objects (Nested - recursive)
+    // 4. Arrays
+    if (s.type === 'array' && s.items) {
+      const itemsCode = parse(s.items);
+      return `z.array(${itemsCode})`;
+    }
+
+    // 5. Objects (Nested - recursive)
     if (s.type === 'object' && s.properties) {
       const props = Object.entries(s.properties)
         .map(([key, value]) => {
@@ -50,11 +56,17 @@ function transformToZod(schema: AttributeSchema): string {
       return `z.object({\n${props}\n})`;
     }
 
-    // 5. Enums
+    // 6. Enums (anyOf with const - MUST come before unions!)
     if (s.enum || (s.anyOf && s.anyOf[0]?.const)) {
       const values = s.enum || s.anyOf?.map((x) => x.const!);
       const strValues = (values || []).map((v) => `'${v}'`).join(', ');
       return `z.enum([${strValues}])`;
+    }
+
+    // 7. Unions (anyOf without const)
+    if (s.anyOf) {
+      const variants = s.anyOf.map(variant => parse(variant));
+      return `z.union([${variants.join(', ')}])`;
     }
 
     // Fallback - should not reach here with proper AttributeSchema
