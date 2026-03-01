@@ -91,8 +91,7 @@ function transformToValibot(schema: AttributeSchema): string {
 
   const runtimeSchema = schema as unknown as JSONSchemaObject;
 
-  return `import * as v from "valibot";
-import { type InferSchema } from "~types";
+  return `import { type InferSchema } from "~types";
 
 export const schema = ${parseObject(runtimeSchema)};
 export type Schema = InferSchema<typeof schema>;
@@ -122,7 +121,7 @@ export class ValibotValidator implements Validator {
   }
 
   getUtilsImports(): string {
-    return ``; // Valibot utils don't need imports for getObservedAttributes since we use duck typing
+    return `import * as v from "valibot";`;
   }
 
   getTypesFileContent(): string {

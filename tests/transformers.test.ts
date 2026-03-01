@@ -27,7 +27,9 @@ describe('Schema Transformers', () => {
 
   describe('toZod', () => {
     it('generates valid Zod code', () => {
-      const code = zodValidator.transformSchema(schema, '');
+      const schemaCode = zodValidator.transformSchema(schema, '');
+      const imports = zodValidator.getUtilsImports();
+      const code = `${imports}\n${schemaCode}`;
       expect(code).toContain('import { z } from "zod"');
       expect(code).toContain('import { type InferSchema } from "~types"');
       expect(code).toContain('z.string().min(1)');
@@ -166,8 +168,10 @@ describe('Schema Transformers', () => {
 
   describe('toZodMini', () => {
     it('generates valid Zod Mini code', () => {
-      const code = zodMiniValidator.transformSchema(schema, '');
-      expect(code).toContain('import * as z from "zod/mini"');
+      const schemaCode = zodMiniValidator.transformSchema(schema, '');
+      const imports = zodMiniValidator.getUtilsImports();
+      const code = `${imports}\n${schemaCode}`;
+      expect(code).toContain('import { z } from "zod/mini"');
       expect(code).toContain('import { type InferSchema } from "~types"');
       expect(code).toContain('z.min(z.string(), 1)');
       expect(code).toContain('z.optional(z.string())');
@@ -308,7 +312,9 @@ describe('Schema Transformers', () => {
 
   describe('toValibot', () => {
     it('generates valid Valibot code', () => {
-      const code = valibotValidator.transformSchema(schema, '');
+      const schemaCode = valibotValidator.transformSchema(schema, '');
+      const imports = valibotValidator.getUtilsImports();
+      const code = `${imports}\n${schemaCode}`;
       expect(code).toContain('import * as v from "valibot"');
       expect(code).toContain('import { type InferSchema } from "~types"');
       expect(code).toContain('v.pipe(v.string(), v.minLength(1))');
@@ -447,7 +453,9 @@ describe('Schema Transformers', () => {
 
   describe('toArkType', () => {
     it('generates valid ArkType code', () => {
-      const code = arktypeValidator.transformSchema(schema, '');
+      const schemaCode = arktypeValidator.transformSchema(schema, '');
+      const imports = arktypeValidator.getUtilsImports();
+      const code = `${imports}\n${schemaCode}`;
       expect(code).toContain('import { type } from "arktype"');
       expect(code).toContain('import { type InferSchema } from "~types"');
       expect(code).toContain('"required": "string >= 1"');
