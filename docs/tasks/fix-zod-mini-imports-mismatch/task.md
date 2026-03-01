@@ -1,4 +1,4 @@
-# Fix Zod Mini Imports Mismatch in getObservedAttributes
+# Fix Zod Mini Imports Mismatch and Standardize on Named Imports
 
 **Status:** Todo  
 **Type:** Regression (Bug Fix)  
@@ -7,7 +7,7 @@
 
 ## Goal
 
-Fix the import mismatch in `ZodMiniValidator` where `getObservedAttributesCode()` and `getUtilsImports()` import from `"zod"` but schema files import from `"zod/mini"`, causing `instanceof z.ZodObject` checks to fail at runtime.
+Fix the import mismatch in `ZodMiniValidator` where utils/types import from `"zod"` but schema files import from `"zod/mini"`, causing `instanceof z.ZodObject` checks to fail at runtime. Additionally, standardize all Zod Mini imports to use named import style `{ z }` to match the regular Zod validator pattern.
 
 ## Context
 
@@ -35,10 +35,18 @@ In `src/validators/zod-mini/index.ts`:
 
 **Expected Behavior:**
 
-All Zod Mini imports should consistently use `"zod/mini"`:
+All Zod Mini imports should consistently use `"zod/mini"` with **named import** style (matching regular Zod):
 ```typescript
 import { z } from "zod/mini";
 ```
+
+**Consistency with Regular Zod:**
+
+The regular `ZodValidator` already uses named imports correctly:
+- Schema files: `import { z } from "zod";` ✅
+- Utils/Types: `import { z } from "zod";` ✅
+
+Zod Mini should follow the exact same pattern, just with `"zod/mini"` instead of `"zod"`.
 
 ## Success Criteria
 
@@ -55,7 +63,10 @@ import { z } from "zod/mini";
 ### Files to Modify
 
 **Primary:**
-- `src/validators/zod-mini/index.ts` (lines 125-127, 130-143)
+- `src/validators/zod-mini/index.ts` (lines 96, 125-127, 130-143)
+
+**Reference (for consistency):**
+- `src/validators/zod/index.ts` (already correct - uses named imports throughout)
 
 ### Changes Required
 
@@ -152,7 +163,8 @@ JavaScript `instanceof` checks if an object's prototype chain includes the const
 ## References
 
 - **Bug Report:** User reported `schema instanceof z.ZodObject` expected `ZodMiniObject` but received `z.ZodObject` from `"zod"`
+- **User Preference:** Use named imports `{ z }` style (not namespace `* as z`) for all Zod imports, regardless if it's regular Zod or Zod Mini
 - **Related Files:**
-  - `src/validators/zod-mini/index.ts` (lines 115-143)
-  - `src/validators/zod/index.ts` (comparison - correctly uses `"zod"` throughout)
-- **Pattern:** Follow the same pattern as regular Zod validator, but with `"zod/mini"` consistently
+  - `src/validators/zod-mini/index.ts` (lines 96, 115-143) - needs fixing
+  - `src/validators/zod/index.ts` (line 102, 132) - reference pattern (already correct)
+- **Pattern:** Follow the exact same pattern as regular Zod validator (named imports), but with `"zod/mini"` instead of `"zod"`
