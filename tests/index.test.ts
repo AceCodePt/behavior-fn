@@ -62,10 +62,11 @@ describe("CLI (index.ts)", () => {
   it('should initialize configuration with "init" in interactive mode', async () => {
     process.argv = ["node", "behavior-fn", "init"];
 
-    // Mock prompts response (new format - only 2 questions)
+    // Mock prompts response (includes validator, path, and useAliases)
     mocks.prompts.mockResolvedValue({
       validator: "zod",
       path: "./src/behaviors",
+      useAliases: true,
     });
 
     // Setup FS mocks
@@ -360,18 +361,26 @@ describe("CLI (index.ts)", () => {
           validator: "zod",
           paths: {
             behaviors: "src/behaviors",
-            utils: "src/utils.ts",
-            registry: "src/registry.ts",
-            testUtils: "src/test-utils.ts",
-            host: "src/host.ts",
-            types: "src/types.ts",
-          },
-          aliases: {
-            utils: "@/utils",
-            registry: "@/registry",
-            testUtils: "@/test-utils",
-            host: "@/host",
-            types: "@/types",
+            utils: {
+              path: "src/utils.ts",
+              alias: "@/utils",
+            },
+            registry: {
+              path: "src/registry.ts",
+              alias: "@/registry",
+            },
+            testUtils: {
+              path: "src/test-utils.ts",
+              alias: "@/test-utils",
+            },
+            host: {
+              path: "src/host.ts",
+              alias: "@/host",
+            },
+            types: {
+              path: "src/types.ts",
+              alias: "@/types",
+            },
           },
         });
       }
@@ -438,18 +447,26 @@ describe("CLI (index.ts)", () => {
         return JSON.stringify({
           paths: {
             behaviors: "src/behaviors",
-            utils: "src/utils",
-            registry: "src/registry",
-            testUtils: "src/testUtils",
-            host: "src/host",
-            types: "src/types",
-          },
-          aliases: {
-            utils: "@utils",
-            registry: "@registry",
-            testUtils: "@testUtils",
-            host: "@host",
-            types: "@types",
+            utils: {
+              path: "src/utils",
+              alias: "@utils",
+            },
+            registry: {
+              path: "src/registry",
+              alias: "@registry",
+            },
+            testUtils: {
+              path: "src/testUtils",
+              alias: "@testUtils",
+            },
+            host: {
+              path: "src/host",
+              alias: "@host",
+            },
+            types: {
+              path: "src/types",
+              alias: "@types",
+            },
           },
         });
       }
@@ -535,18 +552,26 @@ describe("CLI (index.ts)", () => {
           validator: "@sinclair/typebox",
           paths: {
             behaviors: "src/behaviors",
-            utils: "src/utils.ts",
-            registry: "src/registry.ts",
-            testUtils: "src/testUtils.ts",
-            host: "src/host.ts",
-            types: "src/types.ts",
-          },
-          aliases: {
-            utils: "@/utils",
-            registry: "@/registry",
-            testUtils: "@/testUtils",
-            host: "@/host",
-            types: "@/types",
+            utils: {
+              path: "src/utils.ts",
+              alias: "@/utils",
+            },
+            registry: {
+              path: "src/registry.ts",
+              alias: "@/registry",
+            },
+            testUtils: {
+              path: "src/testUtils.ts",
+              alias: "@/testUtils",
+            },
+            host: {
+              path: "src/host.ts",
+              alias: "@/host",
+            },
+            types: {
+              path: "src/types.ts",
+              alias: "@/types",
+            },
           },
         });
       }
