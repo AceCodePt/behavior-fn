@@ -15,7 +15,7 @@ import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "~host";
 import definition from "./_behavior-definition";
 
-const { name, commands, attributes } = definition;
+const { name, command, attributes } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 const TEST_TAGS = {
@@ -153,7 +153,7 @@ describe("Request Behavior", () => {
 
     await vi.runAllTimersAsync();
 
-    dispatchCommand(el, commands["--trigger"]);
+    dispatchCommand(el, command["--trigger"]);
     await vi.runAllTimersAsync();
 
     expect(fetch).toHaveBeenCalledWith(
@@ -658,7 +658,7 @@ describe("Request Behavior", () => {
 
       await vi.runAllTimersAsync();
 
-      dispatchCommand(el, commands["--close-sse"]);
+      dispatchCommand(el, command["--close-sse"]);
       expect(mockEventSource.close).toHaveBeenCalled();
     });
 

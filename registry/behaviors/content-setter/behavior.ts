@@ -1,7 +1,7 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { attributes, commands } = definition;
+const { attributes, command } = definition;
 
 export const contentSetterBehaviorFactory = (el: HTMLElement) => {
   // Store original values for toggle mode
@@ -17,7 +17,7 @@ export const contentSetterBehaviorFactory = (el: HTMLElement) => {
     },
 
     onCommand(e: CommandEvent<string>) {
-      if (!commands || e.command !== commands["--set-content"]) {
+      if (!command || e.command !== command["--set-content"]) {
         return;
       }
 

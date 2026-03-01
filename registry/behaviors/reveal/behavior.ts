@@ -1,7 +1,7 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { attributes, commands } = definition;
+const { attributes, command } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   const isPopover = () => el.hasAttribute(attributes["popover"]);
@@ -247,8 +247,8 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
       }
     },
     onCommand(e: CommandEvent<string>) {
-      if (!commands) return;
-      const cmd = commands;
+      if (!command) return;
+      const cmd = command;
       const popover = isPopover();
       const dialog = isDialog();
 

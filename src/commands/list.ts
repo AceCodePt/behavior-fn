@@ -6,7 +6,7 @@ interface BehaviorMetadata {
   name: string;
   description?: string;
   attributes: string[];
-  commands: string[];
+  command: string[];
   dependencies: string[];
 }
 
@@ -27,7 +27,7 @@ export async function listBehaviors(
     const metadata: BehaviorMetadata = {
       name: entry.name,
       attributes: [],
-      commands: [],
+      command: [],
       dependencies: entry.dependencies || [],
     };
 
@@ -57,7 +57,7 @@ export async function listBehaviors(
         }
       }
 
-      // Extract commands from definition file (static analysis)
+      // Extract command from definition file (static analysis)
       const definitionPath = path.join(
         __dirname,
         "registry/behaviors",
@@ -66,16 +66,16 @@ export async function listBehaviors(
       );
       if (fs.existsSync(definitionPath)) {
         const defContent = fs.readFileSync(definitionPath, "utf-8");
-        // Look for commands object: commands: { "--cmd": "--cmd", ... }
-        const commandsMatch = defContent.match(
-          /commands:\s*\{([^}]+)\}/s,
+        // Look for command object: command: { "--cmd": "--cmd", ... }
+        const commandMatch = defContent.match(
+          /command:\s*\{([^}]+)\}/s,
         );
-        if (commandsMatch) {
-          const commandsContent = commandsMatch[1];
+        if (commandMatch) {
+          const commandContent = commandMatch[1];
           // Extract quoted command names
-          const cmdMatches = commandsContent.matchAll(/"(--[^"]+)":/g);
+          const cmdMatches = commandContent.matchAll(/"(--[^"]+)":/g);
           for (const match of cmdMatches) {
-            metadata.commands.push(match[1]);
+            metadata.command.push(match[1]);
           }
         }
       }
@@ -111,8 +111,8 @@ export async function listBehaviors(
       if (behavior.attributes.length > 0) {
         console.log(`   Attributes: ${behavior.attributes.join(", ")}`);
       }
-      if (behavior.commands.length > 0) {
-        console.log(`   Commands: ${behavior.commands.join(", ")}`);
+      if (behavior.command.length > 0) {
+        console.log(`   Command: ${behavior.command.join(", ")}`);
       }
       if (behavior.dependencies.length > 0) {
         console.log(`   Dependencies: ${behavior.dependencies.join(", ")}`);

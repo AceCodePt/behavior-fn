@@ -29,7 +29,7 @@ attributes = {
   "reveal-anchor": "reveal-anchor",
 }
 
-commands = {
+command = {
   "--show": "--show",
   "--hide": "--hide",
   "--toggle": "--toggle",
@@ -99,7 +99,7 @@ import { schema } from "./schema";
 const definition = uniqueBehaviorDef({
   name: "reveal",
   schema,
-  commands: {
+  command: {
     "--show": "--show",
     "--hide": "--hide",
     "--toggle": "--toggle",
@@ -111,17 +111,17 @@ export default definition;
 
 **Key Points:**
 - Import schema from `./schema`
-- Pass `commands` object with key-value identity pattern
+- Pass `command` object with key-value identity pattern
 - `uniqueBehaviorDef` validates that all keys equal their values
 - No manual attributes needed - auto-extracted!
 
-**For behaviors without commands**, omit the `commands` property:
+**For behaviors without command**, omit the `command` property:
 
 ```typescript
 const definition = uniqueBehaviorDef({
   name: "logger",
   schema,
-  // No commands property
+  // No command property
 });
 ```
 
@@ -131,7 +131,7 @@ const definition = uniqueBehaviorDef({
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { attributes, commands } = definition;
+const { attributes, command } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   // Access attributes using bracket notation
@@ -145,14 +145,14 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     },
     
     onCommand(e: CommandEvent<string>) {
-      if (!commands) return;
+      if (!command) return;
       
-      // Access commands using bracket notation
-      if (e.command === commands["--show"]) {
+      // Access command using bracket notation
+      if (e.command === command["--show"]) {
         // Handle show command
-      } else if (e.command === commands["--hide"]) {
+      } else if (e.command === command["--hide"]) {
         // Handle hide command
-      } else if (e.command === commands["--toggle"]) {
+      } else if (e.command === command["--toggle"]) {
         // Handle toggle command
       }
     },
@@ -161,10 +161,10 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
 ```
 
 **Key Points:**
-- Destructure `attributes` and `commands` from `definition`
+- Destructure `attributes` and `command` from `definition`
 - Access attributes with bracket notation: `attributes["reveal-delay"]`
-- Access commands with bracket notation: `commands["--show"]`
-- Check if `commands` exists before accessing (behaviors without commands)
+- Access command with bracket notation: `command["--show"]`
+- Check if `command` exists before accessing (behaviors without command)
 
 ### 4. behavior.test.ts - Test Behavior
 
@@ -176,8 +176,8 @@ import { registerBehavior } from "../behavior-registry";
 import { revealBehaviorFactory } from "./behavior";
 import definition from "./_behavior-definition";
 
-// Extract attributes and commands at module level for cleaner test code
-const { name, attributes, commands } = definition;
+// Extract attributes and command at module level for cleaner test code
+const { name, attributes, command } = definition;
 
 describe("Reveal Behavior", () => {
   beforeAll(() => {
@@ -203,7 +203,7 @@ describe("Reveal Behavior", () => {
     el.setAttribute("behavior", "reveal");
     document.body.appendChild(el);
     
-    dispatchCommand(el, commands["--show"]);
+    dispatchCommand(el, command["--show"]);
     
     // Test implementation...
   });
@@ -211,17 +211,17 @@ describe("Reveal Behavior", () => {
 ```
 
 **Key Points:**
-- **Extract at module level**: Destructure `name`, `attributes`, `commands` from definition
-- **Use extracted variables**: Reference `attributes["reveal-delay"]` and `commands["--show"]` directly
-- **Type safety**: TypeScript infers `commands` correctly (defined when provided, undefined when not)
+- **Extract at module level**: Destructure `name`, `attributes`, `command` from definition
+- **Use extracted variables**: Reference `attributes["reveal-delay"]` and `command["--show"]` directly
+- **Type safety**: TypeScript infers `command` correctly (defined when provided, undefined when not)
 - Use `getObservedAttributes(definition.schema)` for behavioral host
 
-**For behaviors without commands**:
+**For behaviors without command**:
 
 ```typescript
-// Behavior without commands (e.g., logger)
+// Behavior without command (e.g., logger)
 const { name, attributes } = definition;
-// commands will be undefined, just don't extract it
+// command will be undefined, just don't extract it
 ```
 
 ## Standard Test Pattern
@@ -240,7 +240,7 @@ import definition from "./_behavior-definition";
 import { dispatchCommand } from "../command-test-harness";
 
 // 1. Extract everything at module level
-const { name, attributes, commands } = definition;
+const { name, attributes, command } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 // 2. Setup test constants
@@ -275,7 +275,7 @@ describe("Behavior Name", () => {
     el.setAttribute("behavior", name);
     document.body.appendChild(el);
     
-    dispatchCommand(el, commands["--command-name"]);
+    dispatchCommand(el, command["--command-name"]);
     
     // Assertions...
   });
@@ -286,13 +286,13 @@ describe("Behavior Name", () => {
 
 1. **✅ DO extract at module level:**
    ```typescript
-   const { name, attributes, commands } = definition;
+   const { name, attributes, command } = definition;
    ```
 
 2. **✅ DO use extracted variables:**
    ```typescript
    el.setAttribute(attributes["behavior-attr"], "value");
-   dispatchCommand(el, commands["--cmd"]);
+   dispatchCommand(el, command["--cmd"]);
    ```
 
 3. **✅ DO clean up between tests:**
@@ -367,12 +367,12 @@ The pattern provides full type safety:
 // attributes has type: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration", ... }
 const delay: "reveal-delay" = attributes["reveal-delay"]; // ✅ Type-safe literal
 
-// commands has type: { "--show": "--show", "--hide": "--hide", "--toggle": "--toggle" }
-const showCmd: "--show" = commands["--show"]; // ✅ Type-safe literal
+// command has type: { "--show": "--show", "--hide": "--hide", "--toggle": "--toggle" }
+const showCmd: "--show" = command["--show"]; // ✅ Type-safe literal
 
 // Auto-completion works
 attributes["reveal-d...  // IDE suggests: "reveal-delay", "reveal-duration"
-commands["--s...   // IDE suggests: "--show"
+command["--s...   // IDE suggests: "--show"
 ```
 
 ## Validation
@@ -381,13 +381,13 @@ commands["--s...   // IDE suggests: "--show"
 
 ```typescript
 // ✅ VALID - key equals value
-commands: {
+command: {
   "--show": "--show",
   "--hide": "--hide",
 }
 
 // ❌ INVALID - key doesn't equal value
-commands: {
+command: {
   "show": "--show",  // Runtime Error!
 }
 ```
@@ -400,10 +400,10 @@ When updating existing behaviors to this pattern:
 - [ ] Remove separate attributes constant definitions
 - [ ] Update _behavior-definition.ts to remove manual attributes
 - [ ] Update behavior.ts to use `attributes["attribute-name"]` bracket notation
-- [ ] Update behavior.ts to use `commands["--command-name"]` bracket notation
+- [ ] Update behavior.ts to use `command["--command-name"]` bracket notation
 - [ ] Change `definition.attributes.KEY` to `definition.attributes["key"]` throughout
-- [ ] Update tests: Extract `{ name, attributes, commands }` at module level
-- [ ] Update tests: Use extracted variables (`attributes[...]`, `commands[...]`)
+- [ ] Update tests: Extract `{ name, attributes, command }` at module level
+- [ ] Update tests: Use extracted variables (`attributes[...]`, `command[...]`)
 - [ ] Update tests: Remove old constant imports (e.g., `BEHAVIOR_ATTRS`)
 - [ ] Verify all tests pass
 
@@ -486,7 +486,7 @@ const { attributes } = definition;  // ✅ Single import
 it("should work", () => {
   el.setAttribute(definition.attributes["attr-1"], "value");  // ❌ Repetitive
   el.setAttribute(definition.attributes["attr-2"], "value");  // ❌ Repetitive
-  dispatchCommand(el, definition.commands["--cmd"]);      // ❌ Repetitive
+  dispatchCommand(el, definition.command["--cmd"]);      // ❌ Repetitive
 });
 ```
 
@@ -494,18 +494,18 @@ it("should work", () => {
 
 ```typescript
 // behavior.test.ts
-const { name, attributes, commands } = definition;
+const { name, attributes, command } = definition;
 
 it("should work", () => {
   el.setAttribute(attributes["attr-1"], "value");  // ✅ Clean
   el.setAttribute(attributes["attr-2"], "value");  // ✅ Clean
-  dispatchCommand(el, commands["--cmd"]);      // ✅ Clean
+  dispatchCommand(el, command["--cmd"]);      // ✅ Clean
 });
 ```
 
 **Why this is better:**
 - ✅ **DRY**: Don't repeat `definition.` on every line
-- ✅ **Type Safety**: TypeScript correctly infers commands type
+- ✅ **Type Safety**: TypeScript correctly infers command type
 - ✅ **Readability**: Cleaner, less visual noise
 - ✅ **Simplicity**: No type guards or assertions needed
 - ✅ **Consistency**: Same pattern as behavior.ts implementation

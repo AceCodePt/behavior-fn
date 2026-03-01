@@ -7,7 +7,7 @@ import { schema } from "./schema";
 const definition = uniqueBehaviorDef({
   name: "request",
   schema,
-  commands: {
+  command: {
     "--trigger": "--trigger",
     "--close-sse": "--close-sse",
   },

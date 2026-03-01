@@ -7,7 +7,7 @@ import { getObservedAttributes } from "~utils";
 import definition from "./_behavior-definition";
 import { dispatchCommand } from "../command-test-harness";
 
-const { name, attributes, commands: command } = definition;
+const { name, attributes, command } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Content Setter Behavior", () => {

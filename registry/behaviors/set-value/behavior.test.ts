@@ -8,7 +8,7 @@ import { dispatchCommand, createCommandSource } from "~test-utils";
 import definition from "./_behavior-definition";
 
 // Module-level extraction (REQUIRED pattern)
-const { name, commands } = definition;
+const { name, command } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
 describe("Set-Value Behavior", () => {
@@ -107,7 +107,7 @@ describe("Set-Value Behavior", () => {
       source.innerText = "Hello World";
 
       // Dispatch command
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(el.value).toBe("Hello World");
     });
@@ -129,7 +129,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Test Value";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(inputHandler).toHaveBeenCalledTimes(1);
       expect(inputHandler.mock.calls[0][0]).toBeInstanceOf(Event);
@@ -153,7 +153,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Changed Value";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(changeHandler).toHaveBeenCalledTimes(1);
       expect(changeHandler.mock.calls[0][0]).toBeInstanceOf(Event);
@@ -174,7 +174,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Multi\nline\ntext";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(el.value).toBe("Multi\nline\ntext");
     });
@@ -197,7 +197,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "opt2";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(el.value).toBe("opt2");
     });
@@ -217,7 +217,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "New Value";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(el.value).toBe("New Value");
     });
@@ -243,7 +243,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Submit Value";
 
-      dispatchCommand(el, commands!["--set-value-and-submit"], source);
+      dispatchCommand(el, command!["--set-value-and-submit"], source);
 
       expect(el.value).toBe("Submit Value");
       expect(submitHandler).toHaveBeenCalledTimes(1);
@@ -270,7 +270,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Test";
 
-      dispatchCommand(el, commands!["--set-value-and-submit"], source);
+      dispatchCommand(el, command!["--set-value-and-submit"], source);
 
       expect(requestSubmitSpy).toHaveBeenCalledTimes(1);
     });
@@ -291,7 +291,7 @@ describe("Set-Value Behavior", () => {
 
       // Should not throw
       expect(() => {
-        dispatchCommand(el, commands!["--set-value-and-submit"], source);
+        dispatchCommand(el, command!["--set-value-and-submit"], source);
       }).not.toThrow();
 
       expect(el.value).toBe("No Form Value");
@@ -322,7 +322,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Event Order Test";
 
-      dispatchCommand(el, commands!["--set-value-and-submit"], source);
+      dispatchCommand(el, command!["--set-value-and-submit"], source);
 
       expect(eventOrder).toEqual(["input", "change", "submit"]);
     });
@@ -344,7 +344,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(el.value).toBe("");
     });
@@ -363,12 +363,12 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "  Padded Text  ";
 
-      dispatchCommand(el, commands!["--set-value"], source);
+      dispatchCommand(el, command!["--set-value"], source);
 
       expect(el.value).toBe("  Padded Text  ");
     });
 
-    it("should ignore unrelated commands", async () => {
+    it("should ignore unrelated command", async () => {
       const tag = "input";
       const webcomponentTag = "test-set-value-ignore";
       defineBehavioralHost(tag, webcomponentTag, observedAttributes);

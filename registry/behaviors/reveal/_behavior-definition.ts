@@ -7,7 +7,7 @@ import { schema } from "./schema";
 const definition = uniqueBehaviorDef({
   name: "reveal",
   schema,
-  commands: {
+  command: {
     "--show": "--show",
     "--hide": "--hide",
     "--toggle": "--toggle",

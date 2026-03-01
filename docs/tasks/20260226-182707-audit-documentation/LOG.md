@@ -63,11 +63,12 @@ This task audits all documentation to ensure alignment with the current implemen
 **Impact:** Misleading for contributors
 **Fix:** Remove `constants.ts` from documented structure
 
-#### 2. AGENTS.md - Wrong Property Name
+#### 2. AGENTS.md - Wrong Property Name [RESOLVED]
 **Location:** `AGENTS.md` line 322  
 **Issue:** Uses `command:` but actual implementation uses `commands:` (plural)
 **Actual code:** `commands: { "--show": "--show" }`
 **Fix:** Change all references from `command:` to `commands:`
+**Resolution:** This was identified as the CORRECT pattern. A separate refactoring task updated the implementation from `commands:` (plural) to `command:` (singular) to align with the Invoker Commands API standard.
 
 #### 3. README.md - Legacy Pattern Examples
 **Location:** Multiple sections showing `registerBehavior` usage

@@ -321,7 +321,7 @@ import { schema } from "./schema";
 const definition = uniqueBehaviorDef({
   name: "reveal",
   schema,  // attributes auto-extracted from schema keys
-  commands: {
+  command: {
     "--show": "--show",
     "--hide": "--hide",
   },
@@ -335,7 +335,7 @@ export default definition;
 ```typescript
 import definition from "./_behavior-definition";
 
-const { attributes, commands } = definition;
+const { attributes, command } = definition;
 
 export const revealBehaviorFactory = (el: HTMLElement) => {
   // ✅ Access using bracket notation
@@ -343,9 +343,9 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
   
   return {
     onCommand(e: CommandEvent<string>) {
-      if (!commands) return;
+      if (!command) return;
       
-      if (e.command === commands["--show"]) {
+      if (e.command === command["--show"]) {
         // Handle command
       }
     },
@@ -375,7 +375,7 @@ Examples:
 - ✅ Schema is single source of truth
 - ✅ Strong literal types: `attributes["reveal-delay"]` has type `"reveal-delay"`
 - ✅ No manual duplication (DRY)
-- ✅ Auto-extracted metadata (attributes, commands from uniqueBehaviorDef)
+- ✅ Auto-extracted metadata (attributes, command from uniqueBehaviorDef)
 - ✅ Runtime validation ensures key-value identity
 - ✅ Type-safe attribute access throughout
 
@@ -461,11 +461,11 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   import { getObservedAttributes } from "~utils";
   
   // ✅ Extract at module level (REQUIRED)
-  const { name, attributes, commands } = definition;
+  const { name, attributes, command } = definition;
   const observedAttributes = getObservedAttributes(definition.schema);
   
   describe("Behavior Name", () => {
-    // Tests use name, attributes, commands, observedAttributes
+    // Tests use name, attributes, command, observedAttributes
   });
   ```
   
@@ -484,7 +484,7 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   registerBehavior(definition.name, behaviorFactory);  // Loses schema information!
   ```
   
-  **Why:** Registry needs full schema and commands metadata for proper functionality
+  **Why:** Registry needs full schema and command metadata for proper functionality
   
   **3. getObservedAttributes Pattern (REQUIRED):**
   ```typescript

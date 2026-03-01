@@ -1,7 +1,7 @@
 import { type CommandEvent } from "~registry";
 import definition from "./_behavior-definition";
 
-const { commands } = definition;
+const { command } = definition;
 
 /**
  * Set-value behavior factory.
@@ -15,7 +15,7 @@ const { commands } = definition;
  * - Dispatches both `input` and `change` events after setting value
  * - Supports form submission using `requestSubmit()` for validation
  * 
- * Commands:
+ * Command:
  * - `--set-value`: Set input value from command source's innerText
  * - `--set-value-and-submit`: Set value and submit parent form
  * 
@@ -47,11 +47,11 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
      * using `requestSubmit()` which respects form validation.
      */
     onCommand(e: CommandEvent<string>) {
-      if (!commands) return;
+      if (!command) return;
 
       if (
-        e.command === commands["--set-value"] ||
-        e.command === commands["--set-value-and-submit"]
+        e.command === command["--set-value"] ||
+        e.command === command["--set-value-and-submit"]
       ) {
         // Set value from command source's innerText
         el.value = e.source.innerText;
@@ -62,7 +62,7 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
 
         // Submit form if requested and form exists
         if (
-          e.command === commands["--set-value-and-submit"] &&
+          e.command === command["--set-value-and-submit"] &&
           "form" in el &&
           el.form
         ) {

@@ -3,7 +3,7 @@ import { hasValue } from "~utils";
 import definition from "./_behavior-definition";
 import type { TriggerConfig } from "./schema";
 
-const { attributes, commands } = definition;
+const { attributes, command } = definition;
 
 // Global registry for collapsing concurrent GET requests
 const requestRegistry = new Map<string, Promise<string>>();
@@ -460,9 +460,9 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
   return {
     onCommand(e: CommandEvent<string>) {
-      if (e.command === commands["--trigger"]) {
+      if (e.command === command["--trigger"]) {
         handleEvent(e);
-      } else if (e.command === commands["--close-sse"]) {
+      } else if (e.command === command["--close-sse"]) {
         if (eventSource) {
           eventSource.close();
           eventSource = undefined;

@@ -26,18 +26,20 @@ behavior-name/
 └── behavior.test.ts
 ```
 
-#### 2. Property Name Inconsistencies
+#### 2. Property Name Inconsistencies [UPDATED]
 **Issue:** Documentation used inconsistent property names:
 - `command:` vs `commands:` (implementation uses `commands`)
 - `ATTRS` vs `attributes` (implementation uses lowercase `attributes`)
 - `COMMANDS` vs `commands` (implementation uses lowercase `commands`)
 
-**Fix:** Standardized all documentation to match implementation:
+**Initial Fix:** Standardized documentation to `commands:` (plural)
+
+**Final Resolution:** Subsequent refactoring task aligned implementation with Invoker Commands API standard by changing `commands` (plural) to `command` (singular):
 ```typescript
-// Correct pattern (now in all docs)
-const { attributes, commands } = definition;
+// Current correct pattern (post-refactoring)
+const { attributes, command } = definition;
 el.getAttribute(attributes["reveal-delay"]);
-if (e.command === commands["--show"]) { ... }
+if (e.command === command["--show"]) { ... }
 ```
 
 #### 3. README.md - Missing BehaviorDef Pattern

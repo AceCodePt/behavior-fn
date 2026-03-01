@@ -52,7 +52,7 @@ export interface BehaviorDef<
 > {
   name: string;
   schema: S;
-  commands?: C;
+  command?: C;
 }
 
 export type ValidateBehaviorDef<
@@ -60,8 +60,8 @@ export type ValidateBehaviorDef<
 > = {
   name: Def["name"];
   schema: Def["schema"];
-  commands?: {
-    [K in keyof Def["commands"]]: Def["commands"][K] extends K
+  command?: {
+    [K in keyof Def["command"]]: Def["command"][K] extends K
       ? K
       : K | `Error: Key '${K & string}' should match value`;
   };
@@ -96,14 +96,14 @@ export const uniqueBehaviorDef = <
   const T extends {
     name: string;
     schema: BehaviorSchema;
-    commands?: Record<string, string>;
+    command?: Record<string, string>;
   },
 >(
   def: T & ValidateBehaviorDef<T>,
 ) => {
-  // Runtime validation for commands: key must equal value
-  if (def.commands) {
-    for (const [key, value] of Object.entries(def.commands)) {
+  // Runtime validation for command: key must equal value
+  if (def.command) {
+    for (const [key, value] of Object.entries(def.command)) {
       if (key !== value) {
         throw new Error(
           `Runtime Error: Behavior command key "${key}" does not match its value "${value}". They must be identical.`,

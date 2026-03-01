@@ -32,7 +32,7 @@ const loadingStates = new Map<string, Promise<void>>();
 /**
  * Register a behavior with its definition and factory.
  * 
- * @param definition - The behavior definition (name, schema, commands)
+ * @param definition - The behavior definition (name, schema, command)
  * @param factory - The behavior factory function
  */
 export function registerBehavior(
