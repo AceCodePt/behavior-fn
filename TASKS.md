@@ -44,13 +44,13 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Fix Failing Tests](docs/tasks/fix-failing-tests/task.md)
-- [-] [Implement Auto-Grow Behavior](docs/tasks/auto-grow-behavior/task.md)
-- [ ] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
-- [-] [Add CLI Reapply Command](docs/tasks/cli-reapply-command/task.md)
-- [-] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
-- [-] [Add CLI Command to List Available Behaviors](docs/tasks/list-existing-behaviors/task.md)
-- [-] [Migrate CLI to Schema-First Architecture (TypeBox)](docs/tasks/cli-schema-first-architecture/task.md)
+- [-] [Fix Failing Tests](docs/tasks/fix-failing-tests/task.md)
+- [x] [Implement Auto-Grow Behavior](docs/tasks/auto-grow-behavior/task.md)
+- [x] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
+- [x] [Add CLI Reapply Command](docs/tasks/cli-reapply-command/task.md)
+- [x] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
+- [x] [Add CLI Command to List Available Behaviors](docs/tasks/list-existing-behaviors/task.md)
+- [x] [Migrate CLI to Schema-First Architecture (TypeBox)](docs/tasks/cli-schema-first-architecture/task.md)
 - [x] [Fix Config File Handling and Add Command Issues](docs/tasks/fix-config-and-add-command/task.md)
 - [x] [Remove event-methods.ts Stale Reference](docs/tasks/remove-event-methods-stale-reference/task.md)
 - [ ] [Behavior Validation Standards](docs/tasks/behavior-validation-standards/task.md)
