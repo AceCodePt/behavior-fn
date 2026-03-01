@@ -196,7 +196,10 @@ export const autoGrowBehaviorFactory = (el: HTMLElement) => {
 - [x] Registry updated
 - [x] Type checking passes
 - [x] Example created (examples/auto-grow-example.html)
-- [ ] User review and commit
+- [x] Behavior committed (b1c4d40)
+- [x] Documentation added to README.md
+- [x] Documentation standards updated in AGENTS.md
+- [ ] Final user review and commit documentation
 
 ---
 

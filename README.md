@@ -342,6 +342,45 @@ Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus m
 
 ---
 
+### 📏 **auto-grow**
+Automatically adjusts textarea height to fit content as the user types, eliminating internal scrolling.
+
+**Attributes:**
+- None (zero-config behavior)
+
+**Features:**
+- Automatically grows textarea to fit content
+- Disables internal scrolling (`overflow-y: hidden`)
+- Disables manual resize handles (`resize: none`)
+- Updates height on every input event
+- Works only on `<textarea>` elements (warns if attached to others)
+
+**Example:**
+```html
+<!-- Simple auto-growing textarea -->
+<textarea 
+  is="behavioral-auto-grow"
+  behavior="auto-grow"
+  placeholder="Type here and watch the textarea expand..."
+></textarea>
+```
+
+**Common Use Cases:**
+- Comment boxes that expand as users type
+- Message input fields (like chat applications)
+- Note-taking interfaces
+- Any textarea where you want to avoid scrolling
+
+**How It Works:**
+1. On connect: Sets `overflow-y: hidden` and `resize: none`
+2. On input: Sets height to `auto` then to `scrollHeight` (allows both growing and shrinking)
+
+**Browser Compatibility:**
+- All modern browsers (Chrome, Firefox, Safari, Edge)
+- Requires `HTMLTextAreaElement` support
+
+---
+
 ### 📡 **request**
 Declarative HTTP requests with loading states, error handling, and Server-Sent Events (SSE) [HTMX-inspired].
 

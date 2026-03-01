@@ -622,5 +622,149 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 
 ## Documentation
 
+### Documentation Standards
+
 - **Guides:** Check `docs/guides/` for specific implementation details.
 - **Reference:** Check `docs/architecture/` for system design.
+
+### Documenting New Behaviors
+
+**CRITICAL:** When adding a new behavior to the registry, you **MUST** document it in `README.md`. A simple example is NOT sufficient. The documentation must be comprehensive and follow the established pattern.
+
+**Required Documentation Elements:**
+
+1. **Behavior Name & Description** (emoji + concise description)
+2. **Attributes Section** - List ALL attributes with descriptions
+   - Use `None (zero-config behavior)` if no attributes
+3. **Commands Section** (if applicable) - List ALL commands with descriptions
+4. **Features Section** - Bullet list of key capabilities
+5. **Example Section** - Working HTML example with:
+   - The `is` attribute (e.g., `is="behavioral-auto-grow"`)
+   - The `behavior` attribute
+   - Relevant attributes configured
+   - Context/explanation of what it does
+6. **Common Use Cases** (if applicable) - Real-world scenarios
+7. **How It Works** (if complex) - High-level implementation details
+8. **Browser Compatibility** (if relevant) - Specific requirements
+
+**Documentation Pattern (Follow Existing Behaviors):**
+
+```markdown
+### 📏 **behavior-name**
+Brief description of what the behavior does.
+
+**Attributes:**
+- `behavior-name-attribute` — Description of what this does
+- `behavior-name-another` — Description
+- None (zero-config behavior)  ← Use this if no attributes
+
+**Commands:**
+- `--command-name` — Description of what this command does
+- (Omit this section if no commands)
+
+**Features:**
+- Feature 1 with technical detail
+- Feature 2 explaining capability
+- Feature 3 noting constraints
+- Works only on specific element types (if applicable)
+
+**Example:**
+```html
+<!-- Clear comment explaining the example -->
+<element-type 
+  is="behavioral-behavior-name"
+  behavior="behavior-name"
+  behavior-name-attribute="value"
+  placeholder="Helpful placeholder text"
+></element-type>
+```
+
+**Common Use Cases:** (Optional but recommended)
+- Use case 1 (e.g., "Comment boxes that expand")
+- Use case 2 (e.g., "Chat message inputs")
+- Use case 3 (e.g., "Note-taking interfaces")
+
+**How It Works:** (Optional, for complex behaviors)
+1. Step 1 explanation
+2. Step 2 explanation
+3. Step 3 explanation
+
+**Browser Compatibility:** (Optional, if specific requirements)
+- Browser requirements or constraints
+```
+
+**BAD Documentation Example (Too Minimal):**
+```markdown
+### my-behavior
+Does something useful.
+
+**Example:**
+```html
+<div behavior="my-behavior"></div>
+```
+```
+
+**GOOD Documentation Example (Comprehensive):**
+```markdown
+### 🎯 **my-behavior**
+Clear, concise description of what the behavior does and why it's useful.
+
+**Attributes:**
+- `my-behavior-option` — Description of what this controls
+- `my-behavior-target` — Description of target selector or configuration
+- None (zero-config behavior)  ← Use this line if no attributes
+
+**Commands:** (Omit if no commands)
+- `--action` — Description of what this command does
+- `--toggle` — Description of toggle behavior
+
+**Features:**
+- Feature 1: Explain what it does technically
+- Feature 2: Mention any constraints or requirements
+- Feature 3: Note any special behaviors
+- Works only on specific element types (if applicable)
+
+**Example:**
+```html
+<!-- Clear explanatory comment -->
+<element-type 
+  is="behavioral-my-behavior"
+  behavior="my-behavior"
+  my-behavior-option="value"
+  my-behavior-target="#target"
+>
+  Content here
+</element-type>
+```
+
+**Common Use Cases:**
+- Real-world scenario 1
+- Real-world scenario 2
+- Real-world scenario 3
+
+**How It Works:**
+1. Step 1: What happens on initialization
+2. Step 2: What happens during interaction
+3. Step 3: What happens on specific events
+
+**Browser Compatibility:** (If relevant)
+- Browser requirements or limitations
+- Feature dependencies (e.g., "Requires MutationObserver")
+```
+
+**Documentation Location in README.md:**
+
+Add the new behavior to the **"📚 Available Behaviors"** section in alphabetical order. The section starts around line 307.
+
+**Verification Checklist:**
+
+Before marking a behavior task as complete, verify:
+- [ ] Behavior documented in README.md
+- [ ] All attributes documented (or "None" stated)
+- [ ] All commands documented (or section omitted)
+- [ ] Features list is comprehensive
+- [ ] Example includes `is` and `behavior` attributes
+- [ ] Example is complete and functional
+- [ ] Use cases provided (if applicable)
+- [ ] Technical details explained (if complex)
+- [ ] Follows existing pattern and formatting
