@@ -125,19 +125,20 @@ export class ValibotValidator implements Validator {
   }
 
   getTypesFileContent(): string {
-    return `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { type BaseSchema, type InferOutput } from "valibot";
+    return `import { type BaseSchema, type InferOutput } from "valibot";
 
 /**
- * Universal schema inference helper.
+ * Helper to infer the output type of a schema.
+ * Valibot uses InferOutput<T> to extract types from BaseSchema.
  */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends BaseSchema
-    ? InferOutput<T>
-    : unknown;
+export type InferSchema<T> = T extends BaseSchema<unknown, unknown, any>
+  ? InferOutput<T>
+  : unknown;
 
-export type BehaviorSchema = StandardSchemaV1 | BaseSchema | object;
+/**
+ * The canonical schema type for Valibot.
+ */
+export type BehaviorSchema = BaseSchema<unknown, unknown, any>;
 `;
   }
 }

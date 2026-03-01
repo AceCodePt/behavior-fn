@@ -109,19 +109,18 @@ export class ArkTypeValidator implements Validator {
   }
 
   getTypesFileContent(): string {
-    return `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { type Type } from "arktype";
+    return `import { type Type } from "arktype";
 
 /**
- * Universal schema inference helper.
+ * Helper to infer the output type of a schema.
+ * ArkType uses T["infer"] to extract types from Type.
  */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends Type
-    ? T["infer"]
-    : unknown;
+export type InferSchema<T> = T extends Type ? T["infer"] : unknown;
 
-export type BehaviorSchema = StandardSchemaV1 | Type | object;
+/**
+ * The canonical schema type for ArkType.
+ */
+export type BehaviorSchema = Type;
 `;
   }
 }

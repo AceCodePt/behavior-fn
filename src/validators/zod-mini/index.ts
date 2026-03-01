@@ -13,18 +13,18 @@ export class ZodMiniValidator implements Validator {
   }
 
   getTypesFileContent(): string {
-    return `import { type StandardSchemaV1 } from "@standard-schema/spec";
+    return `import { type z } from "zod/mini";
 
 /**
- * Universal schema inference helper.
+ * Helper to infer the output type of a schema.
+ * Zod Mini uses z.infer<T> to extract types from ZodType.
  */
-export type InferSchema<T> = T extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<T>
-  : T extends z.ZodType
-    ? z.infer<T>
-    : unknown;
+export type InferSchema<T> = T extends z.ZodType ? z.infer<T> : unknown;
 
-export type BehaviorSchema = StandardSchemaV1 | z.ZodType | object;
+/**
+ * The canonical schema type for Zod Mini.
+ */
+export type BehaviorSchema = z.ZodType;
 `;
   }
 

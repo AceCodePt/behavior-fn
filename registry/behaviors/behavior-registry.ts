@@ -30,8 +30,8 @@ const loadingStates = new Map<string, Promise<void>>();
 
 /**
  * Register a behavior with its definition and factory.
- * 
- * @param definition - The behavior definition (name, schema, command)
+ *
+ * @param definition - The behavior definition (name, schema, commands)
  * @param factory - The behavior factory function
  */
 export function registerBehavior(
@@ -42,14 +42,11 @@ export function registerBehavior(
 /**
  * Register a behavior with just name and factory (for testing).
  * Creates a minimal definition with empty schema.
- * 
+ *
  * @param name - The behavior name
  * @param factory - The behavior factory function
  */
-export function registerBehavior(
-  name: string,
-  factory: BehaviorFactory,
-): void;
+export function registerBehavior(name: string, factory: BehaviorFactory): void;
 
 export function registerBehavior(
   definitionOrName: BehaviorDef | string,
@@ -63,7 +60,6 @@ export function registerBehavior(
     name = definitionOrName;
     definition = {
       name,
-      schema: { type: "object", properties: {} },
     };
   } else {
     // New signature: registerBehavior(definition, factory)

@@ -607,10 +607,10 @@ export const getObservedAttributes = (schema: BehaviorSchema): string[] => {
       if (!e.message.includes("Process.exit")) throw e;
     }
 
-    // Verify types.ts generation for TypeBox
+    // Verify types.ts generation for TypeBox (clean validator-specific type)
     expect(mocks.fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("types.ts"),
-      expect.stringContaining("export type BehaviorSchema = StandardSchemaV1 | TSchema | object;"),
+      expect.stringContaining("export type BehaviorSchema = TSchema;"),
     );
 
     // Verify behavior-utils.ts generation for TypeBox

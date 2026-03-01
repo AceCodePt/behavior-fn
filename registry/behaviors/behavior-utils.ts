@@ -42,25 +42,28 @@ export function hasValue(
  * Schema with keys: "reveal-delay", "reveal-duration"
  * Result: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
  */
-type ExtractAttributes<S extends BehaviorSchema> = {
-  readonly [K in keyof InferSchema<S> & string]: K;
-};
+type ExtractAttributes<S extends BehaviorSchema | undefined> =
+  S extends BehaviorSchema
+    ? {
+        readonly [K in keyof InferSchema<S> & string]: K;
+      }
+    : {};
 
 export interface BehaviorDef<
   S extends BehaviorSchema = BehaviorSchema,
   C extends Record<string, string> = Record<string, string>,
 > {
-  name: string;
-  schema: S;
-  command?: C;
+  readonly name: string;
+  readonly schema?: S;
+  readonly command?: C;
 }
 
 export type ValidateBehaviorDef<
   Def extends BehaviorDef<BehaviorSchema, Record<string, string>>,
 > = {
-  name: Def["name"];
-  schema: Def["schema"];
-  command?: {
+  readonly name: Def["name"];
+  readonly schema?: Def["schema"];
+  readonly command?: {
     [K in keyof Def["command"]]: Def["command"][K] extends K
       ? K
       : K | `Error: Key '${K & string}' should match value`;
@@ -92,15 +95,9 @@ export type ValidateBehaviorDef<
  * @param def - The behavior definition with name, schema, and optional command
  * @returns Extended definition with attributes
  */
-export const uniqueBehaviorDef = <
-  const T extends {
-    name: string;
-    schema: BehaviorSchema;
-    command?: Record<string, string>;
-  },
->(
-  def: T & ValidateBehaviorDef<T>,
-) => {
+export const uniqueBehaviorDef = <const T extends BehaviorDef>(
+  def: ValidateBehaviorDef<T> & T,
+): T & { readonly attributes: ExtractAttributes<T["schema"]> } => {
   // Runtime validation for command: key must equal value
   if (def.command) {
     for (const [key, value] of Object.entries(def.command)) {
@@ -114,7 +111,7 @@ export const uniqueBehaviorDef = <
 
   // Extract attributes from schema using validator-aware function
   // This works for TypeBox (properties), Zod (shape), Valibot (entries), etc.
-  const schemaKeys = getObservedAttributes(def.schema);
+  const schemaKeys = def.schema ? getObservedAttributes(def.schema) : [];
   const attributes = schemaKeys.reduce(
     (acc, key) => {
       acc[key] = key;
@@ -126,10 +123,8 @@ export const uniqueBehaviorDef = <
   return {
     ...def,
     attributes: attributes as ExtractAttributes<T["schema"]>,
-  } as const;
+  } as T & { readonly attributes: ExtractAttributes<T["schema"]> };
 };
-
-export const isServer = () => typeof window === "undefined";
 
 /**
  * Parse and normalize behavior names from a behavior attribute string.

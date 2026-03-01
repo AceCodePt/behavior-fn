@@ -35,6 +35,12 @@ export interface Validator {
 
   /**
    * Generate the full content of `types.ts` for this validator.
+   * 
+   * This should define:
+   * - The schema type for this validator (e.g., z.ZodType, TSchema, etc.)
+   * - The inference helper (e.g., z.infer<T>, Static<T>, etc.)
+   * - BehaviorSchema type
+   * - InferSchema<T> helper
    */
   getTypesFileContent(): string;
 }
