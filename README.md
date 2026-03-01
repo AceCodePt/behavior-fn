@@ -160,6 +160,26 @@ This initializes the core infrastructure in your project and asks you two questi
 1. **Which schema validator?** (Zod, Valibot, TypeBox, ArkType, Zod-Mini)
 2. **Where to install behaviors?** (e.g., `src/behaviors`)
 
+The generated `behavior.config.json` includes optional path aliases for cleaner imports. If you want to use these aliases (recommended), configure them in your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/types": ["./src/types"],
+      "@/behavior-utils": ["./src/behavior-utils"],
+      "@/behavior-registry": ["./src/behaviors/behavior-registry"],
+      "@/behavioral-host": ["./src/behavioral-host"],
+      "@/test-utils": ["./tests/utils/command-test-harness"]
+    }
+  }
+}
+```
+
+> **Note:** If you don't configure aliases, the CLI will generate relative imports instead (e.g., `../../types`). You can also remove the `alias` fields from `behavior.config.json` to always use relative imports.
+
 ### Add a Behavior
 
 ```bash

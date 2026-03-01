@@ -11,43 +11,45 @@ const createValidatorUnion = () => {
 };
 
 /**
+ * Schema for a file path with optional alias.
+ * 
+ * If alias is provided, imports will use the alias.
+ * If alias is undefined/not provided, imports will use relative paths.
+ */
+const FilePathSchema = Type.Object({
+  /** File path relative to project root */
+  path: Type.String(),
+  /** Optional import alias (e.g., "@/types"). If not provided, uses relative imports */
+  alias: Type.Optional(Type.String()),
+});
+
+/**
  * TypeBox schema for behavior.config.json
  * 
  * This is the Single Source of Truth for the config structure.
  * Types are derived from this schema, not manually defined.
+ * 
+ * Each file path can have an optional alias. If no alias is provided,
+ * the CLI will generate relative imports instead.
  */
 export const ConfigSchema = Type.Object({
   /** Selected validator package (derived from validators registry) */
   validator: createValidatorUnion(),
   
-  /** File paths configuration */
+  /** File paths configuration with optional aliases */
   paths: Type.Object({
     /** Main behaviors directory */
     behaviors: Type.String(),
-    /** Behavior utilities file path */
-    utils: Type.String(),
-    /** Behavior registry file path */
-    registry: Type.String(),
-    /** Test utilities file path */
-    testUtils: Type.String(),
-    /** Behavioral host file path */
-    host: Type.String(),
-    /** Types file path */
-    types: Type.String(),
-  }),
-  
-  /** Import aliases configuration */
-  aliases: Type.Object({
-    /** Utils import alias */
-    utils: Type.String(),
-    /** Registry import alias */
-    registry: Type.String(),
-    /** Test utils import alias */
-    testUtils: Type.String(),
-    /** Host import alias */
-    host: Type.String(),
-    /** Types import alias */
-    types: Type.String(),
+    /** Behavior utilities file */
+    utils: FilePathSchema,
+    /** Behavior registry file */
+    registry: FilePathSchema,
+    /** Test utilities file */
+    testUtils: FilePathSchema,
+    /** Behavioral host file */
+    host: FilePathSchema,
+    /** Types file */
+    types: FilePathSchema,
   }),
   
   /** Optional files configuration */

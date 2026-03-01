@@ -80,15 +80,12 @@ function transformToZodMini(schema: AttributeSchema): string {
   }
 
   const runtimeSchema = schema as unknown as JSONSchemaObject;
-  const keys = Object.keys(runtimeSchema.properties);
 
   return `import * as z from "zod/mini";
+import { type InferSchema } from "~types";
 
 export const schema = ${parseObject(runtimeSchema)};
-export type Schema = z.infer<typeof schema>;
-export const validate = (data: unknown) => schema.parse(data);
-export const safeValidate = (data: unknown) => schema.safeParse(data);
-export const observedAttributes = ${JSON.stringify(keys)} as const;
+export type Schema = InferSchema<typeof schema>;
 `;
 }
 

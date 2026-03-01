@@ -1,4 +1,4 @@
-import { type BehaviorSchema } from "./types";
+import { type BehaviorSchema, type InferSchema } from "./types";
 
 /**
  * Extracts the keys (observed attributes) from a schema object.
@@ -32,18 +32,19 @@ export function hasValue(
 // --- Behavior Definition ---
 
 /**
- * Extract strongly-typed attribute keys from a TypeBox schema.
+ * Extract strongly-typed attribute keys from a schema's inferred type.
  * Creates an object where each key-value pair is identical: { "attr-name": "attr-name" }
+ *
+ * This works by getting the keys from the schema's output type (via InferSchema),
+ * which works universally for all validators (TypeBox, Zod, Valibot, etc.).
  *
  * @example
  * Schema with keys: "reveal-delay", "reveal-duration"
  * Result: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
  */
-type ExtractAttributes<S extends BehaviorSchema> = S extends {
-  properties: infer P;
-}
-  ? { readonly [K in keyof P & string]: K }
-  : Record<string, never>;
+type ExtractAttributes<S extends BehaviorSchema> = {
+  readonly [K in keyof InferSchema<S> & string]: K;
+};
 
 export interface BehaviorDef<
   S extends BehaviorSchema = BehaviorSchema,
@@ -111,20 +112,20 @@ export const uniqueBehaviorDef = <
     }
   }
 
-  // Extract attributes from schema properties
-  const schemaKeys =
-    "properties" in def.schema ? Object.keys(def.schema.properties) : [];
+  // Extract attributes from schema using validator-aware function
+  // This works for TypeBox (properties), Zod (shape), Valibot (entries), etc.
+  const schemaKeys = getObservedAttributes(def.schema);
   const attributes = schemaKeys.reduce(
     (acc, key) => {
       acc[key] = key;
       return acc;
     },
     {} as Record<string, string>,
-  ) as ExtractAttributes<T["schema"]>;
+  );
 
   return {
     ...def,
-    attributes,
+    attributes: attributes as ExtractAttributes<T["schema"]>,
   } as const;
 };
 

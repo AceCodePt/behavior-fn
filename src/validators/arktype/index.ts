@@ -52,18 +52,12 @@ function transformToArkType(schema: AttributeSchema): string {
   }
 
   const runtimeSchema = schema as unknown as JSONSchemaObject;
-  const keys = Object.keys(runtimeSchema.properties);
 
   return `import { type } from "arktype";
+import { type InferSchema } from "~types";
 
 export const schema = ${parseObject(runtimeSchema)};
-export type Schema = typeof schema.infer;
-export const validate = (data: unknown) => schema(data).assert();
-export const safeValidate = (data: unknown) => {
-  const out = schema(data);
-  return out instanceof type.errors ? { success: false, error: out } : { success: true, data: out };
-};
-export const observedAttributes = ${JSON.stringify(keys)} as const;
+export type Schema = InferSchema<typeof schema>;
 `;
 }
 

@@ -117,13 +117,37 @@ function detectAndValidatePlatform(): PlatformStrategy {
   return platform;
 }
 
-function rewriteImports(content: string, config: Config): string {
-  return content
-    .replace(/~utils/g, config.aliases.utils)
-    .replace(/~registry/g, config.aliases.registry)
-    .replace(/~test-utils/g, config.aliases.testUtils)
-    .replace(/~host/g, config.aliases.host)
-    .replace(/~types/g, config.aliases.types);
+/**
+ * Rewrite imports based on config.
+ * If an alias is provided, use it. Otherwise, calculate relative path.
+ */
+function rewriteImports(content: string, config: Config, currentFilePath: string): string {
+  const replacements = [
+    { alias: '~utils', fileConfig: config.paths.utils },
+    { alias: '~registry', fileConfig: config.paths.registry },
+    { alias: '~test-utils', fileConfig: config.paths.testUtils },
+    { alias: '~host', fileConfig: config.paths.host },
+    { alias: '~types', fileConfig: config.paths.types },
+  ];
+
+  let result = content;
+  for (const { alias, fileConfig } of replacements) {
+    // If alias is defined in config, use it
+    if (fileConfig.alias) {
+      result = result.replace(new RegExp(alias, 'g'), fileConfig.alias);
+    } else {
+      // Calculate relative path from current file to target file
+      const currentDir = path.dirname(currentFilePath);
+      const targetPath = path.resolve(process.cwd(), fileConfig.path);
+      const relativePath = path.relative(currentDir, targetPath)
+        .replace(/\.ts$/, '')
+        .replace(/\\/g, '/');
+      
+      result = result.replace(new RegExp(alias, 'g'), relativePath);
+    }
+  }
+  
+  return result;
 }
 
 async function installBehavior(
@@ -156,20 +180,20 @@ async function installBehavior(
 
     // Determine target directory based on file type/path
     if (file.path === "behavior-utils.ts") {
-      targetDir = path.dirname(config.paths.utils);
-      fileName = path.basename(config.paths.utils);
+      targetDir = path.dirname(config.paths.utils.path);
+      fileName = path.basename(config.paths.utils.path);
     } else if (file.path === "types.ts") {
-      targetDir = path.dirname(config.paths.types);
-      fileName = path.basename(config.paths.types);
+      targetDir = path.dirname(config.paths.types.path);
+      fileName = path.basename(config.paths.types.path);
     } else if (file.path === "behavior-registry.ts") {
-      targetDir = path.dirname(config.paths.registry);
-      fileName = path.basename(config.paths.registry);
+      targetDir = path.dirname(config.paths.registry.path);
+      fileName = path.basename(config.paths.registry.path);
     } else if (file.path === "behavioral-host.ts") {
-      targetDir = path.dirname(config.paths.host);
-      fileName = path.basename(config.paths.host);
+      targetDir = path.dirname(config.paths.host.path);
+      fileName = path.basename(config.paths.host.path);
     } else if (file.path === "command-test-harness.ts") {
-      targetDir = path.dirname(config.paths.testUtils);
-      fileName = path.basename(config.paths.testUtils);
+      targetDir = path.dirname(config.paths.testUtils.path);
+      fileName = path.basename(config.paths.testUtils.path);
     }
 
     // Resolve absolute path
@@ -208,7 +232,7 @@ async function installBehavior(
     }
 
     // Rewrite imports
-    content = rewriteImports(content, config);
+    content = rewriteImports(content, config, filePath);
 
     // Platform specific adjustments
     if (file.path === "behavior-utils.ts") {
@@ -524,6 +548,7 @@ export async function main() {
 
     let validatorChoice: PackageName;
     let pathChoice: string;
+    let useAliases: boolean;
 
     // Check for --defaults flag
     if (flags.defaults || flags.d) {
@@ -532,10 +557,12 @@ export async function main() {
         ? (flags.validator as PackageName)
         : "zod";
       pathChoice = flags.path ? (flags.path as string) : detected.suggestedPath;
+      // Default to aliases unless explicitly disabled
+      useAliases = !flags["no-aliases"];
 
-      console.log(`✓ Using defaults: ${validatorChoice}, ${pathChoice}`);
+      console.log(`✓ Using defaults: ${validatorChoice}, ${pathChoice}, aliases: ${useAliases}`);
     } else {
-      // Interactive mode - ask 2 questions
+      // Interactive mode - ask 3 questions
       const validatorChoices = [
         { title: "Zod (recommended)", value: "zod" },
         { title: "Valibot (smallest)", value: "valibot" },
@@ -558,10 +585,16 @@ export async function main() {
           message: "Where would you like to install behaviors?",
           initial: detected.suggestedPath,
         },
+        {
+          type: "confirm",
+          name: "useAliases",
+          message: "Use path aliases (e.g., @/types) for cleaner imports?",
+          initial: true,
+        },
       ]);
 
       // Handle user cancellation
-      if (!response.validator || !response.path) {
+      if (!response.validator || !response.path || response.useAliases === undefined) {
         console.log("Init cancelled.");
         process.exit(1);
       }
@@ -570,6 +603,7 @@ export async function main() {
         ? (flags.validator as PackageName)
         : response.validator;
       pathChoice = flags.path ? (flags.path as string) : response.path;
+      useAliases = flags["no-aliases"] ? false : response.useAliases;
     }
 
     // Override TypeScript detection if --no-ts flag is present
@@ -580,23 +614,31 @@ export async function main() {
       ? (flags.pm as string)
       : detected.packageManager;
 
-    // Create unified config
+    // Create unified config with paths and optional aliases
     const config: Config = {
       validator: validatorChoice,
       paths: {
         behaviors: pathChoice,
-        utils: path.join(pathChoice, "../behavior-utils.ts"),
-        registry: path.join(pathChoice, "behavior-registry.ts"),
-        testUtils: "tests/utils/command-test-harness.ts",
-        host: path.join(pathChoice, "../behavioral-host.ts"),
-        types: path.join(pathChoice, "../types.ts"),
-      },
-      aliases: {
-        utils: "@/behavior-utils",
-        registry: "@/behavior-registry",
-        testUtils: "@/test-utils",
-        host: "@/behavioral-host",
-        types: "@/types",
+        utils: {
+          path: path.join(pathChoice, "../behavior-utils.ts"),
+          ...(useAliases && { alias: "@/behavior-utils" }),
+        },
+        registry: {
+          path: path.join(pathChoice, "behavior-registry.ts"),
+          ...(useAliases && { alias: "@/behavior-registry" }),
+        },
+        testUtils: {
+          path: "tests/utils/command-test-harness.ts",
+          ...(useAliases && { alias: "@/test-utils" }),
+        },
+        host: {
+          path: path.join(pathChoice, "../behavioral-host.ts"),
+          ...(useAliases && { alias: "@/behavioral-host" }),
+        },
+        types: {
+          path: path.join(pathChoice, "../types.ts"),
+          ...(useAliases && { alias: "@/types" }),
+        },
       },
     };
 
@@ -618,6 +660,42 @@ export async function main() {
     // Detect platform once
     const platform = detectAndValidatePlatform();
     await installBehavior("core", config, validatorChoice, platform);
+    
+    // Show next steps
+    console.log("");
+    console.log("✅ Initialization complete!");
+    if (useAliases) {
+      console.log("");
+      console.log("⚠️  Next step: Configure path aliases in tsconfig.json:");
+      console.log("");
+      console.log('  "compilerOptions": {');
+      console.log('    "baseUrl": ".",');
+      console.log('    "paths": {');
+      
+      // Generate paths dynamically from config
+      const pathEntries = [
+        { alias: config.paths.types.alias, path: config.paths.types.path },
+        { alias: config.paths.utils.alias, path: config.paths.utils.path },
+        { alias: config.paths.registry.alias, path: config.paths.registry.path },
+        { alias: config.paths.host.alias, path: config.paths.host.path },
+        { alias: config.paths.testUtils.alias, path: config.paths.testUtils.path },
+      ];
+      
+      pathEntries.forEach(({ alias, path: filePath }, index) => {
+        if (alias) {
+          const comma = index < pathEntries.length - 1 ? ',' : '';
+          // Remove .ts extension for tsconfig paths
+          const pathWithoutExt = filePath.replace(/\.ts$/, '');
+          console.log(`      "${alias}": ["./${pathWithoutExt}"]${comma}`);
+        }
+      });
+      
+      console.log('    }');
+      console.log('  }');
+      console.log("");
+      console.log("📖 See: https://www.typescriptlang.org/tsconfig#paths");
+    }
+    
     process.exit(0);
   }
 
@@ -670,7 +748,7 @@ export async function main() {
 
     // Always ensure core is installed (check registry file existence)
     if (behaviorName !== "core") {
-      const registryPath = path.resolve(process.cwd(), config.paths.registry);
+      const registryPath = path.resolve(process.cwd(), config.paths.registry.path);
       if (!fs.existsSync(registryPath)) {
         console.log("Core files not found. Installing core...");
         await installBehavior("core", config, validatorChoice, platform);
@@ -690,7 +768,7 @@ export async function main() {
   console.error("Usage: behavior-fn <command> [args]");
   console.error("Commands:");
   console.error(
-    "  init                   Initialize the behavior registry (installs core files)",
+    "  init [options]         Initialize the behavior registry (installs core files)",
   );
   console.error(
     "  create <behavior-name> Create a new behavior (scaffolds files in registry)",
@@ -701,6 +779,14 @@ export async function main() {
   );
   console.error(
     "                         Add a specific behavior to your project",
+  );
+  console.error("");
+  console.error("Options for 'init' command:");
+  console.error(
+    "  -d, --defaults         Use default options without prompts",
+  );
+  console.error(
+    "  --no-aliases           Use relative imports instead of path aliases",
   );
   console.error("");
   console.error("Options for 'add' command:");

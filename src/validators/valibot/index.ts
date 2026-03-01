@@ -78,15 +78,12 @@ function transformToValibot(schema: AttributeSchema): string {
   }
 
   const runtimeSchema = schema as unknown as JSONSchemaObject;
-  const keys = Object.keys(runtimeSchema.properties);
 
   return `import * as v from "valibot";
+import { type InferSchema } from "~types";
 
 export const schema = ${parseObject(runtimeSchema)};
-export type Schema = v.InferOutput<typeof schema>;
-export const validate = (data: unknown) => v.parse(schema, data);
-export const safeValidate = (data: unknown) => v.safeParse(schema, data);
-export const observedAttributes = ${JSON.stringify(keys)} as const;
+export type Schema = InferSchema<typeof schema>;
 `;
 }
 
