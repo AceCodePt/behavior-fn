@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Add CLI Reapply Command](docs/tasks/cli-reapply-command/task.md)
 - [-] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
 - [-] [Add CLI Command to List Available Behaviors](docs/tasks/list-existing-behaviors/task.md)
 - [-] [Migrate CLI to Schema-First Architecture (TypeBox)](docs/tasks/cli-schema-first-architecture/task.md)
