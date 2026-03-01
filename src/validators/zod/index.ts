@@ -99,8 +99,7 @@ function transformToZod(schema: AttributeSchema): string {
   const runtimeSchema = schema as unknown as JSONSchemaObject;
   const keys = Object.keys(runtimeSchema.properties);
 
-  return `import { z } from "zod";
-import { type InferSchema } from "~types";
+  return `import { type InferSchema } from "~types";
 
 export const schema = ${parseObject(runtimeSchema)};
 export type Schema = InferSchema<typeof schema>;
@@ -134,7 +133,6 @@ export class ZodValidator implements Validator {
 
   getTypesFileContent(): string {
     return `import { type StandardSchemaV1 } from "@standard-schema/spec";
-import { z } from "zod";
 
 /**
  * Universal schema inference helper.

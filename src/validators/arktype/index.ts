@@ -71,8 +71,7 @@ function transformToArkType(schema: AttributeSchema): string {
 
   const runtimeSchema = schema as unknown as JSONSchemaObject;
 
-  return `import { type } from "arktype";
-import { type InferSchema } from "~types";
+  return `import { type InferSchema } from "~types";
 
 export const schema = ${parseObject(runtimeSchema)};
 export type Schema = InferSchema<typeof schema>;
@@ -106,7 +105,7 @@ export class ArkTypeValidator implements Validator {
   }
 
   getUtilsImports(): string {
-    return ``;
+    return `import { type } from "arktype";`;
   }
 
   getTypesFileContent(): string {

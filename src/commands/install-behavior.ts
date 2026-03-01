@@ -88,7 +88,9 @@ export async function installBehavior(
         );
         const mod = await jiti.import<{ schema?: AttributeSchema }>(schemaPath);
         if (mod.schema) {
-          content = validator.transformSchema(mod.schema, content);
+          const schemaContent = validator.transformSchema(mod.schema, content);
+          const imports = validator.getUtilsImports();
+          content = imports ? `${imports}\n${schemaContent}` : schemaContent;
         }
       } catch (e) {
         console.warn(`Failed to transform schema for ${file.path}:`, e);
@@ -145,7 +147,9 @@ export async function installBehavior(
 
     // Transform types.ts based on validator
     if (file.path === "types.ts") {
-      content = validator.getTypesFileContent();
+      const typesContent = validator.getTypesFileContent();
+      const imports = validator.getUtilsImports();
+      content = imports ? `${imports}\n${typesContent}` : typesContent;
     }
 
     // Ensure all parent directories exist before writing
