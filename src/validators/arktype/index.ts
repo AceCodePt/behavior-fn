@@ -19,6 +19,17 @@ function transformToArkType(schema: AttributeSchema): string {
 
     if ('type' in s && s.type === 'boolean') return '"boolean"';
 
+    // Arrays
+    if (s.type === 'array' && s.items) {
+      const itemsCode = parse(s.items);
+      // If items is a primitive (starts with " and has no |), use simple array syntax
+      if (itemsCode.startsWith('"') && !itemsCode.includes(' | ')) {
+        return `${itemsCode}[]`;
+      }
+      // For complex types (objects, unions), wrap in parentheses
+      return `(${itemsCode})[]`;
+    }
+
     // Objects (Nested - recursive)
     if (s.type === 'object' && s.properties) {
       const props = Object.entries(s.properties)
@@ -31,9 +42,16 @@ function transformToArkType(schema: AttributeSchema): string {
       return `type({\n${props}\n  })`;
     }
 
+    // Enums (anyOf with const - MUST come before unions!)
     if (s.enum || (s.anyOf && s.anyOf[0]?.const)) {
       const values = s.enum || s.anyOf?.map((x) => x.const!);
       return (values || []).map((v) => `'${v}'`).join(' | ');
+    }
+
+    // Unions (anyOf without const)
+    if (s.anyOf) {
+      const variants = s.anyOf.map(variant => parse(variant));
+      return variants.join(' | ');
     }
     
     // Fallback - should not reach here with proper AttributeSchema
