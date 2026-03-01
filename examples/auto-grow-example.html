@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto-Grow Behavior Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    
+    .example {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    
+    .example h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      color: #555;
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+    
+    .fixed-height {
+      height: 100px;
+      resize: vertical;
+    }
+    
+    .info {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    code {
+      background: #e8e8e8;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Auto-Grow Textarea Behavior</h1>
+  <p class="subtitle">Compare standard textarea with auto-grow behavior</p>
+
+  <div class="example">
+    <h2>❌ Standard Textarea (Fixed Height)</h2>
+    <textarea 
+      class="fixed-height"
+      placeholder="This textarea has a fixed height. Try typing multiple lines and notice the scrollbar appears..."
+    ></textarea>
+    <p class="info">Notice how you need to scroll to see all content when typing multiple lines.</p>
+  </div>
+
+  <div class="example">
+    <h2>✅ Auto-Grow Textarea</h2>
+    <textarea 
+      is="behavioral-auto-grow"
+      behavior="auto-grow"
+      placeholder="This textarea automatically grows! Try typing multiple lines and watch it expand..."
+    ></textarea>
+    <p class="info">This textarea automatically adjusts its height to fit the content - no scrolling needed!</p>
+  </div>
+
+  <div class="example">
+    <h2>📝 How to Use</h2>
+    <pre><code>&lt;textarea 
+  is="behavioral-auto-grow"
+  behavior="auto-grow"
+  placeholder="Type here..."
+&gt;&lt;/textarea&gt;</code></pre>
+    <p class="info">
+      Just add <code>is="behavioral-auto-grow"</code> and <code>behavior="auto-grow"</code> 
+      attributes to any textarea element!
+    </p>
+  </div>
+
+  <script type="module">
+    // Import the behavior
+    import { registerBehavior, defineBehavioralHost } from '../registry/behaviors/behavior-registry.ts';
+    import { autoGrowBehaviorFactory } from '../registry/behaviors/auto-grow/behavior.ts';
+    import definition from '../registry/behaviors/auto-grow/_behavior-definition.ts';
+    import { getObservedAttributes } from '../registry/behaviors/behavior-utils.ts';
+
+    // Register the behavior
+    registerBehavior(definition, autoGrowBehaviorFactory);
+
+    // Define the behavioral host for textarea
+    const observedAttributes = getObservedAttributes(definition.schema);
+    defineBehavioralHost('textarea', 'behavioral-auto-grow', observedAttributes);
+
+    console.log('✅ Auto-grow behavior registered and ready!');
+  </script>
+</body>
+</html>
