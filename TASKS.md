@@ -46,6 +46,9 @@ This file is managed via **Optimistic Concurrency**.
 
 - [x] [Implement Set-Value Behavior](docs/tasks/set-value-behavior/task.md)
 - [x] [Fix Failing Tests](docs/tasks/fix-failing-tests/task.md)
+- [ ] [Standardize on Tilde (~) Aliases Across CLI and Registry](docs/tasks/standardize-tilde-aliases/task.md)
+- [-] [Implement Set-Value Behavior](docs/tasks/set-value-behavior/task.md)
+- [-] [Fix Failing Tests](docs/tasks/fix-failing-tests/task.md)
 - [x] [Implement Auto-Grow Behavior](docs/tasks/auto-grow-behavior/task.md)
 - [x] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
 - [x] [Add CLI Reapply Command](docs/tasks/cli-reapply-command/task.md)
