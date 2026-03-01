@@ -125,6 +125,9 @@ export function defineBehavioralHost<K extends TagName>(
   tagName: K,
   name?: string,
   observedAttributes: string[] = [],
+  factory?: <T extends Constructor<HTMLElement & EventInterceptors>>(
+    Base: T,
+  ) => T,
 ) {
   const customElementName = name || `behavioral-${tagName}`;
 
@@ -133,7 +136,12 @@ export function defineBehavioralHost<K extends TagName>(
   }
 
   // Define the component using auto-wc
-  defineAutoWebComponent(customElementName, tagName, withBehaviors, {
-    observedAttributes: observedAttributes,
-  });
+  defineAutoWebComponent(
+    customElementName,
+    tagName,
+    (base) => (factory ? withBehaviors(factory(base)) : withBehaviors(base)),
+    {
+      observedAttributes: observedAttributes,
+    },
+  );
 }
