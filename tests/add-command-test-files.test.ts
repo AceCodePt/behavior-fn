@@ -24,14 +24,26 @@ describe("behavior-fn add - test files option", () => {
       validator: "zod",
       paths: {
         behaviors: "src/behaviors",
-        utils: "src/behavior-utils.ts",
-        registry: "src/behaviors/behavior-registry.ts",
-        testUtils: "tests/utils/command-test-harness.ts",
-      },
-      aliases: {
-        utils: "@/behavior-utils",
-        registry: "@/behaviors/behavior-registry",
-        testUtils: "@/tests/utils/command-test-harness",
+        utils: {
+          path: "src/behavior-utils.ts",
+          alias: "~utils",
+        },
+        registry: {
+          path: "src/behaviors/behavior-registry.ts",
+          alias: "~registry",
+        },
+        testUtils: {
+          path: "tests/utils/command-test-harness.ts",
+          alias: "~test-utils",
+        },
+        host: {
+          path: "src/behavioral-host.ts",
+          alias: "~host",
+        },
+        types: {
+          path: "src/types.ts",
+          alias: "~types",
+        },
       },
     };
     fs.writeFileSync(configFile, JSON.stringify(config, null, 2));

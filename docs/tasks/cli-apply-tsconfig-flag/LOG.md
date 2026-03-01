@@ -68,7 +68,7 @@ This is a **CLI Command** - it extends the CLI infrastructure with a new command
    - Read `behavior.config.json` to get configured paths
    - Extract aliases from `config.paths.*.alias` (only if defined)
    - Remove `.ts` extension for tsconfig format
-   - Map to tsconfig `paths` format: `{ "@/behavior-registry": ["./path/to/registry"] }`
+   - Map to tsconfig `paths` format: `{ "~registry": ["./path/to/registry"] }`
    - If no alias is defined in config, skip that path (user opted for relative imports)
 
 ## Implementation Plan
@@ -372,7 +372,7 @@ function extractPathAliases(config: Config): Record<string, string[]> {
 **Solution**: Adjusted test regex to accept variable-width minute field: `/\.tsconfig\.backup\.\d{4}-\d{2}-\d{2}-\d{2}-\d{1,2}\.json$/`
 
 ### Challenge 3: Correct Alias Extraction from Config
-**Problem**: Initial implementation incorrectly used hardcoded `~registry`, `~utils` etc. aliases, but these are internal to the registry. User configs use `@/` prefixes (e.g., `@/behavior-registry`).
+**Problem**: Initial implementation incorrectly used hardcoded `~registry`, `~utils` etc. aliases without reading from config.
 
 **Solution**: 
 1. Modified `extractPathAliases()` to only extract aliases that are actually defined in `config.paths.*.alias`
@@ -380,7 +380,7 @@ function extractPathAliases(config: Config): Record<string, string[]> {
 3. Added `baseUrl: "."` only when aliases are present
 4. If user chose `--no-aliases` during init, no paths are added to tsconfig
 
-**Key Insight**: The `~` aliases are used **within registry behavior files** for cross-referencing core files. The `@/` aliases are what users configure for their own imports.
+**Key Insight**: The `~` aliases are the BehaviorFN standard convention used consistently in both registry source code and user-installed behaviors. This creates perfect consistency across the entire ecosystem.
 
 ### Challenge 4: Preserving User Settings During Merge
 **Problem**: How to merge BehaviorFN requirements without overwriting user preferences?

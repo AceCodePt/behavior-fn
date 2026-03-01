@@ -363,23 +363,23 @@ describe("CLI (index.ts)", () => {
             behaviors: "src/behaviors",
             utils: {
               path: "src/utils.ts",
-              alias: "@/utils",
+              alias: "~utils",
             },
             registry: {
               path: "src/registry.ts",
-              alias: "@/registry",
+              alias: "~registry",
             },
             testUtils: {
               path: "src/test-utils.ts",
-              alias: "@/test-utils",
+              alias: "~test-utils",
             },
             host: {
               path: "src/host.ts",
-              alias: "@/host",
+              alias: "~host",
             },
             types: {
               path: "src/types.ts",
-              alias: "@/types",
+              alias: "~types",
             },
           },
         });

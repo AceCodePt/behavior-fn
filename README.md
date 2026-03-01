@@ -168,11 +168,11 @@ The generated `behavior.config.json` includes optional path aliases for cleaner 
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@/types": ["./src/types"],
-      "@/behavior-utils": ["./src/behavior-utils"],
-      "@/behavior-registry": ["./src/behaviors/behavior-registry"],
-      "@/behavioral-host": ["./src/behavioral-host"],
-      "@/test-utils": ["./tests/utils/command-test-harness"]
+      "~types": ["./src/types"],
+      "~utils": ["./src/behavior-utils"],
+      "~registry": ["./src/behaviors/behavior-registry"],
+      "~host": ["./src/behavioral-host"],
+      "~test-utils": ["./tests/utils/command-test-harness"]
     }
   }
 }
@@ -1053,7 +1053,7 @@ BehaviorFN includes a test harness for behavior testing:
 
 ```typescript
 import { describe, it, expect } from "vitest";
-import { getCommandTestHarness } from "@/test-utils";
+import { getCommandTestHarness } from "~test-utils";
 import { revealBehaviorFactory } from "./behavior";
 
 describe("reveal behavior", () => {

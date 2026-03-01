@@ -14,23 +14,23 @@ describe("Config Schema Validation", () => {
         behaviors: "./src/behaviors",
         utils: {
           path: "./src/behavior-utils.ts",
-          alias: "@/behavior-utils",
+          alias: "~utils",
         },
         registry: {
           path: "./src/behaviors/behavior-registry.ts",
-          alias: "@/behavior-registry",
+          alias: "~registry",
         },
         testUtils: {
           path: "./tests/utils/command-test-harness.ts",
-          alias: "@/test-utils",
+          alias: "~test-utils",
         },
         host: {
           path: "./src/behavioral-host.ts",
-          alias: "@/behavioral-host",
+          alias: "~host",
         },
         types: {
           path: "./src/types.ts",
-          alias: "@/types",
+          alias: "~types",
         },
       },
     };
@@ -45,23 +45,23 @@ describe("Config Schema Validation", () => {
         behaviors: "./src/behaviors",
         utils: {
           path: "./src/behavior-utils.ts",
-          alias: "@/behavior-utils",
+          alias: "~utils",
         },
         registry: {
           path: "./src/behaviors/behavior-registry.ts",
-          alias: "@/behavior-registry",
+          alias: "~registry",
         },
         testUtils: {
           path: "./tests/utils/command-test-harness.ts",
-          alias: "@/test-utils",
+          alias: "~test-utils",
         },
         host: {
           path: "./src/behavioral-host.ts",
-          alias: "@/behavioral-host",
+          alias: "~host",
         },
         types: {
           path: "./src/types.ts",
-          alias: "@/types",
+          alias: "~types",
         },
       },
       optionalFiles: {
@@ -80,11 +80,11 @@ describe("Config Schema Validation", () => {
         validator,
         paths: {
           behaviors: "./src/behaviors",
-          utils: { path: "./src/behavior-utils.ts", alias: "@/behavior-utils" },
-          registry: { path: "./src/behaviors/behavior-registry.ts", alias: "@/behavior-registry" },
-          testUtils: { path: "./tests/utils/command-test-harness.ts", alias: "@/test-utils" },
-          host: { path: "./src/behavioral-host.ts", alias: "@/behavioral-host" },
-          types: { path: "./src/types.ts", alias: "@/types" },
+          utils: { path: "./src/behavior-utils.ts", alias: "~utils" },
+          registry: { path: "./src/behaviors/behavior-registry.ts", alias: "~registry" },
+          testUtils: { path: "./tests/utils/command-test-harness.ts", alias: "~test-utils" },
+          host: { path: "./src/behavioral-host.ts", alias: "~host" },
+          types: { path: "./src/types.ts", alias: "~types" },
         },
       };
 
@@ -104,11 +104,11 @@ describe("Config Schema Validation", () => {
         types: "./src/types.ts",
       },
       aliases: {
-        utils: "@/behavior-utils",
-        registry: "@/behavior-registry",
-        testUtils: "@/test-utils",
-        host: "@/behavioral-host",
-        types: "@/types",
+        utils: "~utils",
+        registry: "~registry",
+        testUtils: "~test-utils",
+        host: "~host",
+        types: "~types",
       },
     };
 
@@ -123,11 +123,11 @@ describe("Config Schema Validation", () => {
         // Missing other required paths
       },
       aliases: {
-        utils: "@/behavior-utils",
-        registry: "@/behavior-registry",
-        testUtils: "@/test-utils",
-        host: "@/behavioral-host",
-        types: "@/types",
+        utils: "~utils",
+        registry: "~registry",
+        testUtils: "~test-utils",
+        host: "~host",
+        types: "~types",
       },
     };
 
@@ -146,7 +146,7 @@ describe("Config Schema Validation", () => {
         types: "./src/types.ts",
       },
       aliases: {
-        utils: "@/behavior-utils",
+        utils: "~utils",
         // Missing other required aliases
       },
     };
@@ -158,11 +158,11 @@ describe("Config Schema Validation", () => {
     const invalid = {
       validator: "zod",
       aliases: {
-        utils: "@/behavior-utils",
-        registry: "@/behavior-registry",
-        testUtils: "@/test-utils",
-        host: "@/behavioral-host",
-        types: "@/types",
+        utils: "~utils",
+        registry: "~registry",
+        testUtils: "~test-utils",
+        host: "~host",
+        types: "~types",
       },
     };
 
@@ -180,11 +180,11 @@ describe("Config Schema Validation", () => {
         types: "./src/types.ts",
       },
       aliases: {
-        utils: "@/behavior-utils",
-        registry: "@/behavior-registry",
-        testUtils: "@/test-utils",
-        host: "@/behavioral-host",
-        types: "@/types",
+        utils: "~utils",
+        registry: "~registry",
+        testUtils: "~test-utils",
+        host: "~host",
+        types: "~types",
       },
     };
 
@@ -294,23 +294,23 @@ describe("validateJson", () => {
         behaviors: "./src/behaviors",
         utils: {
           path: "./src/behavior-utils.ts",
-          alias: "@/behavior-utils",
+          alias: "~utils",
         },
         registry: {
           path: "./src/behaviors/behavior-registry.ts",
-          alias: "@/behavior-registry",
+          alias: "~registry",
         },
         testUtils: {
           path: "./tests/utils/command-test-harness.ts",
-          alias: "@/test-utils",
+          alias: "~test-utils",
         },
         host: {
           path: "./src/behavioral-host.ts",
-          alias: "@/behavioral-host",
+          alias: "~host",
         },
         types: {
           path: "./src/types.ts",
-          alias: "@/types",
+          alias: "~types",
         },
       },
     };
@@ -385,11 +385,11 @@ describe("validateJsonFile", () => {
       validator: "zod",
       paths: {
         behaviors: "./src/behaviors",
-        utils: { path: "./src/behavior-utils.ts", alias: "@/behavior-utils" },
-        registry: { path: "./src/behaviors/behavior-registry.ts", alias: "@/behavior-registry" },
-        testUtils: { path: "./tests/utils/command-test-harness.ts", alias: "@/test-utils" },
-        host: { path: "./src/behavioral-host.ts", alias: "@/behavioral-host" },
-        types: { path: "./src/types.ts", alias: "@/types" },
+        utils: { path: "./src/behavior-utils.ts", alias: "~utils" },
+        registry: { path: "./src/behaviors/behavior-registry.ts", alias: "~registry" },
+        testUtils: { path: "./tests/utils/command-test-harness.ts", alias: "~test-utils" },
+        host: { path: "./src/behavioral-host.ts", alias: "~host" },
+        types: { path: "./src/types.ts", alias: "~types" },
       },
     };
 

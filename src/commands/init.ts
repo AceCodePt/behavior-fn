@@ -92,7 +92,7 @@ export async function initCommand(
       {
         type: "confirm",
         name: "useAliases",
-        message: "Use path aliases (e.g., @/types) for cleaner imports?",
+        message: "Use path aliases (e.g., ~types) for cleaner imports?",
         initial: true,
       },
     ]);
@@ -125,23 +125,23 @@ export async function initCommand(
       behaviors: pathChoice,
       utils: {
         path: path.join(pathChoice, "../behavior-utils.ts"),
-        ...(useAliases && { alias: "@/behavior-utils" }),
+        ...(useAliases && { alias: "~utils" }),
       },
       registry: {
         path: path.join(pathChoice, "behavior-registry.ts"),
-        ...(useAliases && { alias: "@/behavior-registry" }),
+        ...(useAliases && { alias: "~registry" }),
       },
       testUtils: {
         path: "tests/utils/command-test-harness.ts",
-        ...(useAliases && { alias: "@/test-utils" }),
+        ...(useAliases && { alias: "~test-utils" }),
       },
       host: {
         path: path.join(pathChoice, "../behavioral-host.ts"),
-        ...(useAliases && { alias: "@/behavioral-host" }),
+        ...(useAliases && { alias: "~host" }),
       },
       types: {
         path: path.join(pathChoice, "../types.ts"),
-        ...(useAliases && { alias: "@/types" }),
+        ...(useAliases && { alias: "~types" }),
       },
     },
   };

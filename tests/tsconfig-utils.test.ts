@@ -251,22 +251,22 @@ describe("TypeScript Config Utilities", () => {
         validator: "zod",
         paths: {
           behaviors: "./src/behaviors",
-          utils: { path: "src/behavior-utils.ts", alias: "@/behavior-utils" },
-          registry: { path: "src/behaviors/behavior-registry.ts", alias: "@/behavior-registry" },
-          testUtils: { path: "tests/utils/command-test-harness.ts", alias: "@/test-utils" },
-          host: { path: "src/behavioral-host.ts", alias: "@/behavioral-host" },
-          types: { path: "src/types.ts", alias: "@/types" },
+          utils: { path: "src/behavior-utils.ts", alias: "~utils" },
+          registry: { path: "src/behaviors/behavior-registry.ts", alias: "~registry" },
+          testUtils: { path: "tests/utils/command-test-harness.ts", alias: "~test-utils" },
+          host: { path: "src/behavioral-host.ts", alias: "~host" },
+          types: { path: "src/types.ts", alias: "~types" },
         },
       };
 
       const aliases = extractPathAliases(config);
 
       expect(aliases).toEqual({
-        "@/behavior-registry": ["./src/behaviors/behavior-registry"],
-        "@/behavioral-host": ["./src/behavioral-host"],
-        "@/behavior-utils": ["./src/behavior-utils"],
-        "@/test-utils": ["./tests/utils/command-test-harness"],
-        "@/types": ["./src/types"],
+        "~registry": ["./src/behaviors/behavior-registry"],
+        "~host": ["./src/behavioral-host"],
+        "~utils": ["./src/behavior-utils"],
+        "~test-utils": ["./tests/utils/command-test-harness"],
+        "~types": ["./src/types"],
       });
     });
 
@@ -275,10 +275,10 @@ describe("TypeScript Config Utilities", () => {
         validator: "zod",
         paths: {
           behaviors: "./src/behaviors",
-          utils: { path: "src/behavior-utils.ts", alias: "@/behavior-utils" },
+          utils: { path: "src/behavior-utils.ts", alias: "~utils" },
           registry: { path: "src/behaviors/behavior-registry.ts" }, // No alias
           testUtils: { path: "tests/utils/command-test-harness.ts" }, // No alias
-          host: { path: "src/behavioral-host.ts", alias: "@/behavioral-host" },
+          host: { path: "src/behavioral-host.ts", alias: "~host" },
           types: { path: "src/types.ts" }, // No alias
         },
       };
@@ -286,8 +286,8 @@ describe("TypeScript Config Utilities", () => {
       const aliases = extractPathAliases(config);
 
       expect(aliases).toEqual({
-        "@/behavior-utils": ["./src/behavior-utils"],
-        "@/behavioral-host": ["./src/behavioral-host"],
+        "~utils": ["./src/behavior-utils"],
+        "~host": ["./src/behavioral-host"],
       });
     });
 
@@ -296,22 +296,22 @@ describe("TypeScript Config Utilities", () => {
         validator: "zod",
         paths: {
           behaviors: "./src/behaviors",
-          utils: { path: "src/utils.ts", alias: "@/utils" },
-          registry: { path: "src/registry.ts", alias: "@/registry" },
-          testUtils: { path: "tests/test-utils.ts", alias: "@/test-utils" },
-          host: { path: "src/host.ts", alias: "@/host" },
-          types: { path: "src/types.ts", alias: "@/types" },
+          utils: { path: "src/utils.ts", alias: "~utils" },
+          registry: { path: "src/registry.ts", alias: "~registry" },
+          testUtils: { path: "tests/test-utils.ts", alias: "~test-utils" },
+          host: { path: "src/host.ts", alias: "~host" },
+          types: { path: "src/types.ts", alias: "~types" },
         },
       };
 
       const aliases = extractPathAliases(config);
 
       // All paths should have .ts removed
-      expect(aliases["@/utils"]).toEqual(["./src/utils"]);
-      expect(aliases["@/registry"]).toEqual(["./src/registry"]);
-      expect(aliases["@/test-utils"]).toEqual(["./tests/test-utils"]);
-      expect(aliases["@/host"]).toEqual(["./src/host"]);
-      expect(aliases["@/types"]).toEqual(["./src/types"]);
+      expect(aliases["~utils"]).toEqual(["./src/utils"]);
+      expect(aliases["~registry"]).toEqual(["./src/registry"]);
+      expect(aliases["~test-utils"]).toEqual(["./tests/test-utils"]);
+      expect(aliases["~host"]).toEqual(["./src/host"]);
+      expect(aliases["~types"]).toEqual(["./src/types"]);
     });
   });
 
@@ -321,11 +321,11 @@ describe("TypeScript Config Utilities", () => {
         validator: "zod",
         paths: {
           behaviors: "./src/behaviors",
-          utils: { path: "src/utils.ts", alias: "@/utils" },
-          registry: { path: "src/registry.ts", alias: "@/registry" },
-          testUtils: { path: "tests/test-utils.ts", alias: "@/test-utils" },
-          host: { path: "src/host.ts", alias: "@/host" },
-          types: { path: "src/types.ts", alias: "@/types" },
+          utils: { path: "src/utils.ts", alias: "~utils" },
+          registry: { path: "src/registry.ts", alias: "~registry" },
+          testUtils: { path: "tests/test-utils.ts", alias: "~test-utils" },
+          host: { path: "src/host.ts", alias: "~host" },
+          types: { path: "src/types.ts", alias: "~types" },
         },
       };
 
