@@ -180,6 +180,24 @@ The generated `behavior.config.json` includes optional path aliases for cleaner 
 
 > **Note:** If you don't configure aliases, the CLI will generate relative imports instead (e.g., `../../types`). You can also remove the `alias` fields from `behavior.config.json` to always use relative imports.
 
+### List Available Behaviors
+
+```bash
+# npm
+npx behavior-fn list
+
+# pnpm
+pnpm dlx behavior-fn list
+
+# bun
+bunx behavior-fn list
+
+# yarn
+yarn dlx behavior-fn list
+```
+
+This displays all available behaviors in the registry with their attributes and commands. Use `--json` flag for machine-readable output.
+
 ### Add a Behavior
 
 ```bash
