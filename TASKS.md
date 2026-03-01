@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Refactor `commands` to `command` Throughout Project](docs/tasks/refactor-commands-to-command/task.md)
 - [-] [Fix Zod Mini Imports Mismatch in getObservedAttributes](docs/tasks/fix-zod-mini-imports-mismatch/task.md)
 - [x] [Standardize on Tilde (~) Aliases Across CLI and Registry](docs/tasks/standardize-tilde-aliases/task.md)
 - [x] [Implement Set-Value Behavior](docs/tasks/set-value-behavior/task.md)
