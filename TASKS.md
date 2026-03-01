@@ -44,6 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
+- [ ] [Implement Auto-Grow Behavior](docs/tasks/auto-grow-behavior/task.md)
 - [ ] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
 - [-] [Add CLI Reapply Command](docs/tasks/cli-reapply-command/task.md)
 - [-] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
