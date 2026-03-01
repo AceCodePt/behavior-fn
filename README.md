@@ -482,6 +482,61 @@ Set or modify attributes and properties on elements programmatically.
 
 ---
 
+### 📋 **set-value**
+Set form input values from command sources (typically buttons), useful for auto-complete, templates, and quick-fill workflows.
+
+**Attributes:**
+- None (zero-config behavior)
+
+**Commands:**
+- `--set-value` — Set input value from command source's `innerText`
+- `--set-value-and-submit` — Set value and submit parent form
+
+**Features:**
+- Works only on form input elements (`<input>`, `<textarea>`, `<select>`)
+- Throws error if attached to non-form elements
+- Dispatches both `input` and `change` events to trigger reactive systems
+- Uses `requestSubmit()` for form submission (respects validation)
+- Button's `innerText` becomes the input value
+
+**Example:**
+```html
+<!-- Suggestion buttons set textarea value -->
+<div>
+  <button commandfor="message" command="--set-value">Thanks for your help!</button>
+  <button commandfor="message" command="--set-value">I'll get back to you soon.</button>
+  <button commandfor="message" command="--set-value-and-submit">Looks good to me!</button>
+</div>
+
+<form>
+  <textarea 
+    is="behavioral-set-value"
+    id="message"
+    behavior="set-value"
+    placeholder="Type a message or use a template..."
+  ></textarea>
+  <button type="submit">Send</button>
+</form>
+```
+
+**Common Use Cases:**
+- Auto-complete or suggestion systems (click to fill)
+- Template insertion (canned responses in chat)
+- Quick-fill buttons for common form values
+- Copy-paste workflows with visual feedback
+
+**How It Works:**
+1. Button with `commandfor="input-id"` dispatches command event
+2. Behavior reads button's `innerText` and sets it as input value
+3. Dispatches `input` and `change` events for reactive updates
+4. If `--set-value-and-submit` is used and input has parent form, calls `form.requestSubmit()`
+
+**Browser Compatibility:**
+- All modern browsers with Custom Elements support
+- Works with native Invoker Commands API or polyfill
+
+---
+
 ### 🧮 **compute**
 Reactive computed values from watched inputs with mathematical formulas.
 

@@ -14,6 +14,7 @@ export interface BehaviorInstance extends Partial<EventInterceptors> {
     oldValue: string | null,
     newValue: string | null,
   ): void;
+  onCommand?(e: CommandEvent): void;
 }
 
 export type BehaviorFactory = (el: HTMLElement) => BehaviorInstance;
