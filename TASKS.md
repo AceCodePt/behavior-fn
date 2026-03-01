@@ -47,7 +47,7 @@ This file is managed via **Optimistic Concurrency**.
 - [x] [Implement Set-Value Behavior](docs/tasks/set-value-behavior/task.md)
 - [x] [Fix Failing Tests](docs/tasks/fix-failing-tests/task.md)
 - [x] [Implement Auto-Grow Behavior](docs/tasks/auto-grow-behavior/task.md)
-- [-] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
+- [x] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
 - [x] [Add CLI Reapply Command](docs/tasks/cli-reapply-command/task.md)
 - [x] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
 - [x] [Add CLI Command to List Available Behaviors](docs/tasks/list-existing-behaviors/task.md)
