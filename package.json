@@ -49,9 +49,9 @@
 	"homepage": "https://github.com/AceCodePt/behavior-fn#readme",
 	"devDependencies": {
 		"@sinclair/typebox": "^0.34.48",
-		"@types/node": "^25.2.3",
+		"@types/node": "^25.3.3",
 		"@types/prompts": "^2.4.9",
-		"auto-wc": "^0.1.4",
+		"auto-wc": "^0.1.6",
 		"esbuild": "^0.27.3",
 		"jsdom": "^28.1.0",
 		"tsup": "^8.5.1",
