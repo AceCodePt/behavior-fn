@@ -150,6 +150,24 @@
     ]
   },
   {
+    "name": "set-value",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "set-value/_behavior-definition.ts"
+      },
+      {
+        "path": "set-value/schema.ts"
+      },
+      {
+        "path": "set-value/behavior.ts"
+      },
+      {
+        "path": "set-value/behavior.test.ts"
+      }
+    ]
+  },
+  {
     "name": "request",
     "dependencies": [],
     "files": [

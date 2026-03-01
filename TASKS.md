@@ -44,7 +44,7 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [-] [Implement Set-Value Behavior](docs/tasks/set-value-behavior/task.md)
+- [x] [Implement Set-Value Behavior](docs/tasks/set-value-behavior/task.md)
 - [x] [Fix Failing Tests](docs/tasks/fix-failing-tests/task.md)
 - [x] [Implement Auto-Grow Behavior](docs/tasks/auto-grow-behavior/task.md)
 - [-] [Add CLI Apply TSConfig Flag Command](docs/tasks/cli-apply-tsconfig-flag/task.md)
