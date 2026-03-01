@@ -15,7 +15,7 @@ Fix the import mismatch in `ZodMiniValidator` where `getObservedAttributesCode()
 
 When a user installs behaviors using `zod-mini`, the CLI transforms code as follows:
 
-1. **Schema files** (`schema.ts`): `import * as z from "zod/mini"`
+1. **Schema files** (`schema.ts`): `import { z } from "zod/mini"` (needs update from `* as z`)
 2. **Utils file** (`behavior-utils.ts`): `import { z } from "zod"` ❌
 3. **Types file** (`types.ts`): `import { z } from "zod"` ❌
 
@@ -28,7 +28,7 @@ This creates a runtime mismatch:
 **Root Cause:**
 
 In `src/validators/zod-mini/index.ts`:
-- `transformToZodMini()` correctly uses `import * as z from "zod/mini"` (line 96)
+- `transformToZodMini()` uses `import * as z from "zod/mini"` (line 96) - needs update to named import
 - `getUtilsImports()` incorrectly uses `import { z } from "zod"` (line 126) ❌
 - `getTypesFileContent()` incorrectly uses `import { z } from "zod"` (line 131) ❌
 - `getObservedAttributesCode()` checks `instanceof z.ZodObject` but `z` comes from wrong import ❌
@@ -37,15 +37,16 @@ In `src/validators/zod-mini/index.ts`:
 
 All Zod Mini imports should consistently use `"zod/mini"`:
 ```typescript
-import * as z from "zod/mini";
+import { z } from "zod/mini";
 ```
 
 ## Success Criteria
 
-- [ ] `ZodMiniValidator.getUtilsImports()` uses `import * as z from "zod/mini"`
-- [ ] `ZodMiniValidator.getTypesFileContent()` uses `import * as z from "zod/mini"`
+- [ ] `ZodMiniValidator.transformToZodMini()` uses `import { z } from "zod/mini"` (named import)
+- [ ] `ZodMiniValidator.getUtilsImports()` uses `import { z } from "zod/mini"` (named import)
+- [ ] `ZodMiniValidator.getTypesFileContent()` uses `import { z } from "zod/mini"` (named import)
 - [ ] `getObservedAttributes()` instanceof check works with zod-mini schemas
-- [ ] All zod-mini imports are consistent across schema.ts, behavior-utils.ts, and types.ts
+- [ ] All zod-mini imports use named import `{ z }` style consistently
 - [ ] Existing tests pass
 - [ ] Manual verification: Install a behavior with zod-mini and verify `getObservedAttributes()` extracts keys correctly
 
@@ -67,7 +68,7 @@ import * as z from "zod/mini";
    
    // ✅ Fixed
    getUtilsImports(): string {
-     return `import * as z from "zod/mini";`;
+     return `import { z } from "zod/mini";`;
    }
    ```
 
@@ -81,13 +82,16 @@ import * as z from "zod/mini";
    // ✅ Fixed
    getTypesFileContent(): string {
      return `import { type StandardSchemaV1 } from "@standard-schema/spec";
-   import * as z from "zod/mini";
+   import { z } from "zod/mini";
    ```
 
-3. **Verify `transformToZodMini()`** already correct (line 96):
+3. **Update `transformToZodMini()`** (line 96):
    ```typescript
-   // ✅ Already correct - no changes needed
+   // ❌ Current
    return `import * as z from "zod/mini";
+   
+   // ✅ Fixed
+   return `import { z } from "zod/mini";
    ```
 
 ### Why This Matters
