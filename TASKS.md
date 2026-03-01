@@ -44,8 +44,8 @@ This file is managed via **Optimistic Concurrency**.
 
 ## Backlog
 
-- [ ] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
-- [ ] [Add CLI Command to List Available Behaviors](docs/tasks/list-existing-behaviors/task.md)
+- [-] [Fix Zod Mini Union Type Support](docs/tasks/fix-zod-mini-union-support/task.md)
+- [-] [Add CLI Command to List Available Behaviors](docs/tasks/list-existing-behaviors/task.md)
 - [-] [Migrate CLI to Schema-First Architecture (TypeBox)](docs/tasks/cli-schema-first-architecture/task.md)
 - [x] [Fix Config File Handling and Add Command Issues](docs/tasks/fix-config-and-add-command/task.md)
 - [x] [Remove event-methods.ts Stale Reference](docs/tasks/remove-event-methods-stale-reference/task.md)
