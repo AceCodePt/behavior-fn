@@ -24,6 +24,24 @@
     ]
   },
   {
+    "name": "auto-grow",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "auto-grow/_behavior-definition.ts"
+      },
+      {
+        "path": "auto-grow/schema.ts"
+      },
+      {
+        "path": "auto-grow/behavior.ts"
+      },
+      {
+        "path": "auto-grow/behavior.test.ts"
+      }
+    ]
+  },
+  {
     "name": "content-setter",
     "dependencies": [],
     "files": [
