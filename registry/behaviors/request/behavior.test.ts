@@ -8,7 +8,11 @@ import {
   afterEach,
   beforeAll,
 } from "vitest";
-import { dispatchCommand, createMockResponse, type MockResponse } from "~test-utils";
+import {
+  dispatchCommand,
+  createMockResponse,
+  type MockResponse,
+} from "~test-utils";
 import { getObservedAttributes } from "~utils";
 import { requestBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
@@ -153,7 +157,7 @@ describe("Request Behavior", () => {
 
     await vi.runAllTimersAsync();
 
-    dispatchCommand(el, command["--trigger"]);
+    dispatchCommand(el, command["trigger"]);
     await vi.runAllTimersAsync();
 
     expect(fetch).toHaveBeenCalledWith(
@@ -193,7 +197,10 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.input,
       }) as HTMLInputElement;
       input.setAttribute("behavior", name);
-      input.setAttribute(attributes["request-url"], "http://example.com/update");
+      input.setAttribute(
+        attributes["request-url"],
+        "http://example.com/update",
+      );
       input.setAttribute(attributes["request-method"], "POST");
       input.name = "email";
       input.value = "test@example.com";
@@ -493,14 +500,20 @@ describe("Request Behavior", () => {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el1.setAttribute("behavior", name);
-      el1.setAttribute(attributes["request-url"], "http://example.com/collapsed");
+      el1.setAttribute(
+        attributes["request-url"],
+        "http://example.com/collapsed",
+      );
       el1.setAttribute(attributes["request-trigger"], "load");
 
       const el2 = document.createElement("div", {
         is: TEST_TAGS.div,
       }) as HTMLElement;
       el2.setAttribute("behavior", name);
-      el2.setAttribute(attributes["request-url"], "http://example.com/collapsed");
+      el2.setAttribute(
+        attributes["request-url"],
+        "http://example.com/collapsed",
+      );
       el2.setAttribute(attributes["request-trigger"], "load");
 
       document.body.appendChild(el1);
@@ -653,12 +666,15 @@ describe("Request Behavior", () => {
       }) as HTMLElement;
       el.setAttribute("behavior", name);
       el.setAttribute(attributes["request-url"], "http://example.com/sse");
-      el.setAttribute(attributes["request-trigger"], JSON.stringify([{ event: "sse" }]));
+      el.setAttribute(
+        attributes["request-trigger"],
+        JSON.stringify([{ event: "sse" }]),
+      );
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
 
-      dispatchCommand(el, command["--close-sse"]);
+      dispatchCommand(el, command["close-sse"]);
       expect(mockEventSource.close).toHaveBeenCalled();
     });
 
@@ -668,7 +684,10 @@ describe("Request Behavior", () => {
       }) as HTMLElement;
       el.setAttribute("behavior", name);
       el.setAttribute(attributes["request-url"], "http://example.com/sse");
-      el.setAttribute(attributes["request-trigger"], JSON.stringify([{ event: "sse" }]));
+      el.setAttribute(
+        attributes["request-trigger"],
+        JSON.stringify([{ event: "sse" }]),
+      );
       document.body.appendChild(el);
 
       await vi.runAllTimersAsync();
@@ -874,8 +893,12 @@ describe("Request Behavior", () => {
       el.click();
       await vi.runAllTimersAsync();
 
-      const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
-      expect(updatedScript.textContent).toBe(JSON.stringify({ count: 5 }, null, 2));
+      const updatedScript = document.getElementById(
+        "data-store",
+      ) as HTMLScriptElement;
+      expect(updatedScript.textContent).toBe(
+        JSON.stringify({ count: 5 }, null, 2),
+      );
     });
 
     // New array swap strategies tests
@@ -912,7 +935,9 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 1 }, { id: 2 }, { id: 3, name: "New Item" }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
@@ -949,7 +974,9 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = ["a", "b", "new-string"];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
@@ -970,7 +997,7 @@ describe("Request Behavior", () => {
         const scriptEl = document.createElement("script");
         scriptEl.type = "application/json";
         scriptEl.id = "data-store";
-        scriptEl.textContent = '[]';
+        scriptEl.textContent = "[]";
         document.body.appendChild(scriptEl);
 
         const el = document.createElement("button", {
@@ -986,13 +1013,17 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 1 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
 
       it("should warn when existing data is not an array", async () => {
-        const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarnSpy = vi
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
 
         vi.stubGlobal(
           "fetch",
@@ -1026,10 +1057,14 @@ describe("Request Behavior", () => {
         await vi.runAllTimersAsync();
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("appendToArray requires existing data to be an array"),
+          expect.stringContaining(
+            "appendToArray requires existing data to be an array",
+          ),
         );
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         expect(updatedScript.textContent).toBe('{"existing": "object"}');
       });
     });
@@ -1067,7 +1102,9 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
@@ -1088,7 +1125,7 @@ describe("Request Behavior", () => {
         const scriptEl = document.createElement("script");
         scriptEl.type = "application/json";
         scriptEl.id = "data-store";
-        scriptEl.textContent = '[]';
+        scriptEl.textContent = "[]";
         document.body.appendChild(scriptEl);
 
         const el = document.createElement("button", {
@@ -1104,13 +1141,17 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 1 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
 
       it("should warn when response is not an array", async () => {
-        const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarnSpy = vi
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
 
         vi.stubGlobal(
           "fetch",
@@ -1144,15 +1185,21 @@ describe("Request Behavior", () => {
         await vi.runAllTimersAsync();
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("appendSpreadToArray requires response to be an array"),
+          expect.stringContaining(
+            "appendSpreadToArray requires response to be an array",
+          ),
         );
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         expect(updatedScript.textContent).toBe('[{"id": 0}]');
       });
 
       it("should warn when existing data is not an array", async () => {
-        const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarnSpy = vi
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
 
         vi.stubGlobal(
           "fetch",
@@ -1186,10 +1233,14 @@ describe("Request Behavior", () => {
         await vi.runAllTimersAsync();
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("appendSpreadToArray requires existing data to be an array"),
+          expect.stringContaining(
+            "appendSpreadToArray requires existing data to be an array",
+          ),
         );
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         expect(updatedScript.textContent).toBe('{"existing": "object"}');
       });
     });
@@ -1227,7 +1278,9 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 0, name: "First" }, { id: 1 }, { id: 2 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
@@ -1264,7 +1317,9 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = ["first", "a", "b"];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
@@ -1285,7 +1340,7 @@ describe("Request Behavior", () => {
         const scriptEl = document.createElement("script");
         scriptEl.type = "application/json";
         scriptEl.id = "data-store";
-        scriptEl.textContent = '[]';
+        scriptEl.textContent = "[]";
         document.body.appendChild(scriptEl);
 
         const el = document.createElement("button", {
@@ -1301,13 +1356,17 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 1 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
 
       it("should warn when existing data is not an array", async () => {
-        const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarnSpy = vi
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
 
         vi.stubGlobal(
           "fetch",
@@ -1341,10 +1400,14 @@ describe("Request Behavior", () => {
         await vi.runAllTimersAsync();
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("prependToArray requires existing data to be an array"),
+          expect.stringContaining(
+            "prependToArray requires existing data to be an array",
+          ),
         );
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         expect(updatedScript.textContent).toBe('{"existing": "object"}');
       });
     });
@@ -1382,7 +1445,9 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: -1 }, { id: 0 }, { id: 1 }, { id: 2 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
@@ -1403,7 +1468,7 @@ describe("Request Behavior", () => {
         const scriptEl = document.createElement("script");
         scriptEl.type = "application/json";
         scriptEl.id = "data-store";
-        scriptEl.textContent = '[]';
+        scriptEl.textContent = "[]";
         document.body.appendChild(scriptEl);
 
         const el = document.createElement("button", {
@@ -1419,13 +1484,17 @@ describe("Request Behavior", () => {
         el.click();
         await vi.runAllTimersAsync();
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         const expected = [{ id: 1 }];
         expect(JSON.parse(updatedScript.textContent || "[]")).toEqual(expected);
       });
 
       it("should warn when response is not an array", async () => {
-        const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarnSpy = vi
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
 
         vi.stubGlobal(
           "fetch",
@@ -1459,15 +1528,21 @@ describe("Request Behavior", () => {
         await vi.runAllTimersAsync();
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("prependSpreadToArray requires response to be an array"),
+          expect.stringContaining(
+            "prependSpreadToArray requires response to be an array",
+          ),
         );
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         expect(updatedScript.textContent).toBe('[{"id": 0}]');
       });
 
       it("should warn when existing data is not an array", async () => {
-        const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const consoleWarnSpy = vi
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
 
         vi.stubGlobal(
           "fetch",
@@ -1501,10 +1576,14 @@ describe("Request Behavior", () => {
         await vi.runAllTimersAsync();
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("prependSpreadToArray requires existing data to be an array"),
+          expect.stringContaining(
+            "prependSpreadToArray requires existing data to be an array",
+          ),
         );
 
-        const updatedScript = document.getElementById("data-store") as HTMLScriptElement;
+        const updatedScript = document.getElementById(
+          "data-store",
+        ) as HTMLScriptElement;
         expect(updatedScript.textContent).toBe('{"existing": "object"}');
       });
     });

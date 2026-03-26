@@ -67,10 +67,10 @@ You can dispatch commands from any element using the `dispatchCommand` utility (
 
 ### From a Button (Declarative)
 
-We recommend using a `command-button` or similar abstraction that declaratively dispatches commands on click.
+Use a behavioral host element (`is="behavioral-..."`) with `commandfor` + `command` to declaratively dispatch commands.
 
 ```html
-<button is="command-button" command="--do-something" command-for="my-target-id">
+<button is="behavioral-button" command="do-something" commandfor="my-target-id">
   Do Something
 </button>
 ```
@@ -78,19 +78,25 @@ We recommend using a `command-button` or similar abstraction that declaratively 
 ### Programmatically
 
 ```typescript
-const event = new CustomEvent("command", {
+const event = new Event("command", {
   bubbles: true,
-  detail: {
-    command: "--do-something",
-    payload: { foo: "bar" },
-  },
+  cancelable: true,
+  composed: true,
 });
+
+Object.defineProperty(event, "command", {
+  value: "do-something",
+  enumerable: true,
+});
+Object.defineProperty(event, "source", { value: element, enumerable: true });
 
 element.dispatchEvent(event);
 ```
 
 ## Best Practices
 
-1.  **Namespace Commands:** Use a prefix like `--` to distinguish commands from other strings.
+1.  **Do not prefix with `--`:** Use plain commands like `show`, `hide`, `toggle`.
 2.  **Keep Payloads Simple:** Pass only serializable data in the payload.
-3.  **Use `command-for`:** When possible, target specific elements using the `command-for` attribute to scope the command.
+3.  **Use `commandfor`:** Target specific elements via `commandfor` to scope dispatch.
+4.  **Handle direct targets only in stateful behaviors:** If your behavior changes visibility/state, guard in `onCommand` with `if (event.target !== el) return;` to avoid ancestor side-effects from bubbled command events.
+5.  **Always use a behavioral host on command sources:** Elements with `commandfor` / `command` (and optional `commandby`) must provide `is="behavioral-..."`.

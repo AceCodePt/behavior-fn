@@ -195,15 +195,20 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
       // Get swap strategy
       const swap = getAttr(attributes["request-swap"]) || "innerHTML";
-      
+
       // Check if target is a JSON script tag
       const isScriptTag =
         target instanceof HTMLScriptElement &&
         target.type === "application/json";
 
       // Array manipulation strategies for JSON script tags
-      const arrayStrategies = ["appendToArray", "appendSpreadToArray", "prependToArray", "prependSpreadToArray"];
-      
+      const arrayStrategies = [
+        "appendToArray",
+        "appendSpreadToArray",
+        "prependToArray",
+        "prependSpreadToArray",
+      ];
+
       if (isScriptTag && arrayStrategies.includes(swap)) {
         try {
           // Parse existing JSON
@@ -460,9 +465,9 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
   return {
     onCommand(e: CommandEvent<string>) {
-      if (e.command === command["--trigger"]) {
+      if (e.command === command["trigger"]) {
         handleEvent(e);
-      } else if (e.command === command["--close-sse"]) {
+      } else if (e.command === command["close-sse"]) {
         if (eventSource) {
           eventSource.close();
           eventSource = undefined;
@@ -475,8 +480,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
     disconnectedCallback() {
       cleanup();
     },
-    attributeChangedCallback(
-    ) {
+    attributeChangedCallback() {
       setupListeners();
     },
   };

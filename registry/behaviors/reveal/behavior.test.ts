@@ -62,17 +62,39 @@ describe("Reveal Behavior", () => {
     el.setAttribute("behavior", "reveal");
     document.body.appendChild(el);
 
-    dispatchCommand(el, command["--hide"]);
+    dispatchCommand(el, command["hide"]);
     expect(el.hidden).toBe(true);
 
-    dispatchCommand(el, command["--show"]);
+    dispatchCommand(el, command["show"]);
     expect(el.hidden).toBe(false);
 
-    dispatchCommand(el, command["--toggle"]);
+    dispatchCommand(el, command["toggle"]);
     expect(el.hidden).toBe(true);
 
-    dispatchCommand(el, command["--toggle"]);
+    dispatchCommand(el, command["toggle"]);
     expect(el.hidden).toBe(false);
+  });
+
+  it("should ignore bubbled commands from child targets", async () => {
+    const parent = document.createElement(tag, {
+      is: webcomponentTagForDiv,
+    }) as HTMLElement;
+    parent.setAttribute("behavior", "reveal");
+    parent.hidden = true;
+
+    const child = document.createElement(tag, {
+      is: webcomponentTagForDiv,
+    }) as HTMLElement;
+    child.setAttribute("behavior", "reveal");
+    child.hidden = true;
+
+    parent.appendChild(child);
+    document.body.appendChild(parent);
+
+    dispatchCommand(child, command["toggle"]);
+
+    expect(child.hidden).toBe(false);
+    expect(parent.hidden).toBe(true);
   });
 
   it("should automatically sync ARIA attributes on triggers", async () => {
@@ -80,8 +102,9 @@ describe("Reveal Behavior", () => {
 
     // Create trigger
     const trigger = document.createElement("button");
+    trigger.setAttribute("is", "behavioral-button");
     trigger.setAttribute("commandfor", targetId);
-    trigger.setAttribute("command", command["--toggle"]);
+    trigger.setAttribute("command", command["toggle"]);
     document.body.appendChild(trigger);
 
     // Create target
@@ -97,13 +120,13 @@ describe("Reveal Behavior", () => {
     expect(trigger.getAttribute("aria-controls")).toBe(targetId);
 
     // Hide via command
-    dispatchCommand(el, command["--hide"]);
+    dispatchCommand(el, command["hide"]);
     expect(el.hidden).toBe(true);
 
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
 
     // Show via command
-    dispatchCommand(el, command["--show"]);
+    dispatchCommand(el, command["show"]);
     expect(el.hidden).toBe(false);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
   });
@@ -112,7 +135,11 @@ describe("Reveal Behavior", () => {
     const tag = "div";
     const webcomponentTag = "test-reveal-div-popover";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
+    defineBehavioralHost(
+      tag,
+      webcomponentTag,
+      getObservedAttributes(definition.schema),
+    );
 
     const el = createBehavioralElement(tag, webcomponentTag, {
       behavior: "reveal",
@@ -137,18 +164,18 @@ describe("Reveal Behavior", () => {
     document.body.appendChild(el);
     await vi.runAllTimersAsync();
 
-    dispatchCommand(el, command["--show"]);
+    dispatchCommand(el, command["show"]);
     expect(el.showPopover).toHaveBeenCalled();
 
-    dispatchCommand(el, command["--hide"]);
+    dispatchCommand(el, command["hide"]);
     expect(el.hidePopover).toHaveBeenCalled();
 
     // Toggle to show (currently hidden because hide was called last)
-    dispatchCommand(el, command["--toggle"]);
+    dispatchCommand(el, command["toggle"]);
     expect(el.showPopover).toHaveBeenCalledTimes(2);
 
     // Toggle to hide (currently shown because show was called last)
-    dispatchCommand(el, command["--toggle"]);
+    dispatchCommand(el, command["toggle"]);
     expect(el.hidePopover).toHaveBeenCalledTimes(2);
   });
 
@@ -157,12 +184,17 @@ describe("Reveal Behavior", () => {
     const webcomponentTag = "test-reveal-div-popover-aria";
     const targetId = "popover-target";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
+    defineBehavioralHost(
+      tag,
+      webcomponentTag,
+      getObservedAttributes(definition.schema),
+    );
 
     // Create trigger
     const trigger = document.createElement("button");
+    trigger.setAttribute("is", "behavioral-button");
     trigger.setAttribute("commandfor", targetId);
-    trigger.setAttribute("command", command["--toggle"]);
+    trigger.setAttribute("command", command["toggle"]);
     document.body.appendChild(trigger);
 
     const el = createBehavioralElement(tag, webcomponentTag, {
@@ -203,7 +235,11 @@ describe("Reveal Behavior", () => {
     const tag = "dialog";
     const webcomponentTag = "test-reveal-dialog";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
+    defineBehavioralHost(
+      tag,
+      webcomponentTag,
+      getObservedAttributes(definition.schema),
+    );
 
     const el = document.createElement(tag, {
       is: webcomponentTag,
@@ -221,21 +257,21 @@ describe("Reveal Behavior", () => {
     document.body.appendChild(el);
     await vi.runAllTimersAsync();
 
-    dispatchCommand(el, command["--show"]);
+    dispatchCommand(el, command["show"]);
     expect(el.showModal).toHaveBeenCalled();
     expect(el.open).toBe(true);
 
-    dispatchCommand(el, command["--hide"]);
+    dispatchCommand(el, command["hide"]);
     expect(el.close).toHaveBeenCalled();
     expect(el.open).toBe(false);
 
     // Toggle to show
-    dispatchCommand(el, command["--toggle"]);
+    dispatchCommand(el, command["toggle"]);
     expect(el.showModal).toHaveBeenCalledTimes(2);
     expect(el.open).toBe(true);
 
     // Toggle to hide
-    dispatchCommand(el, command["--toggle"]);
+    dispatchCommand(el, command["toggle"]);
     expect(el.close).toHaveBeenCalledTimes(2);
     expect(el.open).toBe(false);
   });
@@ -245,12 +281,17 @@ describe("Reveal Behavior", () => {
     const webcomponentTag = "test-reveal-dialog-aria";
     const targetId = "dialog-target";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
+    defineBehavioralHost(
+      tag,
+      webcomponentTag,
+      getObservedAttributes(definition.schema),
+    );
 
     // Create trigger
     const trigger = document.createElement("button");
+    trigger.setAttribute("is", "behavioral-button");
     trigger.setAttribute("commandfor", targetId);
-    trigger.setAttribute("command", command["--toggle"]);
+    trigger.setAttribute("command", command["toggle"]);
     document.body.appendChild(trigger);
 
     const el = document.createElement(tag, {
@@ -275,7 +316,7 @@ describe("Reveal Behavior", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
 
     // Show via command
-    dispatchCommand(el, command["--show"]);
+    dispatchCommand(el, command["show"]);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
 
     // Close via event
@@ -287,7 +328,11 @@ describe("Reveal Behavior", () => {
     const tag = "div";
     const webcomponentTag = "test-reveal-auto";
 
-    defineBehavioralHost(tag, webcomponentTag, getObservedAttributes(definition.schema));
+    defineBehavioralHost(
+      tag,
+      webcomponentTag,
+      getObservedAttributes(definition.schema),
+    );
 
     const el = createBehavioralElement(tag, webcomponentTag, {
       behavior: "reveal",
@@ -400,11 +445,11 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Show with opener
-      dispatchCommand(el, command["--show"], opener);
+      dispatchCommand(el, command["show"], opener);
       expect(el.hidden).toBe(false);
 
       // Hide
-      dispatchCommand(el, command["--hide"]);
+      dispatchCommand(el, command["hide"]);
       expect(el.hidden).toBe(true);
       expect(document.activeElement).toBe(opener);
     });
@@ -430,7 +475,7 @@ describe("Reveal Behavior", () => {
         isPopoverOpen = false;
         el.dispatchEvent(new Event("toggle"));
       }) as any;
-      
+
       el.matches = vi.fn((selector: string) => {
         if (selector === ":popover-open") return isPopoverOpen;
         return false;
@@ -440,7 +485,7 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Show with opener
-      dispatchCommand(el, command["--show"], opener);
+      dispatchCommand(el, command["show"], opener);
       expect(isPopoverOpen).toBe(true);
 
       // Hide
@@ -473,7 +518,7 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Show with opener
-      dispatchCommand(el, command["--show"], opener);
+      dispatchCommand(el, command["show"], opener);
       expect(el.hasAttribute("open")).toBe(true);
 
       // Close
@@ -495,13 +540,13 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Show with opener
-      dispatchCommand(el, command["--show"], opener);
+      dispatchCommand(el, command["show"], opener);
 
       // Remove opener
       document.body.removeChild(opener);
 
       // Hide
-      dispatchCommand(el, command["--hide"]);
+      dispatchCommand(el, command["hide"]);
       expect(document.activeElement).not.toBe(opener);
     });
 
@@ -521,10 +566,10 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Show with opener (opener is inside el)
-      dispatchCommand(el, command["--show"], opener);
+      dispatchCommand(el, command["show"], opener);
 
       // Hide
-      dispatchCommand(el, command["--hide"]);
+      dispatchCommand(el, command["hide"]);
       expect(focusSpy).not.toHaveBeenCalled();
     });
 
@@ -542,13 +587,13 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Show with opener1
-      dispatchCommand(el, command["--show"], opener1);
+      dispatchCommand(el, command["show"], opener1);
 
       // Show with opener2
-      dispatchCommand(el, command["--show"], opener2);
+      dispatchCommand(el, command["show"], opener2);
 
       // Hide
-      dispatchCommand(el, command["--hide"]);
+      dispatchCommand(el, command["hide"]);
       expect(document.activeElement).toBe(opener2);
     });
 
@@ -566,7 +611,7 @@ describe("Reveal Behavior", () => {
       await vi.runAllTimersAsync();
 
       // Toggle to show with opener
-      dispatchCommand(el, command["--toggle"], opener);
+      dispatchCommand(el, command["toggle"], opener);
       expect(el.hidden).toBe(false);
 
       // Move focus to another button
@@ -576,7 +621,7 @@ describe("Reveal Behavior", () => {
       expect(document.activeElement).toBe(other);
 
       // Toggle to hide with other
-      dispatchCommand(el, command["--toggle"], other);
+      dispatchCommand(el, command["toggle"], other);
       expect(el.hidden).toBe(true);
 
       // Focus should stay on other, not jump back to opener

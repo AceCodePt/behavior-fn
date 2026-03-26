@@ -8,8 +8,8 @@ const definition = uniqueBehaviorDef({
   name: "request",
   schema,
   command: {
-    "--trigger": "--trigger",
-    "--close-sse": "--close-sse",
+    trigger: "trigger",
+    "close-sse": "close-sse",
   },
 });
 

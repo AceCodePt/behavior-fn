@@ -45,7 +45,12 @@ Once enabled, you can omit the `is` attribute:
 
 ```html
 <!-- Without auto-loader (explicit) -->
-<button is="behavioral-reveal" behavior="reveal" commandfor="modal" command="--toggle">
+<button
+  is="behavioral-reveal"
+  behavior="reveal"
+  commandfor="modal"
+  command="toggle"
+>
   Toggle Modal
 </button>
 <dialog is="behavioral-reveal" id="modal" behavior="reveal">
@@ -53,15 +58,19 @@ Once enabled, you can omit the `is` attribute:
 </dialog>
 
 <!-- With auto-loader (automatic) -->
-<button behavior="reveal" commandfor="modal" command="--toggle">
+<button
+  is="behavioral-reveal"
+  behavior="reveal"
+  commandfor="modal"
+  command="toggle"
+>
   Toggle Modal
 </button>
-<dialog id="modal" behavior="reveal">
-  Modal content
-</dialog>
+<dialog id="modal" behavior="reveal">Modal content</dialog>
 ```
 
 The auto-loader will automatically add:
+
 - `<button is="behavioral-reveal" behavior="reveal">` (for the button)
 - `<dialog is="behavioral-reveal" behavior="reveal">` (for the dialog)
 
@@ -106,9 +115,7 @@ Elements with existing `is` attributes are skipped:
 
 ```html
 <!-- Auto-loader will skip this element -->
-<button is="custom-button" behavior="reveal">
-  Click me
-</button>
+<button is="custom-button" behavior="reveal">Click me</button>
 ```
 
 **Result:** The `is` attribute remains `custom-button`.
@@ -134,6 +141,7 @@ Unknown behaviors trigger a warning but still add the `is` attribute:
 ```
 
 **Console:**
+
 ```
 [AutoLoader] Unknown behavior "unknown-behavior" on element: HTMLButtonElement {}
 ```
@@ -217,21 +225,22 @@ loggerButton.hidden = true;
 ### Benchmarks
 
 For typical web apps:
+
 - **Initial Scan (100 elements):** < 5ms
 - **Dynamic Addition (10 elements):** < 1ms
 - **Observer Overhead:** Negligible (native MutationObserver)
 
 ## Comparison: Explicit vs. Auto-Loader
 
-| Aspect | Explicit `is` | Auto-Loader |
-|--------|---------------|-------------|
-| **File Size** | 0 bytes | ~2KB |
-| **Runtime Overhead** | None | MutationObserver |
-| **HTML Verbosity** | More verbose | Cleaner |
-| **Debugging** | Clear and explicit | Requires understanding |
-| **Dynamic Behaviors** | Static (by design) | Static (by design) |
-| **Type Safety** | Full | Full |
-| **Production Ready** | ✅ Yes | ⚠️ Use with caution |
+| Aspect                | Explicit `is`      | Auto-Loader            |
+| --------------------- | ------------------ | ---------------------- |
+| **File Size**         | 0 bytes            | ~2KB                   |
+| **Runtime Overhead**  | None               | MutationObserver       |
+| **HTML Verbosity**    | More verbose       | Cleaner                |
+| **Debugging**         | Clear and explicit | Requires understanding |
+| **Dynamic Behaviors** | Static (by design) | Static (by design)     |
+| **Type Safety**       | Full               | Full                   |
+| **Production Ready**  | ✅ Yes             | ⚠️ Use with caution    |
 
 ## Migration Guide
 
@@ -251,15 +260,13 @@ registerBehavior("reveal", revealBehaviorFactory);
 defineBehavioralHost(
   "dialog",
   "behavioral-reveal",
-  getObservedAttributes(REVEAL_DEFINITION.schema)
+  getObservedAttributes(REVEAL_DEFINITION.schema),
 );
 ```
 
 ```html
 <!-- index.html -->
-<dialog is="behavioral-reveal" behavior="reveal">
-  Content
-</dialog>
+<dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
 ```
 
 **After:**
@@ -276,9 +283,7 @@ enableAutoLoader(); // ✨ That's it!
 
 ```html
 <!-- index.html -->
-<dialog behavior="reveal">
-  Content
-</dialog>
+<dialog behavior="reveal">Content</dialog>
 ```
 
 ### From Auto-Loader to Explicit
@@ -306,14 +311,12 @@ import REVEAL_DEFINITION from "./behaviors/reveal/_behavior-definition";
 defineBehavioralHost(
   "dialog",
   "behavioral-reveal",
-  getObservedAttributes(REVEAL_DEFINITION.schema)
+  getObservedAttributes(REVEAL_DEFINITION.schema),
 );
 ```
 
 ```html
-<dialog is="behavioral-reveal" behavior="reveal">
-  Content
-</dialog>
+<dialog is="behavioral-reveal" behavior="reveal">Content</dialog>
 ```
 
 ## Advanced Usage
@@ -337,7 +340,7 @@ Properly cleanup during HMR:
 // Vite HMR
 if (import.meta.hot) {
   const disconnect = enableAutoLoader();
-  
+
   import.meta.hot.accept(() => {
     disconnect(); // Cleanup before reload
   });
@@ -416,11 +419,13 @@ console.log(button?.getAttribute("is")); // Should show behavioral-*
 #### Issue: `is` attribute not added
 
 **Causes:**
+
 - Auto-loader not enabled
 - Element has existing `is` attribute
 - Empty `behavior` attribute
 
 **Solution:**
+
 ```typescript
 // Verify auto-loader is called
 enableAutoLoader();
@@ -434,10 +439,12 @@ console.log(el?.getAttribute("is")); // Should be behavioral-*
 #### Issue: Behaviors not working
 
 **Causes:**
+
 - Behavior not registered
 - Timing issue (behavior used before registration)
 
 **Solution:**
+
 ```typescript
 // Register behaviors BEFORE enabling auto-loader
 registerBehavior("reveal", revealBehaviorFactory);

@@ -248,11 +248,12 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     },
     onCommand(e: CommandEvent<string>) {
       if (!command) return;
+      if (e.target !== el) return;
       const cmd = command;
       const popover = isPopover();
       const dialog = isDialog();
 
-      if (e.command === cmd["--show"]) {
+      if (e.command === cmd["show"]) {
         if (e.source instanceof HTMLElement) {
           openerElement = e.source;
         }
@@ -263,7 +264,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
         } else {
           el.removeAttribute("hidden");
         }
-      } else if (e.command === cmd["--hide"]) {
+      } else if (e.command === cmd["hide"]) {
         if (popover) {
           el.hidePopover?.();
         } else if (dialog) {
@@ -272,7 +273,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
           el.setAttribute("hidden", "");
           restoreFocus();
         }
-      } else if (e.command === cmd["--toggle"]) {
+      } else if (e.command === cmd["toggle"]) {
         const currentlyVisible = isCurrentlyVisible();
         if (!currentlyVisible && e.source instanceof HTMLElement) {
           openerElement = e.source;

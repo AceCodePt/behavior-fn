@@ -8,9 +8,9 @@ const definition = uniqueBehaviorDef({
   name: "reveal",
   schema,
   command: {
-    "--show": "--show",
-    "--hide": "--hide",
-    "--toggle": "--toggle",
+    show: "show",
+    hide: "hide",
+    toggle: "toggle",
   },
 });
 

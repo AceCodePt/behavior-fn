@@ -5,7 +5,7 @@ const definition = uniqueBehaviorDef({
   name: "content-setter",
   schema,
   command: {
-    "--set-content": "--set-content",
+    "set-content": "set-content",
   },
 });
 

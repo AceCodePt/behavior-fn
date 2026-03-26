@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Build CDN bundles for BehaviorFN (ESM Only)
- * 
+ *
  * ESM Module Architecture:
  * 1. Core runtime (behavior-fn-core.js) - Exports core functions (registerBehavior, etc.)
  * 2. Individual behavior bundles (reveal.js, request.js, etc.) - Export factory functions
  * 3. Optional auto-loader (auto-loader.js) - Exports enableAutoLoader function
- * 
+ *
  * Key Strategies:
  * - Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
  * - Use real ESM imports/exports (no IIFE, no window assignments)
@@ -31,7 +31,7 @@ const jiti = createJiti(__filename);
 
 /**
  * esbuild plugin to stub TypeBox imports for CDN builds.
- * 
+ *
  * This plugin intercepts @sinclair/typebox imports and provides a minimal
  * stub that builds plain JSON Schema objects instead of TypeBox schemas.
  * This eliminates the runtime TypeBox dependency (~40KB) from CDN bundles.
@@ -115,22 +115,22 @@ async function extractSchemaMetadata(behaviorName: string): Promise<{
 } | null> {
   try {
     const schemaPath = join(registryDir, behaviorName, "schema.ts");
-    const mod = await jiti.import(schemaPath) as { schema?: any };
-    
+    const mod = (await jiti.import(schemaPath)) as { schema?: any };
+
     if (!mod.schema) return null;
-    
+
     const schema = mod.schema;
-    
+
     // Extract observed attributes from TypeBox schema
     // TypeBox schemas have a 'properties' object
-    const observedAttributes = schema.properties 
+    const observedAttributes = schema.properties
       ? Object.keys(schema.properties)
       : [];
-    
+
     // Convert TypeBox schema to plain JSON Schema object
     // TypeBox schemas are already JSON Schema compatible
     const jsonSchema = JSON.parse(JSON.stringify(schema));
-    
+
     return { observedAttributes, jsonSchema };
   } catch (error) {
     console.warn(`  ⚠️  Could not extract schema for ${behaviorName}:`, error);
@@ -139,7 +139,9 @@ async function extractSchemaMetadata(behaviorName: string): Promise<{
 }
 
 async function buildCDNBundles() {
-  console.log("🏗️  Building CDN bundles (ESM Only - Core + Behavior Modules)...\n");
+  console.log(
+    "🏗️  Building CDN bundles (ESM Only - Core + Behavior Modules)...\n",
+  );
 
   await mkdir(cdnOutDir, { recursive: true });
 
@@ -149,7 +151,9 @@ async function buildCDNBundles() {
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name);
 
-  console.log(`Found ${behaviorDirs.length} behaviors:\n- ${behaviorDirs.join("\n- ")}\n`);
+  console.log(
+    `Found ${behaviorDirs.length} behaviors:\n- ${behaviorDirs.join("\n- ")}\n`,
+  );
 
   // Phase 1: Build Core Runtime (ESM)
   console.log("📦 Phase 1: Building core runtime (ESM)...");
@@ -167,16 +171,24 @@ async function buildCDNBundles() {
   console.log("\n📦 Phase 4: Generating examples...");
   await generateCDNExamples(behaviorDirs);
 
-  console.log("\n✅ All CDN bundles built successfully! (ESM Only - Auto-Register)");
+  console.log(
+    "\n✅ All CDN bundles built successfully! (ESM Only - Auto-Register)",
+  );
   console.log(`📂 Output directory: ${cdnOutDir}`);
   console.log("\n📘 Loading Pattern (Simplest - Auto-Register & Auto-Enable):");
   console.log("  <script type='module'>");
-  console.log("    import { defineBehavioralHost } from './behavior-fn-core.js';");
-  console.log("    import { metadata } from './reveal.js';  // Auto-registers!");
+  console.log(
+    "    import { defineBehavioralHost } from './behavior-fn-core.js';",
+  );
+  console.log(
+    "    import { metadata } from './reveal.js';  // Auto-registers!",
+  );
   console.log("    import './auto-loader.js';  // Auto-enables!");
   console.log("    ");
   console.log("    // Optional: Define hosts manually for best performance");
-  console.log("    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);");
+  console.log(
+    "    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);",
+  );
   console.log("  </script>");
   console.log("\n📘 Simplest (Auto-Loader Only):");
   console.log("  <script type='module'>");
@@ -192,7 +204,7 @@ async function buildCDNBundles() {
  */
 async function buildCore() {
   const coreEntry = join(cdnOutDir, "_core-entry.js");
-  
+
   const coreCode = `
 // Import core runtime modules
 import { registerBehavior, getBehavior, getBehaviorDef } from "${join(registryDir, "behavior-registry.ts")}";
@@ -234,7 +246,7 @@ console.log('✅ BehaviorFN Core v0.2.0 (ESM) loaded');
 async function buildIndividualBehaviors(behaviorDirs: string[]) {
   for (const behaviorName of behaviorDirs) {
     const behaviorPath = join(registryDir, behaviorName, "behavior.ts");
-    
+
     let content: string;
     try {
       content = await readFile(behaviorPath, "utf-8");
@@ -242,13 +254,17 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
       console.warn(`  ⚠️  ${behaviorName}/behavior.ts not found, skipping...`);
       continue;
     }
-    
+
     // Discover export name
-    const match = content.match(/export\s+const\s+(\w+(?:BehaviorFactory|Behavior))\s*[:=]/);
+    const match = content.match(
+      /export\s+const\s+(\w+(?:BehaviorFactory|Behavior))\s*[:=]/,
+    );
     const exportName = match ? match[1] : null;
-    
+
     if (!exportName) {
-      console.warn(`  ⚠️  Could not find export in ${behaviorName}/behavior.ts, skipping...`);
+      console.warn(
+        `  ⚠️  Could not find export in ${behaviorName}/behavior.ts, skipping...`,
+      );
       continue;
     }
 
@@ -317,7 +333,7 @@ console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
  */
 async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
-  
+
   const autoLoaderCode = `
 // Import ALL dependencies from core bundle (external - not bundled)
 import { getBehavior, getBehaviorDef, getObservedAttributes, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
@@ -579,13 +595,13 @@ async function generateCDNExamples(behaviorDirs: string[]) {
   import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
 &lt;/script&gt;
 
-&lt;!-- No is attribute needed with auto-loader --&gt;
+&lt;!-- Explicit host on command trigger and target --&gt;
 &lt;dialog behavior="reveal" id="my-modal"&gt;
   &lt;h2&gt;Hello!&lt;/h2&gt;
-  &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+  &lt;button is="behavioral-button" commandfor="my-modal" command="hide"&gt;Close&lt;/button&gt;
 &lt;/dialog&gt;
 
-&lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
+&lt;button is="behavioral-button" commandfor="my-modal" command="toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
   <p><strong>Total:</strong> ~17KB minified (~6KB gzipped) - Just 2 imports, everything automatic!</p>
 
   <h3>Option 2: Explicit (Best Performance)</h3>
@@ -600,10 +616,10 @@ async function generateCDNExamples(behaviorDirs: string[]) {
 &lt;!-- Must use explicit is attribute --&gt;
 &lt;dialog is="behavioral-reveal" behavior="reveal" id="my-modal"&gt;
   &lt;h2&gt;Hello!&lt;/h2&gt;
-  &lt;button commandfor="my-modal" command="--hide"&gt;Close&lt;/button&gt;
+  &lt;button is="behavioral-button" commandfor="my-modal" command="hide"&gt;Close&lt;/button&gt;
 &lt;/dialog&gt;
 
-&lt;button commandfor="my-modal" command="--toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
+&lt;button is="behavioral-button" commandfor="my-modal" command="toggle"&gt;Open Modal&lt;/button&gt;</code></pre>
   <p><strong>Total:</strong> ~11KB minified (~4KB gzipped) - No auto-loader overhead!</p>
 
   <h2>📦 Available Bundles (ESM Only)</h2>
@@ -616,7 +632,7 @@ async function generateCDNExamples(behaviorDirs: string[]) {
   <h3>Individual Behaviors</h3>
   <p>Each behavior exports its factory function and metadata:</p>
   <ul>
-${behaviorDirs.map(name => `    <li><code>${name}.js</code> - Export: ${name}BehaviorFactory, metadata</li>`).join("\n")}
+${behaviorDirs.map((name) => `    <li><code>${name}.js</code> - Export: ${name}BehaviorFactory, metadata</li>`).join("\n")}
   </ul>
 
   <h3>Auto-Loader (Optional)</h3>
@@ -627,14 +643,14 @@ ${behaviorDirs.map(name => `    <li><code>${name}.js</code> - Export: ${name}Beh
   <h2>🎨 Live Example</h2>
   <div class="example">
     <h3>Reveal Behavior Demo</h3>
-    <button commandfor="demo-modal" command="--toggle">
+    <button is="behavioral-button" commandfor="demo-modal" command="toggle">
       Open Modal
     </button>
     
     <dialog is="behavioral-reveal" id="demo-modal" behavior="reveal">
       <h2>🎉 It Works!</h2>
       <p>This modal uses the <code>reveal</code> behavior loaded from CDN!</p>
-      <button commandfor="demo-modal" command="--hide">Close</button>
+      <button is="behavioral-button" commandfor="demo-modal" command="hide">Close</button>
     </dialog>
   </div>
 

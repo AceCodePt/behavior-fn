@@ -36,12 +36,14 @@ node dist/index.js create my-behavior-name
 ```
 
 **Naming Rules:**
+
 - Must be in **kebab-case** (lowercase with hyphens)
 - Can include numbers (e.g., `input-watcher-2`)
 - Must be unique (not already exist in the registry)
 - Cannot be named `core` (reserved)
 
 **Example:**
+
 ```bash
 node dist/index.js create hover-tooltip
 ```
@@ -79,7 +81,7 @@ import { type InferSchema } from "../types";
 export const schema = Type.Object({
   // Required attribute
   "tooltip-text": Type.String(),
-  
+
   // Optional attribute with default
   "tooltip-position": Type.Optional(
     Type.Union([
@@ -87,9 +89,9 @@ export const schema = Type.Object({
       Type.Literal("bottom"),
       Type.Literal("left"),
       Type.Literal("right"),
-    ])
+    ]),
   ),
-  
+
   // Optional boolean attribute
   "tooltip-delay": Type.Optional(Type.Number()),
 });
@@ -98,6 +100,7 @@ export type SchemaType = InferSchema<typeof schema>;
 ```
 
 **Key Points:**
+
 - Use `Type.Optional()` for optional attributes
 - Use `Type.Union()` with `Type.Literal()` for enums
 - Keep attribute names in kebab-case
@@ -110,7 +113,7 @@ Open `behavior.ts` and implement the factory function:
 ```typescript
 /**
  * Hover Tooltip Behavior Implementation
- * 
+ *
  * Shows a tooltip when the user hovers over the element.
  */
 export const hoverTooltipBehaviorFactory = (el: HTMLElement) => {
@@ -134,10 +137,10 @@ export const hoverTooltipBehaviorFactory = (el: HTMLElement) => {
 
   const positionTooltip = () => {
     if (!tooltipElement) return;
-    
+
     const position = el.getAttribute("tooltip-position") || "top";
     const rect = el.getBoundingClientRect();
-    
+
     // Position logic based on attribute
     switch (position) {
       case "top":
@@ -155,7 +158,7 @@ export const hoverTooltipBehaviorFactory = (el: HTMLElement) => {
   const showTooltip = () => {
     tooltipElement = createTooltip();
     if (!tooltipElement) return;
-    
+
     positionTooltip();
     tooltipElement.style.display = "block";
   };
@@ -171,7 +174,7 @@ export const hoverTooltipBehaviorFactory = (el: HTMLElement) => {
   return {
     onMouseEnter() {
       const delay = parseInt(el.getAttribute("tooltip-delay") || "0", 10);
-      
+
       if (delay > 0) {
         timeoutId = window.setTimeout(showTooltip, delay);
       } else {
@@ -199,6 +202,7 @@ export const hoverTooltipBehaviorFactory = (el: HTMLElement) => {
 ```
 
 **Key Points:**
+
 - Factory receives the `HTMLElement` as a parameter
 - Use closures for private state
 - Return an object with event handler methods (camelCase, e.g., `onClick`, `onMouseEnter`)
@@ -207,6 +211,7 @@ export const hoverTooltipBehaviorFactory = (el: HTMLElement) => {
 
 **Available Event Handlers:**
 All standard DOM event handlers can be used:
+
 - `onClick`, `onDblclick`
 - `onMouseEnter`, `onMouseLeave`, `onMouseMove`
 - `onKeyDown`, `onKeyUp`, `onKeyPress`
@@ -254,14 +259,16 @@ describe("Hover Tooltip Behavior", () => {
     const webcomponentTag = "test-tooltip-btn";
     defineBehavioralHost(tag, webcomponentTag, observedAttributes);
 
-    const el = document.createElement(tag, { is: webcomponentTag }) as HTMLElement;
+    const el = document.createElement(tag, {
+      is: webcomponentTag,
+    }) as HTMLElement;
     el.setAttribute("behavior", "hover-tooltip");
     el.setAttribute("tooltip-text", "Click me!");
     document.body.appendChild(el);
 
     await vi.waitFor(() => {
       el.dispatchEvent(new MouseEvent("mouseenter"));
-      
+
       const tooltip = document.querySelector(".tooltip");
       expect(tooltip).not.toBeNull();
       expect(tooltip?.textContent).toBe("Click me!");
@@ -273,7 +280,9 @@ describe("Hover Tooltip Behavior", () => {
     const webcomponentTag = "test-tooltip-btn-2";
     defineBehavioralHost(tag, webcomponentTag, observedAttributes);
 
-    const el = document.createElement(tag, { is: webcomponentTag }) as HTMLElement;
+    const el = document.createElement(tag, {
+      is: webcomponentTag,
+    }) as HTMLElement;
     el.setAttribute("behavior", "hover-tooltip");
     el.setAttribute("tooltip-text", "Hover text");
     document.body.appendChild(el);
@@ -281,7 +290,7 @@ describe("Hover Tooltip Behavior", () => {
     await vi.waitFor(() => {
       el.dispatchEvent(new MouseEvent("mouseenter"));
       expect(document.querySelector(".tooltip")).not.toBeNull();
-      
+
       el.dispatchEvent(new MouseEvent("mouseleave"));
       expect(document.querySelector(".tooltip")).toBeNull();
     });
@@ -289,32 +298,35 @@ describe("Hover Tooltip Behavior", () => {
 
   it("should respect tooltip-delay attribute", async () => {
     vi.useFakeTimers();
-    
+
     const tag = "button";
     const webcomponentTag = "test-tooltip-btn-delay";
     defineBehavioralHost(tag, webcomponentTag, observedAttributes);
 
-    const el = document.createElement(tag, { is: webcomponentTag }) as HTMLElement;
+    const el = document.createElement(tag, {
+      is: webcomponentTag,
+    }) as HTMLElement;
     el.setAttribute("behavior", "hover-tooltip");
     el.setAttribute("tooltip-text", "Delayed");
     el.setAttribute("tooltip-delay", "500");
     document.body.appendChild(el);
 
     el.dispatchEvent(new MouseEvent("mouseenter"));
-    
+
     // Should not show immediately
     expect(document.querySelector(".tooltip")).toBeNull();
-    
+
     // Should show after delay
     vi.advanceTimersByTime(500);
     expect(document.querySelector(".tooltip")).not.toBeNull();
-    
+
     vi.useRealTimers();
   });
 });
 ```
 
 **Testing Best Practices:**
+
 1. Always register the behavior in `beforeAll()`
 2. Clear the DOM in `beforeEach()`
 3. Create unique webcomponent tags for each test
@@ -355,6 +367,7 @@ node dist/index.js remove my-behavior-name
 ```
 
 **Safety Features:**
+
 - Cannot remove the `core` behavior (protected)
 - Validates the behavior exists before removal
 - Removes all files and updates the registry automatically
@@ -370,6 +383,7 @@ node dist/index.js remove my-behavior-name
 **IMPORTANT FOR AGENTS:** When creating ANY behavior, you MUST follow the standard 5-file structure. This applies even if the behavior seems like "infrastructure" or a "polyfill".
 
 **The Standard Structure:**
+
 ```
 registry/behaviors/{behavior-name}/
 ├── _behavior-definition.ts   # Contract (name + schema)
@@ -382,6 +396,7 @@ registry/behaviors/{behavior-name}/
 **Common Mistake:** Creating flat files like `my-feature.ts` + `my-feature.test.ts` in the `registry/behaviors/` root directory.
 
 **Why This Matters:**
+
 - ✅ Consistency: All behaviors follow the same pattern
 - ✅ CLI Integration: The CLI expects this structure for `add` command
 - ✅ Discoverability: Developers know where to find behavior code
@@ -391,14 +406,16 @@ registry/behaviors/{behavior-name}/
 **Example: Compound Commands Behavior**
 
 Initially implemented incorrectly as:
+
 ```
 ❌ registry/behaviors/invoker-commands-polyfill.ts
 ❌ registry/behaviors/invoker-commands-polyfill.test.ts
 ```
 
 Corrected to proper structure:
+
 ```
-✅ registry/behaviors/compound-commands/
+✅ registry/behaviors/content-setter/
    ├── _behavior-definition.ts
    ├── constants.ts
    ├── schema.ts
@@ -417,23 +434,25 @@ Corrected to proper structure:
    - ❌ Bad: `super-mega-everything-behavior`
 
 2. **Stateless When Possible**: Prefer deriving state from attributes
+
    ```typescript
    // ✅ Good: Derive from attributes
    const isEnabled = el.getAttribute("enabled") === "true";
-   
+
    // ❌ Avoid: Internal state that diverges from attributes
    let internalState = true;
    ```
 
 3. **Use Closures for Private State**: When state is needed, use closures
+
    ```typescript
    export const myBehaviorFactory = (el: HTMLElement) => {
      let privateState = null; // Closure variable
-     
+
      return {
        onClick() {
          privateState = "clicked";
-       }
+       },
      };
    };
    ```
@@ -444,34 +463,36 @@ Corrected to proper structure:
      onDisconnected() {
        // Clear timers
        if (timeoutId) clearTimeout(timeoutId);
-       
+
        // Remove event listeners
        document.removeEventListener("click", handler);
-       
+
        // Remove DOM elements
        tooltipElement?.remove();
-     }
+     },
    };
    ```
 
 ### Schema Design
 
 1. **Use Descriptive Names**: Attributes should clearly indicate their purpose
+
    ```typescript
    // ✅ Good
    "tooltip-text": Type.String()
    "auto-save-delay": Type.Number()
-   
+
    // ❌ Bad
    "text": Type.String()
    "delay": Type.Number()
    ```
 
 2. **Provide Sensible Defaults**: Use `Type.Optional()` with defaults in code
+
    ```typescript
    // In schema
    "interval": Type.Optional(Type.Number())
-   
+
    // In behavior
    const interval = parseInt(el.getAttribute("interval") || "1000", 10);
    ```
@@ -508,7 +529,7 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
       if (command === "save") {
         // Execute save logic
       }
-    }
+    },
   };
 };
 ```
@@ -523,7 +544,7 @@ export const observerBehaviorFactory = (el: HTMLElement) => {
     onInput(e: Event) {
       const value = (e.target as HTMLInputElement).value;
       // React to value changes
-    }
+    },
   };
 };
 ```
@@ -535,17 +556,17 @@ Behaviors that perform actions during element lifecycle:
 ```typescript
 export const lifecycleBehaviorFactory = (el: HTMLElement) => {
   let intervalId: number;
-  
+
   // Setup on creation (called when behavior attaches)
   intervalId = window.setInterval(() => {
     // Periodic action
   }, 1000);
-  
+
   return {
     onDisconnected() {
       // Cleanup on removal
       clearInterval(intervalId);
-    }
+    },
   };
 };
 ```
@@ -557,15 +578,15 @@ Behaviors that react to attribute changes:
 ```typescript
 export const reactiveBehaviorFactory = (el: HTMLElement) => {
   let currentValue = el.getAttribute("value") || "";
-  
+
   // The behavioral host will detect attribute changes
   // and re-run the factory if needed
-  
+
   return {
     onClick() {
       // Use current attribute value
       console.log(currentValue);
-    }
+    },
   };
 };
 ```

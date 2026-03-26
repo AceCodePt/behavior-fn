@@ -34,7 +34,7 @@ describe("Content Setter Behavior", () => {
       el.textContent = "Original Text";
       document.body.appendChild(el);
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(el.textContent).toBe("Hello World!");
     });
@@ -48,7 +48,7 @@ describe("Content Setter Behavior", () => {
       el.setAttribute(attributes["content-setter-value"], "dark");
       document.body.appendChild(el);
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(el.getAttribute("data-theme")).toBe("dark");
     });
@@ -62,7 +62,7 @@ describe("Content Setter Behavior", () => {
       el.setAttribute(attributes["content-setter-value"], "true");
       document.body.appendChild(el);
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(el.getAttribute("aria-hidden")).toBe("true");
     });
@@ -77,7 +77,7 @@ describe("Content Setter Behavior", () => {
       el.setAttribute(attributes["content-setter-mode"], "set");
       document.body.appendChild(el);
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(el.getAttribute("data-status")).toBe("active");
     });
@@ -95,15 +95,15 @@ describe("Content Setter Behavior", () => {
       document.body.appendChild(el);
 
       // First toggle: should set to "true"
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.getAttribute("data-active")).toBe("true");
 
       // Second toggle: should set to empty string
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.getAttribute("data-active")).toBe("");
 
       // Third toggle: should set back to "true"
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.getAttribute("data-active")).toBe("true");
     });
 
@@ -122,15 +122,15 @@ describe("Content Setter Behavior", () => {
       const originalText = el.textContent;
 
       // First toggle: should set to "New Text"
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.textContent).toBe("New Text");
 
       // Second toggle: should restore original
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.textContent).toBe(originalText);
 
       // Third toggle: should set to "New Text" again
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.textContent).toBe("New Text");
     });
 
@@ -145,11 +145,11 @@ describe("Content Setter Behavior", () => {
       document.body.appendChild(el);
 
       // First toggle: should set to value
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.getAttribute("data-new")).toBe("value");
 
       // Second toggle: should clear
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
       expect(el.getAttribute("data-new")).toBe("");
     });
   });
@@ -168,7 +168,7 @@ describe("Content Setter Behavior", () => {
 
       expect(el.hasAttribute("data-temp")).toBe(true);
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(el.hasAttribute("data-temp")).toBe(false);
     });
@@ -178,13 +178,16 @@ describe("Content Setter Behavior", () => {
         is: webcomponentTag,
       }) as HTMLElement;
       el.setAttribute("behavior", "content-setter");
-      el.setAttribute(attributes["content-setter-attribute"], "data-nonexistent");
+      el.setAttribute(
+        attributes["content-setter-attribute"],
+        "data-nonexistent",
+      );
       el.setAttribute(attributes["content-setter-value"], "");
       el.setAttribute(attributes["content-setter-mode"], "remove");
       document.body.appendChild(el);
 
       expect(() => {
-        dispatchCommand(el, command["--set-content"]);
+        dispatchCommand(el, command["set-content"]);
       }).not.toThrow();
     });
 
@@ -199,9 +202,11 @@ describe("Content Setter Behavior", () => {
       el.textContent = "Original";
       document.body.appendChild(el);
 
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining("Cannot use 'remove' mode with textContent"),
@@ -223,9 +228,11 @@ describe("Content Setter Behavior", () => {
       el.setAttribute(attributes["content-setter-value"], "some value");
       document.body.appendChild(el);
 
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining("content-setter-attribute"),
@@ -242,9 +249,11 @@ describe("Content Setter Behavior", () => {
       el.setAttribute(attributes["content-setter-attribute"], "data-test");
       document.body.appendChild(el);
 
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
 
-      dispatchCommand(el, command["--set-content"]);
+      dispatchCommand(el, command["set-content"]);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining("content-setter-value"),

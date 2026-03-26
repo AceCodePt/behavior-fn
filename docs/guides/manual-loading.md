@@ -3,6 +3,7 @@
 Load BehaviorFN behaviors directly from a CDN using ESM imports. Behaviors auto-register themselves!
 
 Perfect for:
+
 - Quick prototypes and demos
 - Static HTML sites without build tools
 - Learning and experimentation
@@ -15,26 +16,30 @@ Perfect for:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>BehaviorFN CDN Example</title>
-</head>
-<body>
-  <script type="module">
-    // Just import - behaviors auto-register, loader auto-enables!
-    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
-    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
-  </script>
-  
-  <!-- No is attribute needed -->
-  <dialog behavior="reveal" id="modal">
-    <h2>Hello Modal!</h2>
-    <p>Loaded from CDN with auto-registration!</p>
-    <button commandfor="modal" command="--hide">Close</button>
-  </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>BehaviorFN CDN Example</title>
+  </head>
+  <body>
+    <script type="module">
+      // Just import - behaviors auto-register, loader auto-enables!
+      import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
+      import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js";
+    </script>
+
+    <!-- No is attribute needed -->
+    <dialog behavior="reveal" id="modal">
+      <h2>Hello Modal!</h2>
+      <p>Loaded from CDN with auto-registration!</p>
+      <button is="behavioral-button" commandfor="modal" command="hide">
+        Close
+      </button>
+    </dialog>
+
+    <button is="behavioral-button" commandfor="modal" command="toggle">
+      Open Modal
+    </button>
+  </body>
 </html>
 ```
 
@@ -49,19 +54,22 @@ Load behaviors with auto-loader for cleanest HTML:
 ```html
 <script type="module">
   // Just import - everything auto-registers and auto-enables!
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js";
 </script>
 
 <!-- No is attribute needed -->
 <dialog behavior="reveal logger" id="modal">
   <h2>Hello!</h2>
 </dialog>
-<button commandfor="modal" command="--toggle">Toggle</button>
+<button is="behavioral-button" commandfor="modal" command="toggle">
+  Toggle
+</button>
 ```
 
 **Benefits:**
+
 - ✅ Simplest setup (just imports!)
 - ✅ Auto-registration on import
 - ✅ Auto-enables on import
@@ -76,23 +84,28 @@ Define hosts manually for best performance:
 
 ```html
 <script type="module">
-  import { defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
-  import { metadata as revealMeta } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';  // Auto-registers!
-  import { metadata as loggerMeta } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js';  // Auto-registers!
-  
+  import { defineBehavioralHost } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js";
+  import { metadata as revealMeta } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"; // Auto-registers!
+  import { metadata as loggerMeta } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js"; // Auto-registers!
+
   // Define a dialog that can host reveal and logger behaviors
-  defineBehavioralHost('dialog', 'behavioral-logger-reveal', 
-    [...revealMeta.observedAttributes, ...loggerMeta.observedAttributes]);
+  defineBehavioralHost("dialog", "behavioral-logger-reveal", [
+    ...revealMeta.observedAttributes,
+    ...loggerMeta.observedAttributes,
+  ]);
 </script>
 
 <!-- Add is attribute explicitly -->
 <dialog is="behavioral-logger-reveal" behavior="reveal logger" id="modal">
   <h2>Hello!</h2>
 </dialog>
-<button commandfor="modal" command="--toggle">Toggle</button>
+<button is="behavioral-button" commandfor="modal" command="toggle">
+  Toggle
+</button>
 ```
 
 **Benefits:**
+
 - ✅ Best performance (no MutationObserver)
 - ✅ Smallest bundle size (~5-6KB less)
 - ✅ Auto-registration on import
@@ -109,17 +122,17 @@ Import all behaviors you need - they auto-register themselves:
 ```html
 <script type="module">
   // Import all behaviors you need
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/compute.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/logger.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/compute.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js";
 </script>
 
 <!-- Use multiple behaviors -->
 <dialog behavior="reveal logger" id="modal">
   <form behavior="request" request-url="/api/signup" request-method="POST">
-    <input name="email" type="email">
+    <input name="email" type="email" />
     <div behavior="compute" compute-formula="email.length">
       Character count: <span></span>
     </div>
@@ -136,18 +149,18 @@ Use import maps to simplify import paths:
 
 ```html
 <script type="importmap">
-{
-  "imports": {
-    "behavior-fn/": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/"
+  {
+    "imports": {
+      "behavior-fn/": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/"
+    }
   }
-}
 </script>
 
 <script type="module">
   // Cleaner imports!
-  import 'behavior-fn/reveal.js';
-  import 'behavior-fn/request.js';
-  import 'behavior-fn/auto-loader.js';
+  import "behavior-fn/reveal.js";
+  import "behavior-fn/request.js";
+  import "behavior-fn/auto-loader.js";
 </script>
 ```
 
@@ -159,7 +172,7 @@ Use import maps to simplify import paths:
 
 ```html
 <script type="module">
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
 </script>
 ```
 
@@ -167,7 +180,7 @@ Use import maps to simplify import paths:
 
 ```html
 <script type="module">
-  import 'https://cdn.jsdelivr.net/npm/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import "https://cdn.jsdelivr.net/npm/behavior-fn@0.2.0/dist/cdn/reveal.js";
 </script>
 ```
 
@@ -175,7 +188,7 @@ Use import maps to simplify import paths:
 
 ```html
 <script type="module">
-  import 'https://esm.sh/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import "https://esm.sh/behavior-fn@0.2.0/dist/cdn/reveal.js";
 </script>
 ```
 
@@ -185,17 +198,16 @@ Use import maps to simplify import paths:
 
 All behaviors are available as ESM modules with auto-registration:
 
-| Behavior | Import | Size (min/gzip) | Description |
-|----------|--------|-----------------|-------------|
-| `logger` | `logger.js` | 2.3KB / 976B | Log behavior events |
-| `element-counter` | `element-counter.js` | 2.7KB / 1.1KB | Count elements |
-| `compound-commands` | `compound-commands.js` | 3.1KB / 1.3KB | Multiple commands |
-| `content-setter` | `content-setter.js` | 3.2KB / 1.2KB | Set content |
-| `input-watcher` | `input-watcher.js` | 3.8KB / 1.5KB | Watch inputs |
-| `compute` | `compute.js` | 5.6KB / 2.2KB | Computed values |
-| `json-template` | `json-template.js` | 6.1KB / 2.5KB | Render JSON |
-| `reveal` | `reveal.js` | 6.8KB / 2.3KB | Show/hide |
-| `request` | `request.js` | 11KB / 3.3KB | HTTP requests |
+| Behavior          | Import               | Size (min/gzip) | Description         |
+| ----------------- | -------------------- | --------------- | ------------------- |
+| `logger`          | `logger.js`          | 2.3KB / 976B    | Log behavior events |
+| `element-counter` | `element-counter.js` | 2.7KB / 1.1KB   | Count elements      |
+| `content-setter`  | `content-setter.js`  | 3.2KB / 1.2KB   | Set content         |
+| `input-watcher`   | `input-watcher.js`   | 3.8KB / 1.5KB   | Watch inputs        |
+| `compute`         | `compute.js`         | 5.6KB / 2.2KB   | Computed values     |
+| `json-template`   | `json-template.js`   | 6.1KB / 2.5KB   | Render JSON         |
+| `reveal`          | `reveal.js`          | 6.8KB / 2.3KB   | Show/hide           |
+| `request`         | `request.js`         | 11KB / 3.3KB    | HTTP requests       |
 
 ---
 
@@ -206,7 +218,7 @@ All behaviors are available as ESM modules with auto-registration:
 ```html
 <script type="module">
   // Pin to specific version
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
 </script>
 ```
 
@@ -215,7 +227,7 @@ All behaviors are available as ESM modules with auto-registration:
 ```html
 <script type="module">
   // Don't use @latest in production!
-  import 'https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js';
+  import "https://unpkg.com/behavior-fn@latest/dist/cdn/reveal.js";
 </script>
 ```
 
@@ -224,6 +236,7 @@ All behaviors are available as ESM modules with auto-registration:
 ## Browser Support
 
 **ESM requires modern browsers:**
+
 - ✅ Chrome 61+ (2017)
 - ✅ Firefox 60+ (2018)
 - ✅ Safari 11+ (2017)
@@ -243,18 +256,18 @@ Add custom logic after imports:
 ```html
 <script type="module">
   // Import behaviors (auto-register)
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
-  import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
-  
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
+  import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js";
+
   // Your code runs after imports (ES modules are deferred)
-  const dialog = document.getElementById('modal');
-  
+  const dialog = document.getElementById("modal");
+
   // Add custom event listeners
-  dialog.addEventListener('close', () => {
-    console.log('Dialog closed!');
+  dialog.addEventListener("close", () => {
+    console.log("Dialog closed!");
     // Custom logic here
   });
-  
+
   // Programmatic control
   setTimeout(() => {
     dialog.showModal(); // Open after 3 seconds

@@ -31,6 +31,7 @@ export type PackageName = (typeof validators)[number]["packageName"];
 ```
 
 **Benefits:**
+
 - Add a validator → types update automatically
 - No manual synchronization needed
 - Impossible for types to drift from implementation
@@ -46,17 +47,18 @@ export type PackageName = (typeof validators)[number]["packageName"];
 // ❌ BAD: Mutable fields, widened types
 export class ZodValidator {
   packageName: string = "zod"; // Type: string (too wide)
-  label: string = "Zod";       // Type: string (too wide)
+  label: string = "Zod"; // Type: string (too wide)
 }
 
 // ✅ GOOD: Readonly fields, literal types
 export class ZodValidator {
   readonly packageName = "zod"; // Type: "zod" (literal)
-  readonly label = "Zod";       // Type: "Zod" (literal)
+  readonly label = "Zod"; // Type: "Zod" (literal)
 }
 ```
 
 **Benefits:**
+
 - Immutability enforced at compile time
 - Literal types enable precise type inference
 - Better autocomplete and type safety
@@ -84,6 +86,7 @@ import { zodValidator } from "../validators/index";
 ```
 
 **Benefits:**
+
 - True singleton pattern
 - Memory efficient
 - No runtime searches needed
@@ -96,19 +99,19 @@ import { zodValidator } from "../validators/index";
 ```typescript
 // ❌ BAD: Arbitrary numeric IDs (surrogate keys)
 export interface Validator {
-  readonly id: number;  // 0, 1, 2 - what do these mean?
+  readonly id: number; // 0, 1, 2 - what do these mean?
   readonly packageName: string;
 }
 
-getValidator(0);  // What validator is 0?
+getValidator(0); // What validator is 0?
 
 // ✅ GOOD: Natural keys (package name is already unique)
 export interface Validator {
-  readonly packageName: string;  // This IS the unique identifier
+  readonly packageName: string; // This IS the unique identifier
   readonly label: string;
 }
 
-getValidator("zod");  // Clear and explicit!
+getValidator("zod"); // Clear and explicit!
 
 // ✅ GOOD: Use values from actual instances, not magic strings
 import { zodValidator, zodMiniValidator } from "../validators/index";
@@ -120,6 +123,7 @@ if (allDeps["zod"]) {
 ```
 
 **Benefits:**
+
 - Self-documenting code (no need to look up what `0` means)
 - Single source of truth
 - Refactoring-safe (no need to maintain ID sequences)
@@ -172,6 +176,7 @@ export function isValidValidator(packageName: string): packageName is PackageNam
 ```
 
 **This pattern ensures:**
+
 - Complete type safety
 - No manual type maintenance
 - Easy to extend (just add a new class)
@@ -217,6 +222,7 @@ export function detectPackageManager(cwd: string): PackageManager {
 ```
 
 **Benefits:**
+
 - Single source of truth for lockfile mappings
 - Add a package manager → type updates automatically
 - Easy to iterate over data programmatically
@@ -260,6 +266,7 @@ export type DetectionResult = ReturnType<typeof detectEnvironment>;
 ```
 
 **Benefits:**
+
 - Implementation IS the source of truth
 - Type automatically stays in sync with code
 - One less thing to maintain manually
@@ -280,12 +287,12 @@ Attribute and command names follow the pattern where **key === value**:
 attributes = {
   "reveal-delay": "reveal-delay",
   "reveal-duration": "reveal-duration",
-}
+};
 
 commands = {
   "--show": "--show",
   "--hide": "--hide",
-}
+};
 ```
 
 **File Structure (4 files per behavior):**
@@ -306,13 +313,13 @@ import { Type } from "@sinclair/typebox";
 export const schema = Type.Object({
   /** Delay before revealing */
   "reveal-delay": Type.Optional(Type.String()),
-  
+
   /** Duration of reveal animation */
   "reveal-duration": Type.Optional(Type.String()),
 });
 ```
 
-**_behavior-definition.ts** - Auto-extract metadata:
+**\_behavior-definition.ts** - Auto-extract metadata:
 
 ```typescript
 import { uniqueBehaviorDef } from "~utils";
@@ -320,7 +327,7 @@ import { schema } from "./schema";
 
 const definition = uniqueBehaviorDef({
   name: "reveal",
-  schema,  // attributes auto-extracted from schema keys
+  schema, // attributes auto-extracted from schema keys
   command: {
     "--show": "--show",
     "--hide": "--hide",
@@ -340,11 +347,11 @@ const { attributes, command } = definition;
 export const revealBehaviorFactory = (el: HTMLElement) => {
   // ✅ Access using bracket notation
   const delay = el.getAttribute(attributes["reveal-delay"]);
-  
+
   return {
     onCommand(e: CommandEvent<string>) {
       if (!command) return;
-      
+
       if (e.command === command["--show"]) {
         // Handle command
       }
@@ -358,6 +365,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
 Every behavior-specific attribute MUST follow: `{behavior-name}-{attribute-name}`
 
 Examples:
+
 - ✅ `reveal-delay`, `reveal-duration`, `reveal-anchor`
 - ✅ `compute-formula`
 - ✅ `request-url`, `request-method`, `request-trigger`
@@ -368,10 +376,12 @@ Examples:
 All commands MUST use double-dash prefix: `--{command-name}`
 
 Examples:
+
 - ✅ `--show`, `--hide`, `--toggle`
 - ✅ `--trigger`, `--close-sse`
 
 **Benefits:**
+
 - ✅ Schema is single source of truth
 - ✅ Strong literal types: `attributes["reveal-delay"]` has type `"reveal-delay"`
 - ✅ No manual duplication (DRY)
@@ -401,6 +411,7 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 6.  **DD - Develop:** Implement the logic in `behavior.ts` to make tests pass (Green).
 
 **Approval Protocol:**
+
 - **In Feature Branch/Worktree:** If you are NOT in `main` (verified via `git branch --show-current`), proceed with implementation immediately after creating the LOG.md. Do NOT stop for approval.
 - **In Main:** Never implement in main (see Environment & Branching rules).
 
@@ -410,13 +421,17 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 - **Behavior Naming:** Behaviors must be named in kebab-case (e.g., `reveal`, `input-watcher`).
 - **Event Handling:** Behavior implementations must return an object with camelCase event handlers (e.g., `onCommand`, `onClick`, `onMouseEnter`) which are automatically wired up by the host using standard `addEventListener`.
 - **Invoker Commands API:** We use the native **Invoker Commands API** (`commandfor` and `command` attributes) for declarative button controls. Trigger buttons do NOT need the `is` attribute—only elements with `behavior` attributes need `is` based on their behaviors.
+
   ```html
   <!-- Trigger (uses Invoker Commands - no is needed) -->
-  <button commandfor="modal" command="--toggle">Open</button>
-  
+  <button is="behavioral-button" commandfor="modal" command="toggle">
+    Open
+  </button>
+
   <!-- Target (has behavior - needs is="behavioral-{behavior-names}") -->
   <dialog is="behavioral-reveal" id="modal" behavior="reveal">Content</dialog>
   ```
+
 - **Behavioral Hosts:** Only elements with the `behavior` attribute require the `is` attribute to activate behavior loading. The `is` value is `behavioral-{sorted-behavior-names}`:
   - Single: `behavior="reveal"` → `is="behavioral-reveal"`
   - Multiple: `behavior="reveal logger"` → `is="behavioral-logger-reveal"` (sorted alphabetically)
@@ -431,6 +446,7 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   - Enhance type safety or DX
   - **Do NOT hesitate to break APIs if it makes the codebase better.** Document migrations for users, but prioritize correctness over backward compatibility.
 - **File Structure:** Every behavior MUST follow this exact 4-file structure:
+
   ```text
   registry/behaviors/<name>/
   ├── _behavior-definition.ts  # The Contract (name + schema + commands)
@@ -438,14 +454,15 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   ├── behavior.ts              # The Logic (factory function)
   └── behavior.test.ts         # The Verification (tests)
   ```
-  
+
   **CRITICAL:** Do NOT create flat files in `registry/behaviors/` root (e.g., `my-behavior.ts`). Always create a directory with these 4 files, even if the behavior seems like "infrastructure" or a "polyfill". If you're adding capability to elements, it's a behavior and needs this structure.
-  
+
   **Example Mistake to Avoid:**
+
   ```text
   ❌ registry/behaviors/my-feature.ts
   ❌ registry/behaviors/my-feature.test.ts
-  
+
   ✅ registry/behaviors/my-feature/
      ├── schema.ts
      ├── _behavior-definition.ts
@@ -456,84 +473,89 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 - **Testing Standards:** All tests **MUST** follow these patterns for consistency:
 
   **1. Module-Level Extraction Pattern (REQUIRED):**
+
   ```typescript
   import definition from "./_behavior-definition";
   import { getObservedAttributes } from "~utils";
-  
+
   // ✅ Extract at module level (REQUIRED)
   const { name, attributes, command } = definition;
   const observedAttributes = getObservedAttributes(definition.schema);
-  
+
   describe("Behavior Name", () => {
     // Tests use name, attributes, command, observedAttributes
   });
   ```
-  
+
   **Why:** DRY principle, type-safe literal types, consistent with Behavior Definition Standard
-  
+
   **2. Behavior Registration (REQUIRED):**
+
   ```typescript
   beforeAll(() => {
     // ✅ CORRECT: Pass full definition object
     registerBehavior(definition, behaviorFactory);
     defineBehavioralHost(tag, webcomponentTag, observedAttributes);
   });
-  
+
   // ❌ WRONG: Do NOT use definition.name or just name
-  registerBehavior(name, behaviorFactory);  // Loses schema information!
-  registerBehavior(definition.name, behaviorFactory);  // Loses schema information!
+  registerBehavior(name, behaviorFactory); // Loses schema information!
+  registerBehavior(definition.name, behaviorFactory); // Loses schema information!
   ```
-  
+
   **Why:** Registry needs full schema and command metadata for proper functionality
-  
+
   **3. getObservedAttributes Pattern (REQUIRED):**
+
   ```typescript
   // ✅ CORRECT: Use definition.schema (single source of truth)
   const observedAttributes = getObservedAttributes(definition.schema);
-  
+
   // ❌ WRONG: Do NOT extract schema separately
-  const { name, schema, attributes } = definition;  // Redundant extraction
+  const { name, schema, attributes } = definition; // Redundant extraction
   const observedAttributes = getObservedAttributes(schema);
-  
+
   // ❌ WRONG: Do NOT use Object.keys directly
-  Object.keys(definition.schema.properties);  // Bypasses abstraction
+  Object.keys(definition.schema.properties); // Bypasses abstraction
   ```
-  
+
   **Why:** Single source of truth, consistent abstraction, resilient to schema format changes
-  
+
   **4. Type Safety Over Type Assertions:**
+
   ```typescript
   // ✅ CORRECT: Use test helper utilities
   import { createBehavioralElement, getCommandEvent } from "../test-helpers";
-  
+
   const el = createBehavioralElement("div", "test-tag", {
     behavior: "reveal",
     "reveal-delay": "100ms",
   });
-  
+
   const event = getCommandEvent(commandHandler);
   expect(event.command).toBe("--show");
-  
+
   // ❌ AVOID: Type assertions (use only when helpers don't apply)
   const el = document.createElement("div", { is: "test-tag" }) as any;
   const event = mockFn.mock.calls[0][0] as any;
   ```
-  
+
   **Why:** Type safety catches errors, better IDE support, clearer intent
-  
+
   **5. Proper Cleanup:**
+
   ```typescript
   beforeEach(() => {
-    document.body.innerHTML = "";  // Clean slate
-    vi.useFakeTimers();  // Deterministic timing
+    document.body.innerHTML = ""; // Clean slate
+    vi.useFakeTimers(); // Deterministic timing
   });
-  
+
   afterEach(() => {
-    vi.useRealTimers();  // Restore real timers
-    vi.restoreAllMocks();  // Restore mocks
+    vi.useRealTimers(); // Restore real timers
+    vi.restoreAllMocks(); // Restore mocks
   });
   ```
-  
+
   **6. Test Helpers Location:**
   - Test helpers are in `registry/behaviors/command-test-harness.ts` (aliased as `~test-utils`)
   - Import as: `import { createBehavioralElement, getCommandEvent, MockResponse } from "~test-utils";`
@@ -544,31 +566,32 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
     - `getCommandEvent<T>(mockFn, callIndex?)` - Extract CommandEvent from mock
     - `createMockResponse(overrides?)` - Create mock Response for fetch tests
     - `MockResponse` type - For typing fetch mocks
-  
+
   **7. Import Conventions:**
-  
+
   **ALWAYS use aliases** for cross-directory imports to ensure refactoring safety:
+
   ```typescript
   // ✅ CORRECT: Use aliases
   import { registerBehavior } from "~registry";
   import { defineBehavioralHost } from "~host";
   import { getObservedAttributes } from "~utils";
   import { dispatchCommand } from "~test-utils";
-  
+
   // ❌ WRONG: Relative paths for cross-directory imports
   import { registerBehavior } from "../behavior-registry";
   import { defineBehavioralHost } from "../behavioral-host";
   ```
-  
+
   **Same-directory imports:** Core modules (`behavior-registry.ts`, `behavioral-host.ts`, `behavior-utils.ts`) MAY use relative imports among themselves since they are tightly coupled, but aliases are preferred for consistency.
-  
+
   **Available aliases:**
   - `~registry` → `registry/behaviors/behavior-registry.ts`
   - `~host` → `registry/behaviors/behavioral-host.ts`
   - `~utils` → `registry/behaviors/behavior-utils.ts`
   - `~test-utils` → `registry/behaviors/command-test-harness.ts`
   - `~types` → `registry/behaviors/types.ts`
-  
+
   **Note:** The CLI `init` command automatically configures all 5 aliases in `behavior.json` and handles import rewriting during installation.
 
 ### 4. Git Protocol
@@ -649,49 +672,59 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
 
 **Documentation Pattern (Follow Existing Behaviors):**
 
-```markdown
+````markdown
 ### 📏 **behavior-name**
+
 Brief description of what the behavior does.
 
 **Attributes:**
+
 - `behavior-name-attribute` — Description of what this does
 - `behavior-name-another` — Description
-- None (zero-config behavior)  ← Use this if no attributes
+- None (zero-config behavior) ← Use this if no attributes
 
 **Commands:**
+
 - `--command-name` — Description of what this command does
 - (Omit this section if no commands)
 
 **Features:**
+
 - Feature 1 with technical detail
 - Feature 2 explaining capability
 - Feature 3 noting constraints
 - Works only on specific element types (if applicable)
 
 **Example:**
+
 ```html
 <!-- Clear comment explaining the example -->
-<element-type 
+<element-type
   is="behavioral-behavior-name"
   behavior="behavior-name"
   behavior-name-attribute="value"
   placeholder="Helpful placeholder text"
 ></element-type>
 ```
+````
 
 **Common Use Cases:** (Optional but recommended)
+
 - Use case 1 (e.g., "Comment boxes that expand")
 - Use case 2 (e.g., "Chat message inputs")
 - Use case 3 (e.g., "Note-taking interfaces")
 
 **How It Works:** (Optional, for complex behaviors)
+
 1. Step 1 explanation
 2. Step 2 explanation
 3. Step 3 explanation
 
 **Browser Compatibility:** (Optional, if specific requirements)
+
 - Browser requirements or constraints
-```
+
+````
 
 **BAD Documentation Example (Too Minimal):**
 ```markdown
@@ -701,8 +734,9 @@ Does something useful.
 **Example:**
 ```html
 <div behavior="my-behavior"></div>
-```
-```
+````
+
+````
 
 **GOOD Documentation Example (Comprehensive):**
 ```markdown
@@ -727,7 +761,7 @@ Clear, concise description of what the behavior does and why it's useful.
 **Example:**
 ```html
 <!-- Clear explanatory comment -->
-<element-type 
+<element-type
   is="behavioral-my-behavior"
   behavior="my-behavior"
   my-behavior-option="value"
@@ -735,21 +769,25 @@ Clear, concise description of what the behavior does and why it's useful.
 >
   Content here
 </element-type>
-```
+````
 
 **Common Use Cases:**
+
 - Real-world scenario 1
 - Real-world scenario 2
 - Real-world scenario 3
 
 **How It Works:**
+
 1. Step 1: What happens on initialization
 2. Step 2: What happens during interaction
 3. Step 3: What happens on specific events
 
 **Browser Compatibility:** (If relevant)
+
 - Browser requirements or limitations
 - Feature dependencies (e.g., "Requires MutationObserver")
+
 ```
 
 **Documentation Location in README.md:**
@@ -768,3 +806,4 @@ Before marking a behavior task as complete, verify:
 - [ ] Use cases provided (if applicable)
 - [ ] Technical details explained (if complex)
 - [ ] Follows existing pattern and formatting
+```

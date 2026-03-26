@@ -1,5 +1,13 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  beforeAll,
+  afterEach,
+} from "vitest";
 import { defineBehavioralHost } from "~host";
 import { setValueBehaviorFactory } from "./behavior";
 import { registerBehavior } from "~registry";
@@ -28,19 +36,23 @@ describe("Set-Value Behavior", () => {
   describe("Element Type Validation", () => {
     it("should throw error when factory called with non-form element (div)", () => {
       const el = document.createElement("div");
-      
+
       // Directly test the factory function
       expect(() => {
         setValueBehaviorFactory(el);
-      }).toThrow(/The behavior "set-value" is limited to input, textarea, and select elements/);
+      }).toThrow(
+        /The behavior "set-value" is limited to input, textarea, and select elements/,
+      );
     });
 
     it("should throw error when factory called with non-form element (button)", () => {
       const el = document.createElement("button");
-      
+
       expect(() => {
         setValueBehaviorFactory(el);
-      }).toThrow(/The behavior "set-value" is limited to input, textarea, and select elements/);
+      }).toThrow(
+        /The behavior "set-value" is limited to input, textarea, and select elements/,
+      );
     });
 
     it("should not throw when attached to input element", async () => {
@@ -52,7 +64,7 @@ describe("Set-Value Behavior", () => {
         is: webcomponentTag,
       }) as HTMLInputElement;
       el.setAttribute("behavior", name);
-      
+
       // Should not throw
       expect(() => {
         document.body.appendChild(el);
@@ -68,7 +80,7 @@ describe("Set-Value Behavior", () => {
         is: webcomponentTag,
       }) as HTMLTextAreaElement;
       el.setAttribute("behavior", name);
-      
+
       expect(() => {
         document.body.appendChild(el);
       }).not.toThrow();
@@ -83,14 +95,14 @@ describe("Set-Value Behavior", () => {
         is: webcomponentTag,
       }) as HTMLSelectElement;
       el.setAttribute("behavior", name);
-      
+
       expect(() => {
         document.body.appendChild(el);
       }).not.toThrow();
     });
   });
 
-  describe("--set-value Command", () => {
+  describe("set-value Command", () => {
     it("should set input value from command source innerText", async () => {
       const tag = "input";
       const webcomponentTag = "test-set-value-basic";
@@ -107,7 +119,7 @@ describe("Set-Value Behavior", () => {
       source.innerText = "Hello World";
 
       // Dispatch command
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(el.value).toBe("Hello World");
     });
@@ -129,7 +141,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Test Value";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(inputHandler).toHaveBeenCalledTimes(1);
       expect(inputHandler.mock.calls[0][0]).toBeInstanceOf(Event);
@@ -153,7 +165,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Changed Value";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(changeHandler).toHaveBeenCalledTimes(1);
       expect(changeHandler.mock.calls[0][0]).toBeInstanceOf(Event);
@@ -174,7 +186,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Multi\nline\ntext";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(el.value).toBe("Multi\nline\ntext");
     });
@@ -197,7 +209,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "opt2";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(el.value).toBe("opt2");
     });
@@ -217,13 +229,13 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "New Value";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(el.value).toBe("New Value");
     });
   });
 
-  describe("--set-value-and-submit Command", () => {
+  describe("set-value-and-submit Command", () => {
     it("should set value and submit parent form", async () => {
       const tag = "input";
       const webcomponentTag = "test-set-value-submit";
@@ -243,7 +255,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Submit Value";
 
-      dispatchCommand(el, command!["--set-value-and-submit"], source);
+      dispatchCommand(el, command!["set-value-and-submit"], source);
 
       expect(el.value).toBe("Submit Value");
       expect(submitHandler).toHaveBeenCalledTimes(1);
@@ -270,7 +282,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Test";
 
-      dispatchCommand(el, command!["--set-value-and-submit"], source);
+      dispatchCommand(el, command!["set-value-and-submit"], source);
 
       expect(requestSubmitSpy).toHaveBeenCalledTimes(1);
     });
@@ -291,7 +303,7 @@ describe("Set-Value Behavior", () => {
 
       // Should not throw
       expect(() => {
-        dispatchCommand(el, command!["--set-value-and-submit"], source);
+        dispatchCommand(el, command!["set-value-and-submit"], source);
       }).not.toThrow();
 
       expect(el.value).toBe("No Form Value");
@@ -322,7 +334,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Event Order Test";
 
-      dispatchCommand(el, command!["--set-value-and-submit"], source);
+      dispatchCommand(el, command!["set-value-and-submit"], source);
 
       expect(eventOrder).toEqual(["input", "change", "submit"]);
     });
@@ -344,7 +356,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(el.value).toBe("");
     });
@@ -363,7 +375,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "  Padded Text  ";
 
-      dispatchCommand(el, command!["--set-value"], source);
+      dispatchCommand(el, command!["set-value"], source);
 
       expect(el.value).toBe("  Padded Text  ");
     });
@@ -383,7 +395,7 @@ describe("Set-Value Behavior", () => {
       const source = createCommandSource();
       source.innerText = "Should Not Set";
 
-      dispatchCommand(el, "--unrelated-command", source);
+      dispatchCommand(el, "unrelated-command", source);
 
       expect(el.value).toBe("Original");
     });

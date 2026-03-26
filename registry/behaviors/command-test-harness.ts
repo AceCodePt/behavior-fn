@@ -36,7 +36,7 @@ export function createCommandSource(id?: string): HTMLButtonElement {
 /**
  * Type-safe helper to create behavioral elements with proper typing.
  * Eliminates need for `as any` when creating elements with `is` attribute.
- * 
+ *
  * @example
  * ```typescript
  * const el = createBehavioralElement("div", "test-reveal-div", {
@@ -45,7 +45,7 @@ export function createCommandSource(id?: string): HTMLButtonElement {
  * });
  * // el is typed as HTMLDivElement
  * ```
- * 
+ *
  * @param tagName - HTML tag name (e.g., "div", "button")
  * @param webcomponentTag - Custom element name for the `is` attribute
  * @param attributes - Optional attributes to set on the element
@@ -56,34 +56,34 @@ export function createBehavioralElement<K extends keyof HTMLElementTagNameMap>(
   webcomponentTag: string,
   attributes?: Record<string, string>,
 ): HTMLElementTagNameMap[K] {
-  const el = document.createElement(tagName, { 
-    is: webcomponentTag 
+  const el = document.createElement(tagName, {
+    is: webcomponentTag,
   }) as HTMLElementTagNameMap[K];
-  
+
   if (attributes) {
     for (const [key, value] of Object.entries(attributes)) {
       el.setAttribute(key, value);
     }
   }
-  
+
   return el;
 }
 
 /**
  * Type-safe helper to extract CommandEvent from mock function calls.
  * Eliminates need for `as any` when accessing mock call arguments.
- * 
+ *
  * @example
  * ```typescript
  * const commandHandler = vi.fn();
  * target.addEventListener("command", commandHandler);
  * button.click();
- * 
+ *
  * const event = getCommandEvent(commandHandler);
- * expect(event.command).toBe("--show");
+ * expect(event.command).toBe("show");
  * expect(event.source).toBe(button);
  * ```
- * 
+ *
  * @param mockFn - Vitest mock function
  * @param callIndex - Which call to extract (default: 0 = first call)
  * @returns CommandEvent with proper typing
@@ -102,7 +102,7 @@ export function getCommandEvent<T = string>(
 /**
  * Type for partial Response object used in fetch mocks.
  * Includes commonly mocked Response properties.
- * 
+ *
  * @example
  * ```typescript
  * vi.stubGlobal("fetch", vi.fn(() =>
@@ -114,12 +114,19 @@ export function getCommandEvent<T = string>(
  */
 export type MockResponse = Pick<
   Response,
-  "ok" | "status" | "statusText" | "headers" | "text" | "json" | "blob" | "arrayBuffer"
+  | "ok"
+  | "status"
+  | "statusText"
+  | "headers"
+  | "text"
+  | "json"
+  | "blob"
+  | "arrayBuffer"
 >;
 
 /**
  * Helper to create a mock Response object with sensible defaults.
- * 
+ *
  * @example
  * ```typescript
  * vi.stubGlobal("fetch", vi.fn(() =>
@@ -130,7 +137,7 @@ export type MockResponse = Pick<
  * ```
  */
 export function createMockResponse(
-  overrides: Partial<MockResponse> = {}
+  overrides: Partial<MockResponse> = {},
 ): MockResponse {
   return {
     ok: true,

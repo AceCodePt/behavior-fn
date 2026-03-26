@@ -5,20 +5,20 @@ const { command } = definition;
 
 /**
  * Set-value behavior factory.
- * 
+ *
  * Enables declarative value setting for form inputs via command buttons.
  * The button's innerText becomes the input value when the command is triggered.
- * 
+ *
  * Features:
  * - Validates element is a form input (input, textarea, select)
  * - Throws error for invalid element types
  * - Dispatches both `input` and `change` events after setting value
  * - Supports form submission using `requestSubmit()` for validation
- * 
+ *
  * Command:
  * - `--set-value`: Set input value from command source's innerText
  * - `--set-value-and-submit`: Set value and submit parent form
- * 
+ *
  * @param el - The element to attach the behavior to (must be input/textarea/select)
  * @returns Behavior object with command handler
  * @throws Error if element is not a form input element
@@ -38,11 +38,11 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
   return {
     /**
      * Handle command events to set the input value.
-     * 
+     *
      * The command source's innerText is used as the new value.
      * Both `input` and `change` events are dispatched to ensure
      * reactive systems (like form validation) are triggered.
-     * 
+     *
      * For `--set-value-and-submit`, the parent form is submitted
      * using `requestSubmit()` which respects form validation.
      */
@@ -50,8 +50,8 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
       if (!command) return;
 
       if (
-        e.command === command["--set-value"] ||
-        e.command === command["--set-value-and-submit"]
+        e.command === command["set-value"] ||
+        e.command === command["set-value-and-submit"]
       ) {
         // Set value from command source's innerText
         el.value = e.source.innerText;
@@ -62,7 +62,7 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
 
         // Submit form if requested and form exists
         if (
-          e.command === command["--set-value-and-submit"] &&
+          e.command === command["set-value-and-submit"] &&
           "form" in el &&
           el.form
         ) {

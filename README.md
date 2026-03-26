@@ -34,22 +34,26 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <script type="module">
-    // Just import - behaviors auto-register, loader auto-enables!
-    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';
-    import 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js';
-  </script>
-</head>
-<body>
-  <!-- No is attribute needed with auto-loader -->
-  <dialog behavior="reveal" id="modal">
-    <h2>Hello World!</h2>
-    <button commandfor="modal" command="--hide">Close</button>
-  </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
-</body>
+  <head>
+    <script type="module">
+      // Just import - behaviors auto-register, loader auto-enables!
+      import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
+      import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js";
+    </script>
+  </head>
+  <body>
+    <!-- No is attribute needed with auto-loader -->
+    <dialog behavior="reveal" id="modal">
+      <h2>Hello World!</h2>
+      <button is="behavioral-button" commandfor="modal" command="hide">
+        Close
+      </button>
+    </dialog>
+
+    <button is="behavioral-button" commandfor="modal" command="toggle">
+      Open Modal
+    </button>
+  </body>
 </html>
 ```
 
@@ -63,24 +67,32 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <script type="module">
-    import { defineBehavioralHost } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js';
-    import { metadata } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js';  // Auto-registers!
-    
-    // Define host manually for best performance
-    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);
-  </script>
-</head>
-<body>
-  <!-- Explicit is attribute required -->
-  <dialog is="behavioral-reveal" behavior="reveal" id="modal">
-    <h2>Hello World!</h2>
-    <button commandfor="modal" command="--hide">Close</button>
-  </dialog>
-  
-  <button commandfor="modal" command="--toggle">Open Modal</button>
-</body>
+  <head>
+    <script type="module">
+      import { defineBehavioralHost } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js";
+      import { metadata } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"; // Auto-registers!
+
+      // Define host manually for best performance
+      defineBehavioralHost(
+        "dialog",
+        "behavioral-reveal",
+        metadata.observedAttributes,
+      );
+    </script>
+  </head>
+  <body>
+    <!-- Explicit is attribute required -->
+    <dialog is="behavioral-reveal" behavior="reveal" id="modal">
+      <h2>Hello World!</h2>
+      <button is="behavioral-button" commandfor="modal" command="hide">
+        Close
+      </button>
+    </dialog>
+
+    <button is="behavioral-button" commandfor="modal" command="toggle">
+      Open Modal
+    </button>
+  </body>
 </html>
 ```
 
@@ -102,6 +114,7 @@ All CDN bundles are now **ESM-only** with **auto-registration on import**. This 
 **Browser Support:** Chrome 61+, Firefox 60+, Safari 11+, Edge 79+ (98%+ coverage in 2026)
 
 **Migration:**
+
 ```html
 <!-- ❌ v0.1.6: IIFE format -->
 <script src="behavior-fn-core.js"></script>
@@ -110,12 +123,13 @@ All CDN bundles are now **ESM-only** with **auto-registration on import**. This 
 <!-- ✅ v0.2.0: ESM format with auto-registration -->
 <script type="module">
   // Just import - auto-registers and auto-enables!
-  import './reveal.js';
-  import './auto-loader.js';
+  import "./reveal.js";
+  import "./auto-loader.js";
 </script>
 ```
 
 **New: Auto-Registration on Import**
+
 - Behaviors automatically register themselves when imported
 - Auto-loader automatically enables itself when imported
 - No more manual `registerBehavior()` or `enableAutoLoader()` calls needed
@@ -145,7 +159,7 @@ The 72KB all-in-one bundle has been **completely removed**. You now load only th
 # npm
 npx behavior-fn init
 
-# pnpm  
+# pnpm
 pnpm dlx behavior-fn init
 
 # bun
@@ -229,14 +243,18 @@ import { getObservedAttributes } from "./behaviors/behavior-utils";
 registerBehavior(definition, revealBehaviorFactory);
 
 // Register dialog as a behavioral host for the "reveal" behavior
-defineBehavioralHost("dialog", "behavioral-reveal", getObservedAttributes(definition.schema));
+defineBehavioralHost(
+  "dialog",
+  "behavioral-reveal",
+  getObservedAttributes(definition.schema),
+);
 ```
 
 Then in your HTML:
 
 ```html
 <!-- Button uses Invoker Commands API to trigger dialog -->
-<button commandfor="modal" command="--toggle">
+<button is="behavioral-button" commandfor="modal" command="toggle">
   Toggle Modal
 </button>
 
@@ -249,11 +267,12 @@ Then in your HTML:
 > **⚠️ Important:** The `is` attribute is **required** on elements with the `behavior` attribute to activate behavior loading. The `is` value should be `behavioral-{behavior-names}` where behavior names are sorted alphabetically and joined with hyphens.
 >
 > **Examples:**
+>
 > - `behavior="reveal"` → `is="behavioral-reveal"`
 > - `behavior="reveal logger"` → `is="behavioral-logger-reveal"` (sorted alphabetically)
 > - `behavior="request"` → `is="behavioral-request"`
 >
-> **Invoker Commands:** Trigger buttons use the native `commandfor` and `command` attributes (Invoker Commands API) and do NOT need the `is` attribute.
+> **Command Protocol V2:** Trigger elements that use `commandfor` + `command` must use a behavioral host (`is="behavioral-..."`) so command dispatch can be wired.
 
 ### Optional: Auto-Loader
 
@@ -271,14 +290,17 @@ enableAutoLoader();
 Now you can write:
 
 ```html
-<!-- Trigger (no is needed - uses Invoker Commands) -->
-<button commandfor="modal" command="--toggle">Toggle</button>
+<!-- Trigger (uses behavioral host command dispatch) -->
+<button is="behavioral-button" commandfor="modal" command="toggle">
+  Toggle
+</button>
 
 <!-- Target with auto-loader (adds is="behavioral-reveal" automatically) -->
 <dialog id="modal" behavior="reveal">Content here</dialog>
 ```
 
 **How it works:**
+
 1. Scans DOM for all elements with `behavior` attribute
 2. Parses and sorts behaviors alphabetically for each element
 3. Creates custom element name: `behavioral-{sorted-behaviors}` (e.g., `behavioral-logger-reveal`)
@@ -286,11 +308,13 @@ Now you can write:
 5. Adds appropriate `is` attribute to the element
 
 **Examples:**
+
 - `<div behavior="reveal">` → `<div is="behavioral-reveal" behavior="reveal">`
 - `<button behavior="reveal logger">` → `<button is="behavioral-logger-reveal" behavior="reveal logger">`
 - Multiple tags can share the same host: both `<button>` and `<dialog>` with `behavior="reveal"` use `is="behavioral-reveal"`
 
 **Tradeoffs:**
+
 - ✅ Cleaner HTML syntax
 - ✅ Closer to Alpine.js/HTMX patterns
 - ⚠️ Adds ~2KB + MutationObserver overhead
@@ -307,9 +331,11 @@ Now you can write:
 ## 📚 Available Behaviors
 
 ### 🔍 **reveal**
+
 Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus management and animations.
 
 **Attributes:**
+
 - `reveal-delay` — CSS time value for delay before showing
 - `reveal-duration` — CSS time value for animation duration
 - `reveal-anchor` — ID of anchor element for positioning
@@ -322,33 +348,40 @@ Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus m
 - `open` — For dialog/details elements
 
 **Commands:**
-- `--show` — Show the element
-- `--hide` — Hide the element
-- `--toggle` — Toggle visibility
+
+- `show` — Show the element
+- `hide` — Hide the element
+- `toggle` — Toggle visibility
 
 **Example:**
+
 ```html
-<!-- Trigger button (uses Invoker Commands API - no is needed) -->
-<button commandfor="modal" command="--toggle">
+<!-- Trigger button (uses behavioral host command dispatch) -->
+<button is="behavioral-button" commandfor="modal" command="toggle">
   Open Modal
 </button>
 
 <!-- Dialog with reveal behavior (needs is="behavioral-reveal") -->
 <dialog is="behavioral-reveal" id="modal" behavior="reveal">
   <p>Modal content here</p>
-  <button commandfor="modal" command="--hide">Close</button>
+  <button is="behavioral-button" commandfor="modal" command="hide">
+    Close
+  </button>
 </dialog>
 ```
 
 ---
 
 ### 📏 **auto-grow**
+
 Automatically adjusts textarea height to fit content as the user types, eliminating internal scrolling.
 
 **Attributes:**
+
 - None (zero-config behavior)
 
 **Features:**
+
 - Automatically grows textarea to fit content
 - Disables internal scrolling (`overflow-y: hidden`)
 - Disables manual resize handles (`resize: none`)
@@ -356,9 +389,10 @@ Automatically adjusts textarea height to fit content as the user types, eliminat
 - Works only on `<textarea>` elements (warns if attached to others)
 
 **Example:**
+
 ```html
 <!-- Simple auto-growing textarea -->
-<textarea 
+<textarea
   is="behavioral-auto-grow"
   behavior="auto-grow"
   placeholder="Type here and watch the textarea expand..."
@@ -366,25 +400,30 @@ Automatically adjusts textarea height to fit content as the user types, eliminat
 ```
 
 **Common Use Cases:**
+
 - Comment boxes that expand as users type
 - Message input fields (like chat applications)
 - Note-taking interfaces
 - Any textarea where you want to avoid scrolling
 
 **How It Works:**
+
 1. On connect: Sets `overflow-y: hidden` and `resize: none`
 2. On input: Sets height to `auto` then to `scrollHeight` (allows both growing and shrinking)
 
 **Browser Compatibility:**
+
 - All modern browsers (Chrome, Firefox, Safari, Edge)
 - Requires `HTMLTextAreaElement` support
 
 ---
 
 ### 📡 **request**
+
 Declarative HTTP requests with loading states, error handling, and Server-Sent Events (SSE) [HTMX-inspired].
 
 **Attributes:**
+
 - `request-url` — Target URL for the request
 - `request-method` — HTTP method (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`)
 - `request-trigger` — Event(s) that trigger the request (can be complex trigger configuration)
@@ -396,24 +435,27 @@ Declarative HTTP requests with loading states, error handling, and Server-Sent E
 - `request-vals` — Additional values to include in request
 
 **Commands:**
+
 - `--trigger` — Manually trigger the request
 - `--close-sse` — Close active SSE connection
 
 **Example:**
+
 ```html
-<input 
+<input
   is="behavioral-request"
-  behavior="request" 
-  request-url="/api/search" 
-  request-trigger="input" 
+  behavior="request"
+  request-url="/api/search"
+  request-trigger="input"
   request-target="#results"
   request-swap="innerHTML"
->
+/>
 
 <div id="results"></div>
 ```
 
 **Features:**
+
 - Support for complex trigger configurations (delay, throttle, SSE)
 - Multiple swap strategies for DOM manipulation
 - Loading indicators and confirmation dialogs
@@ -423,21 +465,24 @@ Declarative HTTP requests with loading states, error handling, and Server-Sent E
 ---
 
 ### 👁️ **input-watcher**
+
 Watch form inputs and update the element's content with their values.
 
 **Attributes:**
+
 - `input-watcher-target` — Selector or comma-separated list of input IDs to watch
 - `input-watcher-format` — Format string (e.g., `"Value: {value}"`)
 - `input-watcher-events` — Comma-separated list of events to listen to (default: `input, change`)
 - `input-watcher-attr` — Attribute to read from target input (default: uses `value` property)
 
 **Example:**
-```html
-<input type="text" id="username" placeholder="Enter username">
 
-<p 
+```html
+<input type="text" id="username" placeholder="Enter username" />
+
+<p
   is="behavioral-input-watcher"
-  behavior="input-watcher" 
+  behavior="input-watcher"
   input-watcher-target="username"
   input-watcher-format="Hello, {value}!"
 >
@@ -446,6 +491,7 @@ Watch form inputs and update the element's content with their values.
 ```
 
 **Features:**
+
 - Watch single or multiple inputs
 - Custom format strings with `{value}` placeholder
 - Configurable event listeners
@@ -454,18 +500,21 @@ Watch form inputs and update the element's content with their values.
 ---
 
 ### 📝 **content-setter**
+
 Set or modify attributes and properties on elements programmatically.
 
 **Attributes:**
+
 - `content-setter-attribute` — The attribute to modify (use `textContent` for text content)
 - `content-setter-value` — The value to set
 - `content-setter-mode` — How to apply: `set` (default), `toggle`, or `remove`
 
 **Example:**
+
 ```html
-<button 
+<button
   is="behavioral-content-setter"
-  behavior="content-setter" 
+  behavior="content-setter"
   content-setter-attribute="data-theme"
   content-setter-value="dark"
   content-setter-mode="toggle"
@@ -475,6 +524,7 @@ Set or modify attributes and properties on elements programmatically.
 ```
 
 **Features:**
+
 - Set attributes, data attributes, or text content
 - Toggle mode for boolean-like attributes
 - Remove mode to delete attributes
@@ -483,16 +533,20 @@ Set or modify attributes and properties on elements programmatically.
 ---
 
 ### 📋 **set-value**
+
 Set form input values from command sources (typically buttons), useful for auto-complete, templates, and quick-fill workflows.
 
 **Attributes:**
+
 - None (zero-config behavior)
 
 **Commands:**
+
 - `--set-value` — Set input value from command source's `innerText`
 - `--set-value-and-submit` — Set value and submit parent form
 
 **Features:**
+
 - Works only on form input elements (`<input>`, `<textarea>`, `<select>`)
 - Throws error if attached to non-form elements
 - Dispatches both `input` and `change` events to trigger reactive systems
@@ -500,16 +554,27 @@ Set form input values from command sources (typically buttons), useful for auto-
 - Button's `innerText` becomes the input value
 
 **Example:**
+
 ```html
 <!-- Suggestion buttons set textarea value -->
 <div>
-  <button commandfor="message" command="--set-value">Thanks for your help!</button>
-  <button commandfor="message" command="--set-value">I'll get back to you soon.</button>
-  <button commandfor="message" command="--set-value-and-submit">Looks good to me!</button>
+  <button is="behavioral-button" commandfor="message" command="set-value">
+    Thanks for your help!
+  </button>
+  <button is="behavioral-button" commandfor="message" command="set-value">
+    I'll get back to you soon.
+  </button>
+  <button
+    is="behavioral-button"
+    commandfor="message"
+    command="set-value-and-submit"
+  >
+    Looks good to me!
+  </button>
 </div>
 
 <form>
-  <textarea 
+  <textarea
     is="behavioral-set-value"
     id="message"
     behavior="set-value"
@@ -520,37 +585,43 @@ Set form input values from command sources (typically buttons), useful for auto-
 ```
 
 **Common Use Cases:**
+
 - Auto-complete or suggestion systems (click to fill)
 - Template insertion (canned responses in chat)
 - Quick-fill buttons for common form values
 - Copy-paste workflows with visual feedback
 
 **How It Works:**
+
 1. Button with `commandfor="input-id"` dispatches command event
 2. Behavior reads button's `innerText` and sets it as input value
 3. Dispatches `input` and `change` events for reactive updates
 4. If `--set-value-and-submit` is used and input has parent form, calls `form.requestSubmit()`
 
 **Browser Compatibility:**
+
 - All modern browsers with Custom Elements support
 - Works with native Invoker Commands API or polyfill
 
 ---
 
 ### 🧮 **compute**
+
 Reactive computed values from watched inputs with mathematical formulas.
 
 **Attributes:**
+
 - `compute-formula` — Mathematical expression using `#id` syntax to reference inputs (e.g., `#price * #qty + 10`)
 
 **Example:**
-```html
-<input type="number" id="price" value="100">
-<input type="number" id="qty" value="2">
 
-<output 
+```html
+<input type="number" id="price" value="100" />
+<input type="number" id="qty" value="2" />
+
+<output
   is="behavioral-compute"
-  behavior="compute" 
+  behavior="compute"
   compute-formula="#price * #qty"
 >
   200
@@ -558,6 +629,7 @@ Reactive computed values from watched inputs with mathematical formulas.
 ```
 
 **Features:**
+
 - Supports basic arithmetic operators: `+`, `-`, `*`, `/`
 - Uses `#id` syntax to reference input values
 - Automatically detects dependencies and watches for changes
@@ -569,13 +641,16 @@ Reactive computed values from watched inputs with mathematical formulas.
 ---
 
 ### 📊 **element-counter**
+
 Count matching elements in the DOM and display the count reactively.
 
 **Attributes:**
+
 - `element-counter-root` — ID of the root element to watch for changes
 - `element-counter-selector` — CSS selector for elements to count within the root
 
 **Example:**
+
 ```html
 <ul id="todo-list">
   <li>Task 1</li>
@@ -583,9 +658,9 @@ Count matching elements in the DOM and display the count reactively.
   <li>Task 3</li>
 </ul>
 
-<span 
+<span
   is="behavioral-element-counter"
-  behavior="element-counter" 
+  behavior="element-counter"
   element-counter-root="todo-list"
   element-counter-selector="li"
 >
@@ -594,6 +669,7 @@ Count matching elements in the DOM and display the count reactively.
 ```
 
 **Features:**
+
 - Uses MutationObserver to watch for DOM changes
 - Updates automatically when elements are added or removed
 - Updates `textContent` for regular elements
@@ -603,14 +679,17 @@ Count matching elements in the DOM and display the count reactively.
 ---
 
 ### 🎨 **json-template**
+
 Data binding and template rendering for JSON data sources using intuitive curly brace interpolation.
 
 > 📚 **[Complete Guide](docs/guides/json-template-behavior.md)** - Detailed documentation with examples
 
 **Attributes:**
+
 - `json-template-for` — ID of the `<script type="application/json">` element containing the data (like `for` in `<label>`)
 
 **Template Syntax:**
+
 - `{path}` — Interpolate values in text content or attributes
 - `{path || "fallback"}` — Use fallback if value is falsy (0, false, "", null, undefined)
 - `{path ?? "fallback"}` — Use fallback only if value is nullish (null or undefined)
@@ -618,6 +697,7 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 - `data-array="path"` — Mark nested `<template>` for array rendering
 
 **Example:**
+
 ```html
 <!-- Data source -->
 <script type="application/json" id="user-data">
@@ -626,22 +706,22 @@ Data binding and template rendering for JSON data sources using intuitive curly 
     "role": "admin",
     "verified": true,
     "projects": [
-      {"title": "BehaviorFN", "stars": 100},
-      {"title": "AutoWC", "stars": 50}
+      { "title": "BehaviorFN", "stars": 100 },
+      { "title": "AutoWC", "stars": 50 }
     ]
   }
 </script>
 
 <!-- Renderer with curly brace syntax -->
-<div 
+<div
   is="behavioral-json-template"
-  behavior="json-template" 
+  behavior="json-template"
   json-template-for="user-data"
 >
   <template>
     <div data-role="{role}">
       <h2>{name || "Anonymous"} {verified && "✓"}</h2>
-      
+
       <!-- Array with data-array marker -->
       <ul>
         <template data-array="projects">
@@ -654,60 +734,89 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 ```
 
 **Fallback Operator Examples:**
+
 ```html
 <!-- || (logical OR) - fallback for ANY falsy value -->
-<p>{count || 10}</p>        <!-- 0 → "10", undefined → "10" -->
-<p>{active || "N/A"}</p>    <!-- false → "N/A", null → "N/A" -->
-<p>{message || ""}</p>       <!-- "" → "", undefined → "" -->
+<p>{count || 10}</p>
+<!-- 0 → "10", undefined → "10" -->
+<p>{active || "N/A"}</p>
+<!-- false → "N/A", null → "N/A" -->
+<p>{message || ""}</p>
+<!-- "" → "", undefined → "" -->
 
 <!-- ?? (nullish coalescing) - fallback only for null/undefined -->
-<p>{count ?? 10}</p>        <!-- 0 → "0", undefined → "10" -->
-<p>{active ?? "N/A"}</p>    <!-- false → "false", null → "N/A" -->
-<p>{message ?? "None"}</p>   <!-- "" → "", undefined → "None" -->
+<p>{count ?? 10}</p>
+<!-- 0 → "0", undefined → "10" -->
+<p>{active ?? "N/A"}</p>
+<!-- false → "false", null → "N/A" -->
+<p>{message ?? "None"}</p>
+<!-- "" → "", undefined → "None" -->
 
 <!-- && (logical AND) - use value if condition is truthy -->
-<p>{premium && "⭐ Pro"}</p>  <!-- true → "⭐ Pro", false → "false" -->
-<p>{verified && "✓"}</p>     <!-- true → "✓", undefined → "" -->
-<p>{count && "items"}</p>    <!-- 5 → "items", 0 → "0" -->
+<p>{premium && "⭐ Pro"}</p>
+<!-- true → "⭐ Pro", false → "false" -->
+<p>{verified && "✓"}</p>
+<!-- true → "✓", undefined → "" -->
+<p>{count && "items"}</p>
+<!-- 5 → "items", 0 → "0" -->
 
 <!-- Advanced: Literal values (quoted strings) on left side -->
-<p>{"&&" && "||"}</p>        <!-- "&&" is truthy → "||" -->
-<p>{"||" || "&&"}</p>        <!-- "||" is truthy → "||" (keeps value) -->
-<p>{"??" ?? "||"}</p>        <!-- "??" is not nullish → "??" -->
-<p>{"" || "empty"}</p>       <!-- "" is falsy → "empty" -->
-<p>{"" ?? "N/A"}</p>         <!-- "" is not nullish → "" (empty string) -->
+<p>{"&&" && "||"}</p>
+<!-- "&&" is truthy → "||" -->
+<p>{"||" || "&&"}</p>
+<!-- "||" is truthy → "||" (keeps value) -->
+<p>{"??" ?? "||"}</p>
+<!-- "??" is not nullish → "??" -->
+<p>{"" || "empty"}</p>
+<!-- "" is falsy → "empty" -->
+<p>{"" ?? "N/A"}</p>
+<!-- "" is not nullish → "" (empty string) -->
 ```
 
 **Operator Symbols as Data:**
+
 ```html
 <!-- You can use operator symbols as literal data -->
-<p>{"&&" && "Use && for AND"}</p>    <!-- Shows "Use && for AND" -->
-<p>{"||" && "Use || for OR"}</p>     <!-- Shows "Use || for OR" -->
-<p>{"??" && "Use ?? for nullish"}</p><!-- Shows "Use ?? for nullish" -->
+<p>{"&&" && "Use && for AND"}</p>
+<!-- Shows "Use && for AND" -->
+<p>{"||" && "Use || for OR"}</p>
+<!-- Shows "Use || for OR" -->
+<p>{"??" && "Use ?? for nullish"}</p>
+<!-- Shows "Use ?? for nullish" -->
 ```
 
 **Important: Quoted vs Unquoted Keywords:**
+
 ```html
 <!-- Unquoted = Path (property lookup) -->
-<p>{undefined ?? "fallback"}</p>     <!-- Looks for data.undefined property -->
-<p>{null ?? "N/A"}</p>               <!-- Looks for data.null property -->
+<p>{undefined ?? "fallback"}</p>
+<!-- Looks for data.undefined property -->
+<p>{null ?? "N/A"}</p>
+<!-- Looks for data.null property -->
 
 <!-- Quoted = Literal string -->
-<p>{"undefined" ?? "fallback"}</p>   <!-- Literal string "undefined" (truthy) → "undefined" -->
-<p>{"null" ?? "N/A"}</p>             <!-- Literal string "null" (truthy) → "null" -->
+<p>{"undefined" ?? "fallback"}</p>
+<!-- Literal string "undefined" (truthy) → "undefined" -->
+<p>{"null" ?? "N/A"}</p>
+<!-- Literal string "null" (truthy) → "null" -->
 ```
 
 **Safe Deep Path Access:**
+
 ```html
 <!-- Safe traversal - no errors if intermediate properties missing -->
-<p>{user.profile.email || "no-email"}</p>        <!-- Safe even if profile is undefined -->
-<p>{app.settings.theme.color ?? "blue"}</p>      <!-- Safe even if settings.theme is undefined -->
-<p>{data.nested.deep.value || "default"}</p>     <!-- Safe at any depth -->
+<p>{user.profile.email || "no-email"}</p>
+<!-- Safe even if profile is undefined -->
+<p>{app.settings.theme.color ?? "blue"}</p>
+<!-- Safe even if settings.theme is undefined -->
+<p>{data.nested.deep.value || "default"}</p>
+<!-- Safe at any depth -->
 
 <!-- Equivalent to JavaScript optional chaining: data?.nested?.deep?.value -->
 ```
 
 **Features:**
+
 - **Text interpolation:** `{name}`, `Username: {firstName} {lastName}`
 - **Attribute interpolation:** `data-type="{type}"`, `class="user-{role}"`
 - **Nested paths:** `{user.profile.name}`, `{items[0].title}`
@@ -724,122 +833,125 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 ---
 
 ### 🪵 **logger**
+
 Debug helper that logs interaction events to the console.
 
 **Attributes:**
+
 - `logger-trigger` — Event type to log (`click` or `mouseenter`)
 
 **Example:**
+
 ```html
-<button 
-  is="behavioral-logger"
-  behavior="logger" 
-  logger-trigger="click"
->
+<button is="behavioral-logger" behavior="logger" logger-trigger="click">
   Click Me
 </button>
 ```
 
 **Features:**
+
 - Simple console logging for debugging
 - Supports `click` and `mouseenter` events
 - Logs element tag name and event object
 
 ---
 
-## ⚡ Compound Commands Behavior
+## ⚡ Command Protocol V2
 
-The **compound-commands** behavior extends buttons with support for **compound commands**—triggering multiple commands on multiple elements with a single button click.
+The **Command Protocol** is now a **platform-level capability** built into the behavioral host. Any element with `commandfor` + `command` + a behavioral host (`is="behavioral-..."`) will dispatch commands automatically — no dedicated behavior needed.
+
+### The `commandby` Attribute
+
+The `commandby` attribute declares _when_ a command fires. If omitted, sensible defaults apply:
+
+| Element                                                                 | Default `commandby` |
+| ----------------------------------------------------------------------- | ------------------- |
+| `button`                                                                | `click`             |
+| `input[text, search, email, password, url, tel, number, range, color]`  | `input`             |
+| `input[checkbox, radio, file, date, time, datetime-local, month, week]` | `change`            |
+| `textarea`                                                              | `input`             |
+| `select`                                                                | `change`            |
+| `form`                                                                  | `submit`            |
+| Everything else (`div`, `span`, `a`, etc.)                              | `click`             |
 
 ### Basic Usage
 
-Add the behavior to your button:
-
 ```html
-<button 
-  is="behavioral-compound-commands"
-  behavior="compound-commands"
-  commandfor="modal, form" 
-  command="--toggle, --clear">
-  Toggle & Clear
+<!-- Button click → show panel (default commandby="click") -->
+<button is="behavioral-button" commandfor="my-panel" command="show">
+  Show Panel
+</button>
+
+<!-- Input change → set value on output (default commandby="input") -->
+<input
+  is="behavioral-input"
+  type="text"
+  commandfor="my-output"
+  command="set-value"
+/>
+
+<!-- Override default: button hover → show tooltip -->
+<button
+  is="behavioral-button"
+  commandby="mouseenter"
+  commandfor="my-tooltip"
+  command="show"
+>
+  Hover Me
 </button>
 ```
 
-### Syntax
+### Compound Commands
 
-Use comma-separated values in `commandfor` and `command` attributes:
+Use comma-separated or space-separated values in `commandfor` and `command` attributes:
 
 ```html
 <!-- Multiple commands to single target -->
-<button 
-  is="behavioral-compound-commands"
-  behavior="compound-commands"
-  commandfor="modal" 
-  command="--show, --focus">
+<button is="behavioral-button" commandfor="modal" command="show, focus">
   Show & Focus
 </button>
 
 <!-- Single command to multiple targets (broadcast) -->
-<button 
-  is="behavioral-compound-commands"
-  behavior="compound-commands"
-  commandfor="modal, panel" 
-  command="--hide">
+<button is="behavioral-button" commandfor="modal, panel" command="hide">
   Hide Both
 </button>
 
 <!-- Exact mapping (N targets : N commands) -->
-<button 
-  is="behavioral-compound-commands"
-  behavior="compound-commands"
-  commandfor="modal, form" 
-  command="--toggle, --clear">
+<button is="behavioral-button" commandfor="modal, form" command="toggle, clear">
   Toggle & Clear
 </button>
 ```
 
 ### Valid States
 
-| Pattern | Example | Behavior |
-|---------|---------|----------|
-| **Single target + multiple commands** | `commandfor="modal"` + `command="--show, --focus"` | Target receives all commands sequentially |
-| **Multiple targets + single command** | `commandfor="modal, panel"` + `command="--hide"` | All targets receive same command (broadcast) |
-| **Equal counts (N:N mapping)** | `commandfor="modal, form"` + `command="--toggle, --clear"` | Paired dispatch: `modal` gets `--toggle`, `form` gets `--clear` |
+| Pattern                               | Example                                                | Behavior                                                    |
+| ------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| **Single target + multiple commands** | `commandfor="modal"` + `command="show, focus"`         | Target receives all commands sequentially                   |
+| **Multiple targets + single command** | `commandfor="modal, panel"` + `command="hide"`         | All targets receive same command (broadcast)                |
+| **Equal counts (N:N mapping)**        | `commandfor="modal, form"` + `command="toggle, clear"` | Paired dispatch: `modal` gets `toggle`, `form` gets `clear` |
 
 ### Invalid State
 
 **Mismatched counts (both > 1, different lengths):**
+
 ```html
 <!-- ❌ Invalid: 3 targets, 2 commands -->
-<button commandfor="a, b, c" command="--x, --y">...</button>
+<button is="behavioral-button" commandfor="a, b, c" command="x, y">...</button>
 ```
+
 → Logs error and prevents dispatch
 
-### Installation
+### No `--` Prefix
 
-```bash
-# Add the behavior to your project
-npx behavior-fn add compound-commands
-```
+Commands do **NOT** use the `--` prefix (e.g., `command="show"`, not prefixed forms like `--show`). This prevents the browser's native Invoker Commands API from double-dispatching.
 
-Then register it:
+### Event Propagation and Target Scope
 
-```typescript
-import { registerBehavior } from "./behaviors/behavior-registry";
-import { compoundCommandsBehaviorFactory } from "./behaviors/compound-commands/behavior";
-import definition from "./behaviors/compound-commands/_behavior-definition";
+Command events bubble by design, but behaviors that mutate UI state (like `reveal`) should only react to commands targeted at the host itself.
 
-registerBehavior(definition, compoundCommandsBehaviorFactory);
-```
-
-### Features
-
-- ✅ Zero dependencies
-- ✅ Standard behavior pattern
-- ✅ Comprehensive error handling
-- ✅ TypeScript support
-- ✅ Works with all target behaviors
-- ✅ Automatic event source tracking
+- ✅ Recommended guard in `onCommand`: `if (e.target !== el) return;`
+- ✅ Prevents ancestor overlays/modals from reacting to child `toggle` commands
+- ✅ Keeps nested command flows predictable
 
 ---
 
@@ -850,6 +962,7 @@ registerBehavior(definition, compoundCommandsBehaviorFactory);
 Initialize BehaviorFN in your project. Installs core infrastructure.
 
 **Flags:**
+
 - `-d, --defaults` — Use default settings (skip prompts)
 - `--validator=<name>` — Specify validator (zod, valibot, typebox, arktype, zod-mini)
 - `--path=<path>` — Specify installation path (default: auto-detected)
@@ -857,6 +970,7 @@ Initialize BehaviorFN in your project. Installs core infrastructure.
 - `--no-ts` — Disable TypeScript even if detected
 
 **Examples:**
+
 ```bash
 # Interactive mode (default)
 behavior-fn init
@@ -878,9 +992,11 @@ behavior-fn init --no-ts
 Add a behavior to your project.
 
 **Flags:**
+
 - `-t, --with-tests` — Include test files (default: false)
 
 **Examples:**
+
 ```bash
 # Add behavior (production mode - no tests)
 behavior-fn add reveal
@@ -897,11 +1013,13 @@ behavior-fn add request -t
 Create a new behavior in the registry (for contributors).
 
 **Example:**
+
 ```bash
 behavior-fn create my-custom-behavior
 ```
 
 This scaffolds:
+
 - `registry/behaviors/my-custom-behavior/_behavior-definition.ts`
 - `registry/behaviors/my-custom-behavior/schema.ts`
 - `registry/behaviors/my-custom-behavior/behavior.ts`
@@ -914,6 +1032,7 @@ This scaffolds:
 Remove a behavior from the registry (for contributors).
 
 **Example:**
+
 ```bash
 behavior-fn remove my-custom-behavior
 ```
@@ -926,14 +1045,15 @@ behavior-fn remove my-custom-behavior
 
 BehaviorFN works with all major package managers:
 
-| Manager | Command |
-|---------|---------|
-| **npm** | `npx behavior-fn <command>` |
+| Manager  | Command                          |
+| -------- | -------------------------------- |
+| **npm**  | `npx behavior-fn <command>`      |
 | **pnpm** | `pnpm dlx behavior-fn <command>` |
-| **bun** | `bunx behavior-fn <command>` |
+| **bun**  | `bunx behavior-fn <command>`     |
 | **yarn** | `yarn dlx behavior-fn <command>` |
 
 Auto-detection based on lockfiles:
+
 - `pnpm-lock.yaml` → pnpm
 - `bun.lockb` → bun
 - `yarn.lock` → yarn
@@ -973,6 +1093,7 @@ Modern frameworks force you to rewrite your UI every 2-3 years. JOHF behaviors a
 Behaviors **do not load automatically**. To activate behaviors on an element, you must:
 
 1. **Register the element as a behavioral host** using `defineBehavioralHost()`:
+
    ```typescript
    // Register a dialog that can use the "reveal" behavior
    defineBehavioralHost("dialog", "behavioral-reveal", observedAttributes);
@@ -980,10 +1101,11 @@ Behaviors **do not load automatically**. To activate behaviors on an element, yo
 
 2. **Use the `is` attribute** in your HTML to activate the host:
    ```html
-   <dialog is="behavioral-reveal" behavior="reveal">
+   <dialog is="behavioral-reveal" behavior="reveal"></dialog>
    ```
 
 **Important:** The `is` attribute value is based on the **behavior names**, not the tag name:
+
 - Single behavior: `is="behavioral-{behaviorName}"` (e.g., `is="behavioral-reveal"`)
 - Multiple behaviors: `is="behavioral-{sorted-behaviors}"` (e.g., `is="behavioral-logger-reveal"`)
 - Behaviors are sorted alphabetically to ensure consistency
@@ -993,6 +1115,7 @@ Without the `is` attribute, the `behavior` attribute will be ignored. This is by
 **Behaviors Are Static:**
 
 Behaviors are defined at element creation time and **do not change** during the element's lifetime. This is an architectural principle:
+
 - Behaviors define what an element **is** (its identity)
 - Attributes define what state an element is **in** (its state)
 - Once set, behaviors cannot be added, removed, or changed at runtime
@@ -1032,7 +1155,7 @@ export const myBehaviorFactory = (el: HTMLElement) => {
       state.count++;
       el.textContent = `Clicked ${state.count} times`;
     },
-    
+
     onCommand(e: CommandEvent) {
       if (e.detail.command === "--reset") {
         state.count = 0;

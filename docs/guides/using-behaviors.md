@@ -42,7 +42,7 @@ Now you can use the custom element and attach the behavior.
   I am hidden content!
 </div>
 
-<button is="behavioral-button" command="--toggle" command-for="my-content">
+<button is="behavioral-button" command="toggle" commandfor="my-content">
   Toggle Content
 </button>
 ```
@@ -76,16 +76,18 @@ Behaviors accept configuration via attributes. The attribute names are defined i
 
 ## Triggering Commands
 
-Most behaviors respond to commands. You can trigger them using a button with `command` and `command-for` attributes (if you're using a `command-button` abstraction) or by dispatching the event manually.
+Most behaviors respond to commands. You can trigger them using a button with `command` and `commandfor` attributes, or by dispatching the event manually.
 
 ```typescript
 const el = document.getElementById("my-content");
-el.dispatchEvent(
-  new CustomEvent("command", {
-    bubbles: true,
-    detail: { command: "--show" },
-  }),
-);
+const event = new Event("command", {
+  bubbles: true,
+  cancelable: true,
+  composed: true,
+});
+Object.defineProperty(event, "command", { value: "show", enumerable: true });
+Object.defineProperty(event, "source", { value: el, enumerable: true });
+el.dispatchEvent(event);
 ```
 
 ## Framework Integration

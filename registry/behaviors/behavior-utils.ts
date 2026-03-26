@@ -83,14 +83,14 @@ export type ValidateBehaviorDef<
  *     "reveal-duration": Type.Optional(Type.String()),
  *   }),
  *   command: {
- *     "--show": "--show",
- *     "--hide": "--hide",
+ *     "show": "show",
+ *     "hide": "hide",
  *   },
  * });
  *
  * // Auto-created:
  * // definition.attributes = { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
- * // definition.command = { "--show": "--show", "--hide": "--hide" }
+ * // definition.command = { "show": "show", "hide": "hide" }
  *
  * @param def - The behavior definition with name, schema, and optional command
  * @returns Extended definition with attributes

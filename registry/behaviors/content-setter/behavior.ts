@@ -17,7 +17,7 @@ export const contentSetterBehaviorFactory = (el: HTMLElement) => {
     },
 
     onCommand(e: CommandEvent<string>) {
-      if (!command || e.command !== command["--set-content"]) {
+      if (!command || e.command !== command["set-content"]) {
         return;
       }
 
