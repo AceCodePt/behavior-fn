@@ -12,6 +12,7 @@ const { attributes } = definition;
 export const commandBehaviorFactory = (el: HTMLElement) => {
   let timeoutId: any = null;
   let lastExec = 0;
+  const handlers = new Map<string, EventListener>();
 
   const handler = (e: Event) => {
     const delayAttr = el.getAttribute(attributes["command-delay"]);
@@ -61,13 +62,20 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
 
   return {
     connectedCallback() {
-      const commandBy = el.getAttribute("command-by") || (el.tagName === "FORM" ? "submit" : "click");
+      const commandBy = el.getAttribute(attributes["command-by"]) || (el.tagName === "FORM" ? "submit" : "click");
       const events = commandBy.split(/\s+/).filter(Boolean);
       
-      events.forEach(evt => el.addEventListener(evt, handler));
+      events.forEach(evt => {
+        handlers.set(evt, handler);
+        el.addEventListener(evt, handler);
+      });
     },
     disconnectedCallback() {
       if (timeoutId) clearTimeout(timeoutId);
+      handlers.forEach((listener, evt) => {
+        el.removeEventListener(evt, listener);
+      });
+      handlers.clear();
     }
   };
 };

@@ -30,9 +30,9 @@ attributes = {
 }
 
 command = {
-  "--show": "--show",
-  "--hide": "--hide",
-  "--toggle": "--toggle",
+  "show": "show",
+  "hide": "hide",
+  "toggle": "toggle",
 }
 ```
 
@@ -100,9 +100,9 @@ const definition = uniqueBehaviorDef({
   name: "reveal",
   schema,
   command: {
-    "--show": "--show",
-    "--hide": "--hide",
-    "--toggle": "--toggle",
+    "show": "show",
+    "hide": "hide",
+    "toggle": "toggle",
   },
 });
 
@@ -148,11 +148,11 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
       if (!command) return;
       
       // Access command using bracket notation
-      if (e.command === command["--show"]) {
+      if (e.command === command["show"]) {
         // Handle show command
-      } else if (e.command === command["--hide"]) {
+      } else if (e.command === command["hide"]) {
         // Handle hide command
-      } else if (e.command === command["--toggle"]) {
+      } else if (e.command === command["toggle"]) {
         // Handle toggle command
       }
     },
@@ -163,7 +163,7 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
 **Key Points:**
 - Destructure `attributes` and `command` from `definition`
 - Access attributes with bracket notation: `attributes["reveal-delay"]`
-- Access command with bracket notation: `command["--show"]`
+- Access command with bracket notation: `command["show"]`
 - Check if `command` exists before accessing (behaviors without command)
 
 ### 4. behavior.test.ts - Test Behavior
@@ -203,7 +203,7 @@ describe("Reveal Behavior", () => {
     el.setAttribute("behavior", "reveal");
     document.body.appendChild(el);
     
-    dispatchCommand(el, command["--show"]);
+    dispatchCommand(el, command["show"]);
     
     // Test implementation...
   });
@@ -212,7 +212,7 @@ describe("Reveal Behavior", () => {
 
 **Key Points:**
 - **Extract at module level**: Destructure `name`, `attributes`, `command` from definition
-- **Use extracted variables**: Reference `attributes["reveal-delay"]` and `command["--show"]` directly
+- **Use extracted variables**: Reference `attributes["reveal-delay"]` and `command["show"]` directly
 - **Type safety**: TypeScript infers `command` correctly (defined when provided, undefined when not)
 - Use `getObservedAttributes(definition.schema)` for behavioral host
 
@@ -348,16 +348,18 @@ All behavior-specific attributes MUST follow the pattern:
 
 ## Command Naming Convention
 
-All commands MUST use the double-dash prefix pattern:
+All commands use simple names without prefix:
 
 ```
---{command-name}
+{command-name}
 ```
 
 **Examples:**
-- ✅ `"--show"`, `"--hide"`, `"--toggle"`
-- ✅ `"--trigger"`, `"--close-sse"`
-- ✅ `"--set-content"`
+- ✅ `"show"`, `"hide"`, `"toggle"`
+- ✅ `"trigger"`, `"abort"`
+- ✅ `"set"`, `"remove"`
+
+**Note:** The `--` prefix is accepted for compatibility with the native Invoker Commands API, but the canonical form is non-prefixed. BehaviorFN's command protocol extends beyond the native API with features like `command-by`, throttling, and custom triggers.
 
 ## Type Safety Benefits
 
@@ -367,12 +369,12 @@ The pattern provides full type safety:
 // attributes has type: { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration", ... }
 const delay: "reveal-delay" = attributes["reveal-delay"]; // ✅ Type-safe literal
 
-// command has type: { "--show": "--show", "--hide": "--hide", "--toggle": "--toggle" }
-const showCmd: "--show" = command["--show"]; // ✅ Type-safe literal
+// command has type: { "show": "show", "hide": "hide", "toggle": "toggle" }
+const showCmd: "show" = command["show"]; // ✅ Type-safe literal
 
 // Auto-completion works
 attributes["reveal-d...  // IDE suggests: "reveal-delay", "reveal-duration"
-command["--s...   // IDE suggests: "--show"
+command["--s...   // IDE suggests: "show"
 ```
 
 ## Validation
@@ -382,13 +384,13 @@ command["--s...   // IDE suggests: "--show"
 ```typescript
 // ✅ VALID - key equals value
 command: {
-  "--show": "--show",
-  "--hide": "--hide",
+  "show": "show",
+  "hide": "hide",
 }
 
 // ❌ INVALID - key doesn't equal value
 command: {
-  "show": "--show",  // Runtime Error!
+  "show": "show",  // Runtime Error!
 }
 ```
 

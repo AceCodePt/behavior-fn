@@ -1,4 +1,5 @@
 import { uniqueBehaviorDef } from "~utils";
+import { schema } from "./schema";
 
 /**
  * Auto-grow behavior definition.
@@ -8,6 +9,7 @@ import { uniqueBehaviorDef } from "~utils";
  */
 const definition = uniqueBehaviorDef({
   name: "auto-grow",
+  schema,
 });
 
 export default definition;

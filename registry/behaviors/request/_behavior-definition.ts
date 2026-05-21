@@ -9,7 +9,7 @@ const definition = uniqueBehaviorDef({
   schema,
   command: {
     trigger: "trigger",
-    "close-sse": "close-sse",
+    abort: "abort",
   },
 });
 

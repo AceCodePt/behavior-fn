@@ -1,3 +1,4 @@
+import { registerBehavior } from "~registry";
 import definition from "./_behavior-definition";
 
 /**
@@ -50,3 +51,5 @@ export const autoGrowBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
+
+registerBehavior(definition, autoGrowBehaviorFactory);

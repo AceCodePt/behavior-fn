@@ -941,9 +941,38 @@ Use comma-separated or space-separated values in `commandfor` and `command` attr
 
 → Logs error and prevents dispatch
 
-### No `--` Prefix
+### Command Protocol Architecture
 
-Commands do **NOT** use the `--` prefix (e.g., `command="show"`, not prefixed forms like `--show`). This prevents the browser's native Invoker Commands API from double-dispatching.
+BehaviorFN implements a **custom command protocol** inspired by the browser's Invoker Commands API, but with significant extensions and improvements.
+
+**Key Differences from Native API:**
+- ❌ Commands do NOT require `--` prefix (use `command="show"`, not `command="--show"`)
+- ✅ Support for `command-by` attribute (trigger on any event: `change`, `input`, `mouseenter`, etc.)
+- ✅ Support for delays and throttling via `command` behavior
+- ✅ Works across all browsers (no experimental flags needed)
+- ✅ Accepts both prefixed and non-prefixed for compatibility, but non-prefixed is canonical
+
+**Why Build a Custom Protocol?**
+
+The native Invoker Commands API (as of 2026) has limited browser support and lacks features we need:
+- No custom event triggers (`command-by`)
+- No throttling or delay support
+- Limited to specific command names
+- Experimental status makes it unreliable for production
+
+Our command dispatcher provides a richer, more flexible system that works today.
+
+### No `--` Prefix (Canonical)
+
+Commands use simple names without prefix (e.g., `command="show"`, `command="hide"`). The `--` prefix is optional for compatibility but not recommended.
+
+**Why no prefix?**
+- Cleaner, more readable HTML
+- BehaviorFN extends beyond the native Invoker Commands API (supports `command-by`, throttling, etc.)
+- AI-friendly (simpler patterns for code generation)
+
+**Native API Compatibility:**
+If you're familiar with the browser's experimental Invoker Commands API, note that BehaviorFN accepts both `command="show"` and `command="--show"`, but the non-prefixed version is canonical. When the browser natively supports `--` prefixed commands, our dispatcher defers to the native implementation.
 
 ### Event Propagation and Target Scope
 

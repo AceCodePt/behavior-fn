@@ -1,3 +1,4 @@
+import { registerBehavior } from "~registry";
 import definition from "./_behavior-definition";
 
 const { attributes } = definition;
@@ -632,3 +633,5 @@ export const jsonTemplateBehaviorFactory = (el: HTMLElement) => {
     },
   };
 };
+
+registerBehavior(definition, jsonTemplateBehaviorFactory);

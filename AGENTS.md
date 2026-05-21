@@ -290,8 +290,8 @@ attributes = {
 };
 
 commands = {
-  "--show": "--show",
-  "--hide": "--hide",
+  "show": "show",
+  "hide": "hide",
 };
 ```
 
@@ -327,10 +327,11 @@ import { schema } from "./schema";
 
 const definition = uniqueBehaviorDef({
   name: "reveal",
-  schema, // attributes auto-extracted from schema keys
+  schema,
   command: {
-    "--show": "--show",
-    "--hide": "--hide",
+    "show": "show",
+    "hide": "hide",
+    "toggle": "toggle",
   },
 });
 
@@ -352,8 +353,8 @@ export const revealBehaviorFactory = (el: HTMLElement) => {
     onCommand(e: CommandEvent<string>) {
       if (!command) return;
 
-      if (e.command === command["--show"]) {
-        // Handle command
+      if (e.command === command["show"]) {
+        // Handle show command
       }
     },
   };
@@ -373,12 +374,13 @@ Examples:
 
 **Command Naming Convention:**
 
-All commands MUST use double-dash prefix: `--{command-name}`
+All commands use simple names without prefix: `{command-name}`
 
 Examples:
+- ✅ `show`, `hide`, `toggle`
+- ✅ `trigger`, `abort`
 
-- ✅ `--show`, `--hide`, `--toggle`
-- ✅ `--trigger`, `--close-sse`
+**Note:** The `--` prefix is accepted for compatibility with the native Invoker Commands API, but the canonical form is non-prefixed. Our command protocol extends beyond the native API with features like `command-by`, throttling, and custom triggers.
 
 **Benefits:**
 
@@ -533,7 +535,7 @@ All code changes must follow the **PDSRTDD** flow. **Note:** The **Architect** i
   });
 
   const event = getCommandEvent(commandHandler);
-  expect(event.command).toBe("--show");
+  expect(event.command).toBe("show");
 
   // ❌ AVOID: Type assertions (use only when helpers don't apply)
   const el = document.createElement("div", { is: "test-tag" }) as any;
