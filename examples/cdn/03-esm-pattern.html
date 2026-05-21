@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BehaviorFN v0.2.0 - ESM Pattern (Modern)</title>
+    <title>BehaviorFN v0.3.0 - ESM Pattern (Modern)</title>
     <style>
       body {
         font-family:
@@ -83,7 +83,7 @@
     </style>
   </head>
   <body>
-    <h1>🎯 BehaviorFN v0.2.0 <span class="badge">ESM Pattern</span></h1>
+    <h1>🎯 BehaviorFN v0.3.0 <span class="badge">ESM Pattern</span></h1>
 
     <div class="info">
       <strong>This pattern uses native ES modules.</strong>
@@ -108,11 +108,11 @@
   import { 
     registerBehavior, 
     defineBehavioralHost 
-  } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js';
+  } from 'https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.esm.js';
 
   // Import behavior factory
   import { revealBehaviorFactory } 
-    from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js';
+    from 'https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.esm.js';
 
   // Register behavior
   registerBehavior('reveal', revealBehaviorFactory);
@@ -159,9 +159,9 @@
     <pre><code>&lt;script type="importmap"&gt;
 {
   "imports": {
-    "behavior-fn/core": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js",
-    "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js",
-    "behavior-fn/request": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/request.esm.js"
+    "behavior-fn/core": "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.esm.js",
+    "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.esm.js",
+    "behavior-fn/request": "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/request.esm.js"
   }
 }
 &lt;/script&gt;
@@ -194,13 +194,13 @@ defineBehavioralHost('dialog', 'behavioral-reveal');</code></pre>
   import { 
     registerBehavior, 
     defineBehavioralHost 
-  } from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js';
+  } from 'https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.esm.js';
   
   import { revealBehaviorFactory } 
-    from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js';
+    from 'https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.esm.js';
   
   import { enableAutoLoader } 
-    from 'https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.esm.js';
+    from 'https://unpkg.com/behavior-fn@0.3.0/dist/cdn/auto-loader.esm.js';
 
   // Register behavior
   registerBehavior('reveal', revealBehaviorFactory);
@@ -227,8 +227,8 @@ defineBehavioralHost('dialog', 'behavioral-reveal');</code></pre>
   &lt;script type="importmap"&gt;
   {
     "imports": {
-      "behavior-fn/core": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.esm.js",
-      "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.esm.js"
+      "behavior-fn/core": "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.esm.js",
+      "behavior-fn/reveal": "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.esm.js"
     }
   }
   &lt;/script&gt;

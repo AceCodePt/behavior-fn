@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9%2B-blue)
-![Version](https://img.shields.io/badge/version-0.2.2-green)
+![Version](https://img.shields.io/badge/version-0.3.0-green)
 
 **Copy-paste behavior mixins for Web Components.** Own your code, not your dependencies. Opt-in loading for better performance.
 
@@ -25,34 +25,31 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ## 🚀 Quick Start
 
-### CDN Usage (v0.2.0+ - ESM Only + Auto-Register)
+### CDN Usage (v0.3.0 - ESM Only)
 
-**⚠️ Breaking Change:** All bundles are now **ESM-only** with **auto-registration on import**.
-
-**Option 1: Auto-Loader (Simplest - Recommended)**
+**Simplest Setup (Recommended):**
 
 ```html
 <!DOCTYPE html>
 <html>
   <head>
     <script type="module">
-      // Just import - behaviors auto-register, loader auto-enables!
-      import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js";
-      import "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/auto-loader.js";
+      // Import behaviors (auto-register on import)
+      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+      
+      // Import utilities (auto-enable on import)
+      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command-dispatcher.js";
+      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/auto-loader.js";
     </script>
   </head>
   <body>
     <!-- No is attribute needed with auto-loader -->
+    <button commandfor="modal" command="show">Open Modal</button>
+    
     <dialog behavior="reveal" id="modal">
       <h2>Hello World!</h2>
-      <button is="behavioral-button" commandfor="modal" command="hide">
-        Close
-      </button>
+      <button commandfor="modal" command="hide">Close</button>
     </dialog>
-
-    <button is="behavioral-button" commandfor="modal" command="toggle">
-      Open Modal
-    </button>
   </body>
 </html>
 ```
@@ -62,71 +59,75 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ---
 
-**Option 2: Explicit (Best Performance)**
+**Explicit Setup (Best Performance):**
 
 ```html
 <!DOCTYPE html>
 <html>
   <head>
     <script type="module">
-      import { defineBehavioralHost } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/behavior-fn-core.js";
-      import { metadata } from "https://unpkg.com/behavior-fn@0.2.0/dist/cdn/reveal.js"; // Auto-registers!
+      import { defineBehavioralHost } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.js";
+      import { metadata } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+      import { enableCommandDispatcher } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command-dispatcher.js";
 
-      // Define host manually for best performance
-      defineBehavioralHost(
-        "dialog",
-        "behavioral-reveal",
-        metadata.observedAttributes,
-      );
+      // Define behavioral host manually
+      defineBehavioralHost("dialog", "behavioral-reveal", metadata.observedAttributes);
+      
+      // Enable command dispatcher
+      enableCommandDispatcher();
     </script>
   </head>
   <body>
-    <!-- Explicit is attribute required -->
+    <button commandfor="modal" command="show">Open Modal</button>
+    
+    <!-- Explicit is attribute required without auto-loader -->
     <dialog is="behavioral-reveal" behavior="reveal" id="modal">
       <h2>Hello World!</h2>
-      <button is="behavioral-button" commandfor="modal" command="hide">
-        Close
-      </button>
+      <button commandfor="modal" command="hide">Close</button>
     </dialog>
-
-    <button is="behavioral-button" commandfor="modal" command="toggle">
-      Open Modal
-    </button>
   </body>
 </html>
 ```
+
+**Total:** ~12KB minified (~4KB gzipped)  
+**Best for:** Production apps, maximum control
+
+---
+
+## 🎯 Command Dispatcher
+
+The **command dispatcher** enables declarative command protocol without requiring behaviors on trigger elements.
+
+```html
+<script type="module">
+  import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command-dispatcher.js";
+  import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+</script>
+
+<!-- Trigger: Just commandfor + command attributes -->
+<button commandfor="modal" command="show">Open</button>
+
+<!-- Target: Needs behavior -->
+<dialog is="behavioral-reveal" id="modal" behavior="reveal">
+  Content here
+</dialog>
+```
+
+**Features:**
+- ✅ No `--` prefix required (use `command="show"` not `command="--show"`)
+- ✅ Multiple targets: `commandfor="modal, panel"`
+- ✅ Multiple commands: `command="show, focus"`
+- ✅ Automatic cleanup and event delegation
+- ✅ Defers to native Invoker Commands API when appropriate
+
+**See:** [Command Dispatcher Example](examples/command-dispatcher-basic.html)
 
 **Total:** ~11KB minified (~4KB gzipped)  
 **Best for:** Production apps, best performance
 
 **📚 [View Complete CDN Examples](examples/cdn/)** | **📖 [CDN Architecture Guide](CDN-ARCHITECTURE.md)**
 
----
 
-## 🆕 What's New in v0.2.0?
-
-### 🔥 Breaking Changes
-
-**⚠️ ESM ONLY + AUTO-REGISTER: IIFE Bundles Removed**
-
-All CDN bundles are now **ESM-only** with **auto-registration on import**. This eliminates registry isolation issues, simplifies usage, and aligns with modern web standards (ES2020+).
-
-**Browser Support:** Chrome 61+, Firefox 60+, Safari 11+, Edge 79+ (98%+ coverage in 2026)
-
-**Migration:**
-
-```html
-<!-- ❌ v0.1.6: IIFE format -->
-<script src="behavior-fn-core.js"></script>
-<script src="reveal.js"></script>
-
-<!-- ✅ v0.2.0: ESM format with auto-registration -->
-<script type="module">
-  // Just import - auto-registers and auto-enables!
-  import "./reveal.js";
-  import "./auto-loader.js";
-</script>
-```
 
 **New: Auto-Registration on Import**
 
