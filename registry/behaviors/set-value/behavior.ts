@@ -18,6 +18,13 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
     onCommand(e: CommandEvent<string>) {
       if (!command) return;
 
+      if (e.command === command["reset"]) {
+        input.value = input.getAttribute("value") || "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
+
       const value = el.getAttribute(attributes["set-value-value"]) ?? e.source.innerText;
 
       if (e.command === command["set"] || e.command === command["set-and-submit"]) {

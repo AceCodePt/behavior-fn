@@ -88,4 +88,19 @@ describe("Set-Value Behavior", () => {
     expect(el.value).toBe("Submit Me");
     expect(submitSpy).toHaveBeenCalled();
   });
+
+  it("should reset input value to its attribute baseline", () => {
+    const el = createBehavioralElement("input", TAG, {
+      behavior: name,
+      value: "initial",
+    });
+    document.body.appendChild(el);
+
+    el.value = "changed";
+    expect(el.value).toBe("changed");
+
+    dispatchCommand(el, command["reset"]);
+
+    expect(el.value).toBe("initial");
+  });
 });

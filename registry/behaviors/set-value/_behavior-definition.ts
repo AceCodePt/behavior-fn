@@ -17,6 +17,7 @@ const definition = uniqueBehaviorDef({
   command: {
     "set": "set",
     "set-and-submit": "set-and-submit",
+    "reset": "reset",
   },
 });
 
