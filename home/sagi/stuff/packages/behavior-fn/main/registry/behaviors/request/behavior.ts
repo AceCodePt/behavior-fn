@@ -4,12 +4,16 @@ import definition from "./_behavior-definition";
 
 const { attributes, command } = definition;
 
+const requestRegistry = new Map<string, Promise<string>>();
+
 export const requestBehaviorFactory = (el: HTMLElement) => {
   const activeListeners: Array<{
     target: EventTarget;
     type: string;
     listener: EventListener;
   }> = [];
+  const debounceTimeouts = new Map<string, number>();
+  let eventSource: EventSource | undefined;
   let abortController: AbortController | undefined;
 
   const setState = (state: "loading" | "loaded" | "error") => {
@@ -19,26 +23,23 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
   const getFormData = (): FormData => {
     let fd: FormData;
-    if (el.tagName === "FORM") {
-      fd = new FormData(el as HTMLFormElement);
-    } else {
+    if (el instanceof HTMLFormElement) fd = new FormData(el);
+    else {
       fd = new FormData();
-      if (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA") {
-        const input = el as HTMLInputElement;
-        if (input.name) fd.append(input.name, input.value);
+      if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
+        if (el.name) fd.append(el.name, el.value);
       }
     }
 
     const include = el.getAttribute(attributes["request-include"]);
     if (include) {
       document.querySelectorAll(include).forEach((target) => {
-        if (target.tagName === "INPUT" || target.tagName === "SELECT" || target.tagName === "TEXTAREA") {
-          const input = target as HTMLInputElement;
-          const key = input.name || input.id;
+        if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) {
+          const key = target.name || target.id;
           if (key) {
-            const val = input.getAttribute("behavior")?.includes("format") 
-              ? String(parseNumericValue(input.value))
-              : input.value;
+            const val = target.getAttribute("behavior")?.includes("format") 
+              ? String(parseNumericValue(target.value))
+              : target.value;
             fd.append(key, val);
           }
         }
@@ -64,12 +65,9 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
       const encoding = el.getAttribute(attributes["request-encoding"]) || "form";
       const formData = getFormData();
       const valsStr = el.getAttribute(attributes["request-vals"]);
-      
       if (valsStr) {
         const vals = JSON.parse(valsStr);
-        for (const [k, v] of Object.entries(vals)) {
-          formData.append(k, String(v));
-        }
+        for (const [k, v] of Object.entries(vals)) formData.append(k, String(v));
       }
 
       let finalUrl = url;
@@ -81,9 +79,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
       if (method === "GET") {
         const params = new URLSearchParams();
-        formData.forEach((v, k) => {
-          if (typeof v === "string") params.append(k, v);
-        });
+        for (const [k, v] of formData.entries()) params.append(k, String(v));
         const qs = params.toString();
         if (qs) finalUrl += (finalUrl.includes("?") ? "&" : "?") + qs;
       } else if (encoding === "json") {
@@ -127,7 +123,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
 
   return {
     connectedCallback() {
-      const trigger = el.getAttribute(attributes["request-trigger"]) || (el.tagName === "FORM" ? "submit" : "click");
+      const trigger = el.getAttribute(attributes["request-trigger"]) || (el instanceof HTMLFormElement ? "submit" : "click");
       const listener = (e: Event) => handleEvent(e);
       el.addEventListener(trigger, listener);
       activeListeners.push({ target: el, type: trigger, listener });
@@ -135,6 +131,7 @@ export const requestBehaviorFactory = (el: HTMLElement) => {
     disconnectedCallback() {
       activeListeners.forEach(({ target, type, listener }) => target.removeEventListener(type, listener));
       abortController?.abort();
+      eventSource?.close();
     },
     onCommand(e: CommandEvent<string>) {
       if (e.command === command["trigger"]) handleEvent();

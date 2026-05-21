@@ -1,56 +1,51 @@
 import {
-  type BehaviorInstance,
-  ensureBehavior,
-  getBehavior,
-  type CommandEvent,
-} from "~registry";
-import {
+  defineAutoWebComponent,
   type Constructor,
   type EventInterceptors,
-  defineAutoWebComponent,
   type TagName,
 } from "auto-wc";
+import {
+  ensureBehavior,
+  getBehavior,
+  getBehaviorDef,
+  dispatchCommand,
+} from "./behavior-registry";
 import { parseBehaviorNames } from "./behavior-utils";
 
-let commandAttributeGuardInstalled = false;
-const shouldReportCommandContractViolations =
-  typeof process === "undefined" || process.env.NODE_ENV !== "test";
-
-function validateCommandAttributesRequireIs(el: Element): void {
-  if (!(el instanceof HTMLElement)) return;
-
-  const hasCommand = el.hasAttribute("command");
-  const hasCommandFor = el.hasAttribute("commandfor");
-  const hasCommandBy = el.hasAttribute("commandby");
-
-  if (!hasCommand && !hasCommandFor && !hasCommandBy) return;
-
-  if (!el.hasAttribute("is")) {
-    if (shouldReportCommandContractViolations) {
-      console.error(
-        "[CommandDispatch] Element with command attributes must include an 'is' behavioral host attribute:",
-        el,
-      );
-    }
+/**
+ * Validates that elements with command protocol attributes are behavioral hosts.
+ */
+const validateCommandAttributesRequireIs = (node: Element) => {
+  if (
+    !node.hasAttribute("command") &&
+    !node.hasAttribute("commandfor") &&
+    !node.hasAttribute("command-by")
+  ) {
+    return;
   }
 
-  if (hasCommand !== hasCommandFor) {
-    if (shouldReportCommandContractViolations) {
-      console.error(
-        "[CommandDispatch] 'command' and 'commandfor' must be provided together:",
-        el,
-      );
-    }
-  }
-}
+  const isBehavioral = node.hasAttribute("behavior");
+  const isWebComponent = node.hasAttribute("is");
 
-function installCommandAttributeGuard(): void {
-  if (commandAttributeGuardInstalled || typeof document === "undefined") return;
-  commandAttributeGuardInstalled = true;
+  if (!isBehavioral && !isWebComponent) {
+    console.error(
+      `[CommandProtocol] Element with [command], [commandfor], or [command-by] must also have a [behavior] attribute or be a behavioral Web Component ([is="behavioral-..."]).`,
+      node,
+    );
+  }
+};
+
+/**
+ * Installs a guard that validates command attributes on all elements.
+ */
+let isGuardInstalled = false;
+export function installCommandAttributeGuard() {
+  if (isGuardInstalled) return;
+  isGuardInstalled = true;
 
   const validateTree = (root: ParentNode) => {
     root
-      .querySelectorAll("[command], [commandfor], [commandby]")
+      .querySelectorAll("[command], [commandfor], [command-by]")
       .forEach((node) => {
         validateCommandAttributesRequireIs(node);
       });
@@ -89,12 +84,12 @@ function installCommandAttributeGuard(): void {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ["command", "commandfor", "commandby", "is"],
+    attributeFilter: ["command", "commandfor", "command-by", "is"],
   });
 }
 
 /**
- * Default commandby resolution based on element type.
+ * Default command-by resolution based on element type.
  */
 function getDefaultCommandBy(el: HTMLElement): string {
   if (el instanceof HTMLButtonElement) return "click";
@@ -114,23 +109,20 @@ function getDefaultCommandBy(el: HTMLElement): string {
     return discrete.has(el.type) ? "change" : "input";
   }
   if (el instanceof HTMLTextAreaElement) return "input";
-  return "click"; // everything else (div, span, a, output, etc.)
+  return "click";
 }
 
 /**
  * Parse a flexible attribute value into an array of trimmed strings.
- * Supports: single value, comma-separated, space-separated.
  */
 function parseFlexibleList(value: string | null): string[] {
   if (!value) return [];
-  // If it contains commas, split by comma
   if (value.includes(",")) {
     return value
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
   }
-  // Otherwise split by whitespace
   return value.split(/\s+/).filter(Boolean);
 }
 
@@ -192,51 +184,33 @@ function dispatchCommands(
       console.warn(`[CommandDispatch] Target not found: ${targetId}`);
       continue;
     }
-
-    const baseEvent = new Event("command", {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-    });
-
-    const event = baseEvent as CommandEvent<string>;
-
-    Object.defineProperty(event, "command", {
-      value: cmd,
-      writable: false,
-      enumerable: true,
-      configurable: false,
-    });
-
-    Object.defineProperty(event, "source", {
-      value: source,
-      writable: false,
-      enumerable: true,
-      configurable: false,
-    });
-
-    targetElement.dispatchEvent(event);
+    dispatchCommand(targetElement, cmd, source);
   }
 }
 
 /**
- * Mixin that adds behavior support to a base class.
+ * Mixin that adds behavior loading and life-cycle management to an element.
  */
 export function withBehaviors<
   T extends Constructor<HTMLElement & EventInterceptors>,
->(Base: T) {
+>(Base: T): T {
   return class extends Base {
-    private didEnsure = false;
-    private ensuringPromise = Promise.withResolvers();
-    private _behaviors = new Map<string, BehaviorInstance>();
+    private _behaviors = new Map<string, any>();
     private _behaviorCleanupFns: Array<() => void> = [];
     private _commandCleanupFns: Array<() => void> = [];
+    private didEnsure = false;
+    private ensuringPromise = (() => {
+      let resolve: () => void;
+      let reject: (reason?: any) => void;
+      const promise = new Promise<void>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve: resolve!, reject: reject! };
+    })();
 
     constructor(...args: any[]) {
       super(...args);
-      this.ensuringPromise.promise.then(() => {
-        this.didEnsure = true;
-      });
     }
 
     override connectedCallback() {
@@ -259,14 +233,11 @@ export function withBehaviors<
         }
       });
 
-      if (["commandfor", "command", "commandby"].includes(name)) {
+      if (["commandfor", "command", "command-by"].includes(name)) {
         this._wireCommandDispatch();
       }
     }
 
-    /* 
-      This function is to allow for both sync and async manner to run
-    */
     _ensured(fn: () => void) {
       if (this.didEnsure) {
         return fn();
@@ -276,7 +247,6 @@ export function withBehaviors<
 
     override disconnectedCallback() {
       super.disconnectedCallback?.();
-
       this._ensured(() => {
         for (const behavior of this._behaviors.values()) {
           behavior.disconnectedCallback?.();
@@ -295,15 +265,8 @@ export function withBehaviors<
 
     private async _registerBehaviors() {
       const behaviorAttr = this.getAttribute("behavior");
-      // Parse behavior names using the canonical parser
-      // This ensures consistency with auto-loader.ts
       const behaviorNames = parseBehaviorNames(behaviorAttr);
 
-      // This needs explanation.
-      // First iteration - if all of the behavior exists (non-promise from ensureBehavior)
-      // Then just changed the nesured to true
-      // Why? Both testing an runtime are reasonable to assume that changes will happen
-      // in the first iteration where the behaviors exists.
       const promises = behaviorNames.map(ensureBehavior).filter(Boolean);
       if (promises.length === 0) {
         this.didEnsure = true;
@@ -339,7 +302,6 @@ export function withBehaviors<
     }
 
     private _wireCommandDispatch() {
-      // Clean up existing command listeners
       this._commandCleanupFns.forEach((cleanup) => {
         cleanup();
       });
@@ -349,15 +311,13 @@ export function withBehaviors<
       const command = this.getAttribute("command");
 
       if (commandfor && command) {
-        const commandby =
-          this.getAttribute("commandby") || getDefaultCommandBy(this);
+        const commandBy =
+          this.getAttribute("command-by") || getDefaultCommandBy(this);
 
-        // Support multiple commandby events (space-separated)
-        const events = commandby.split(/\s+/).filter(Boolean);
+        const events = commandBy.split(/\s+/).filter(Boolean);
 
         for (const eventName of events) {
           const handler = (e: Event) => {
-            // For forms, we usually want to prevent default if it's a command
             if (eventName === "submit") {
               e.preventDefault();
             }
@@ -375,8 +335,6 @@ export function withBehaviors<
 
 /**
  * Defines a behavioral host custom element.
- * @param tagName The HTML tag name to extend (e.g., 'div', 'button').
- * @param name Optional custom element name. Defaults to `behavioral-${tagName}`.
  */
 export function defineBehavioralHost<K extends TagName>(
   tagName: K,
@@ -395,10 +353,9 @@ export function defineBehavioralHost<K extends TagName>(
   }
 
   const allObservedAttributes = Array.from(
-    new Set([...observedAttributes, "commandfor", "command", "commandby"]),
+    new Set([...observedAttributes, "commandfor", "command", "command-by"]),
   );
 
-  // Define the component using auto-wc
   defineAutoWebComponent(
     customElementName,
     tagName,

@@ -74,26 +74,6 @@ export type ValidateBehaviorDef<
  * Create a behavior definition with auto-extracted attributes.
  *
  * attributes is extracted from schema keys (e.g., { "reveal-delay": "reveal-delay" })
- *
- * @example
- * const definition = uniqueBehaviorDef({
- *   name: "reveal",
- *   schema: Type.Object({
- *     "reveal-delay": Type.Optional(Type.String()),
- *     "reveal-duration": Type.Optional(Type.String()),
- *   }),
- *   command: {
- *     "show": "show",
- *     "hide": "hide",
- *   },
- * });
- *
- * // Auto-created:
- * // definition.attributes = { "reveal-delay": "reveal-delay", "reveal-duration": "reveal-duration" }
- * // definition.command = { "show": "show", "hide": "hide" }
- *
- * @param def - The behavior definition with name, schema, and optional command
- * @returns Extended definition with attributes
  */
 export const uniqueBehaviorDef = <const T extends BehaviorDef>(
   def: ValidateBehaviorDef<T> & T,
@@ -109,8 +89,6 @@ export const uniqueBehaviorDef = <const T extends BehaviorDef>(
     }
   }
 
-  // Extract attributes from schema using validator-aware function
-  // This works for TypeBox (properties), Zod (shape), Valibot (entries), etc.
   const schemaKeys = def.schema ? getObservedAttributes(def.schema) : [];
   const attributes = schemaKeys.reduce(
     (acc, key) => {
@@ -128,31 +106,6 @@ export const uniqueBehaviorDef = <const T extends BehaviorDef>(
 
 /**
  * Parse and normalize behavior names from a behavior attribute string.
- *
- * This is the **canonical** implementation used by both auto-loader and behavioral-host
- * to ensure consistent behavior parsing across the system.
- *
- * **Algorithm:**
- * 1. Trim whitespace
- * 2. Convert invalid characters to spaces (creates delimiters between words)
- * 3. Split on any non-letter/non-hyphen character (preserving hyphens in names)
- * 4. Filter out empty strings
- * 5. Sort alphabetically for consistency
- *
- * **Why convert instead of remove?**
- * - If we just remove invalid chars, "reveal123logger" becomes "reveallogger" (one word)
- * - By converting to spaces, "reveal123logger" becomes "reveal   logger" (two words)
- * - The split step then correctly separates them
- *
- * **Examples:**
- * - `"reveal logger"` → `["logger", "reveal"]`
- * - `"reveal, logger"` → `["logger", "reveal"]`
- * - `"reveal123logger"` → `["logger", "reveal"]` (numbers become delimiters)
- * - `"input-watcher"` → `["input-watcher"]` (hyphens preserved)
- * - `"reveal logger input-watcher"` → `["input-watcher", "logger", "reveal"]`
- *
- * @param behaviorAttr The raw behavior attribute value
- * @returns Array of sorted, normalized behavior names
  */
 export function parseBehaviorNames(
   behaviorAttr: string | null | undefined,
@@ -161,22 +114,63 @@ export function parseBehaviorNames(
     return [];
   }
 
-  return (
-    behaviorAttr
-      .trim()
-      // Convert invalid characters to spaces (global flag to convert ALL occurrences)
-      // This creates delimiters between words so "reveal123logger" → "reveal   logger"
-      // Valid characters: letters (a-zA-Z) and hyphens (-)
-      // Everything else (numbers, special chars, commas, whitespace, etc.) becomes a space
-      .replace(/[^a-zA-Z-]/g, " ")
-      // Split on whitespace (one or more) to get individual behavior names
-      // Since replace() already converted everything to spaces, this splits on those spaces
-      // Hyphens are preserved, so "input-watcher" stays as one name
-      .split(/\s+/)
-      // Remove empty strings
-      .filter(Boolean)
-      // Sort alphabetically for consistent ordering
-      // This ensures "reveal logger" and "logger reveal" produce the same result
-      .sort()
-  );
+  return behaviorAttr
+    .trim()
+    .replace(/[^a-zA-Z-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort();
+}
+
+/**
+ * Normalizes a localized numeric string into a standard JS number.
+ * 
+ * Heuristic:
+ * 1. Strips all non-numeric characters except the last decimal separator.
+ * 2. If locale is provided, uses Intl.NumberFormat to identify separators.
+ * 3. Fallback: Assumes the last occurrence of '.' or ',' is the decimal if it appears once.
+ * 
+ * @param value The formatted string to parse
+ * @param locale Optional locale (defaults to browser language)
+ */
+export function parseNumericValue(
+  value: string | null | undefined,
+  locale: string = typeof navigator !== "undefined" ? navigator.language : "en-US",
+): number {
+  if (value === null || value === undefined) return 0;
+  const trimmed = value.trim();
+  if (trimmed === "" || trimmed.includes("#")) return 0;
+
+  try {
+    const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);
+    const decimal = parts.find((p) => p.type === "decimal")?.value || ".";
+    const group = parts.find((p) => p.type === "group")?.value || ",";
+
+    const normalized = trimmed
+      .split(group)
+      .join("")
+      .replace(decimal, ".");
+
+    const stripped = normalized.replace(/[^\d.\-]/g, "");
+    const parsed = parseFloat(stripped);
+    return isNaN(parsed) ? 0 : parsed;
+  } catch (e) {
+    const lastDot = trimmed.lastIndexOf(".");
+    const lastComma = trimmed.lastIndexOf(",");
+    let decimal = ".";
+    let group = ",";
+
+    if (lastComma > lastDot) {
+      decimal = ",";
+      group = ".";
+    }
+
+    const normalized = trimmed
+      .split(group)
+      .join("")
+      .replace(decimal, ".");
+    const stripped = normalized.replace(/[^\d.\-]/g, "");
+    const parsed = parseFloat(stripped);
+    return isNaN(parsed) ? 0 : parsed;
+  }
 }

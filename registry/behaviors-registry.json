@@ -41,20 +41,35 @@
     ]
   },
   {
-    "name": "content-setter",
+    "name": "set-content",
     "dependencies": [],
     "files": [
       {
-        "path": "content-setter/_behavior-definition.ts"
+        "path": "set-content/_behavior-definition.ts"
       },
       {
-        "path": "content-setter/schema.ts"
+        "path": "set-content/schema.ts"
       },
       {
-        "path": "content-setter/behavior.ts"
+        "path": "set-content/behavior.ts"
       },
       {
-        "path": "content-setter/behavior.test.ts"
+        "path": "set-content/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "set-attribute",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "set-attribute/_behavior-definition.ts"
+      },
+      {
+        "path": "set-attribute/schema.ts"
+      },
+      {
+        "path": "set-attribute/behavior.ts"
       }
     ]
   },
@@ -91,42 +106,6 @@
       },
       {
         "path": "element-counter/behavior.test.ts"
-      }
-    ]
-  },
-  {
-    "name": "input-watcher",
-    "dependencies": [],
-    "files": [
-      {
-        "path": "input-watcher/_behavior-definition.ts"
-      },
-      {
-        "path": "input-watcher/schema.ts"
-      },
-      {
-        "path": "input-watcher/behavior.ts"
-      },
-      {
-        "path": "input-watcher/behavior.test.ts"
-      }
-    ]
-  },
-  {
-    "name": "json-template",
-    "dependencies": [],
-    "files": [
-      {
-        "path": "json-template/_behavior-definition.ts"
-      },
-      {
-        "path": "json-template/schema.ts"
-      },
-      {
-        "path": "json-template/behavior.ts"
-      },
-      {
-        "path": "json-template/behavior.test.ts"
       }
     ]
   },
@@ -203,20 +182,125 @@
     ]
   },
   {
-    "name": "compound-commands",
+    "name": "dirty-input",
     "dependencies": [],
     "files": [
       {
-        "path": "compound-commands/_behavior-definition.ts"
+        "path": "dirty-input/_behavior-definition.ts"
       },
       {
-        "path": "compound-commands/schema.ts"
+        "path": "dirty-input/schema.ts"
       },
       {
-        "path": "compound-commands/behavior.ts"
+        "path": "dirty-input/behavior.ts"
       },
       {
-        "path": "compound-commands/behavior.test.ts"
+        "path": "dirty-input/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "format",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "format/_behavior-definition.ts"
+      },
+      {
+        "path": "format/schema.ts"
+      },
+      {
+        "path": "format/behavior.ts"
+      },
+      {
+        "path": "format/behavior.test.ts"
+      }
+    ]
+  },
+  {
+    "name": "storage",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "storage/_behavior-definition.ts"
+      },
+      {
+        "path": "storage/schema.ts"
+      },
+      {
+        "path": "storage/behavior.ts"
+      }
+    ]
+  },
+  {
+    "name": "paste-transform",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "paste-transform/_behavior-definition.ts"
+      },
+      {
+        "path": "paste-transform/schema.ts"
+      },
+      {
+        "path": "paste-transform/behavior.ts"
+      }
+    ]
+  },
+  {
+    "name": "condition",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "condition/_behavior-definition.ts"
+      },
+      {
+        "path": "condition/schema.ts"
+      },
+      {
+        "path": "condition/behavior.ts"
+      }
+    ]
+  },
+  {
+    "name": "command",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "command/_behavior-definition.ts"
+      },
+      {
+        "path": "command/schema.ts"
+      },
+      {
+        "path": "command/behavior.ts"
+      },
+      {
+        "path": "command/behavior.test.ts"
+      }
+    ]
+  },
+
+      {
+        "path": "trigger/schema.ts"
+      },
+      {
+        "path": "trigger/behavior.ts"
+      }
+    ]
+  },
+  {
+    "name": "no-propagate",
+    "dependencies": [],
+    "files": [
+      {
+        "path": "no-propagate/_behavior-definition.ts"
+      },
+      {
+        "path": "no-propagate/schema.ts"
+      },
+      {
+        "path": "no-propagate/behavior.ts"
       }
     ]
   }

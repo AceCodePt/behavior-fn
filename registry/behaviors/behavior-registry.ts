@@ -121,3 +121,25 @@ export function ensureBehavior(name: string): Promise<void> | void {
   loadingStates.set(name, loadPromise);
   return loadPromise;
 }
+
+/**
+ * Dispatches a CommandEvent to a target element.
+ */
+export function dispatchCommand<T extends string>(
+  target: HTMLElement,
+  command: T,
+  source: HTMLElement = document.createElement("button"),
+): CommandEvent<T> {
+  const event = new Event("command", {
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+  }) as CommandEvent<T>;
+
+  // Assign the properties that CommandEvent expects
+  Object.defineProperty(event, "command", { value: command, enumerable: true });
+  Object.defineProperty(event, "source", { value: source, enumerable: true });
+
+  target.dispatchEvent(event);
+  return event;
+}

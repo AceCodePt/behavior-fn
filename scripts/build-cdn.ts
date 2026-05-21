@@ -338,7 +338,7 @@ async function buildAutoLoader() {
 // Import ALL dependencies from core bundle (external - not bundled)
 import { getBehavior, getBehaviorDef, getObservedAttributes, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
 
-// Inline auto-loader logic (don't import auto-loader.ts - it imports registry which gets bundled!)
+// Inline auto-loader logic (from registry/utils/auto-loader.ts)
 export function enableAutoLoader() {
   const upgraded = new WeakSet();
   const registeredHosts = new Set();

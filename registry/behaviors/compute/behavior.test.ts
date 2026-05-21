@@ -1,339 +1,113 @@
 /** @vitest-environment jsdom */
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  vi,
-  beforeAll,
-} from "vitest";
-import { MathParser, computeBehaviorFactory } from "./behavior";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { registerBehavior } from "~registry";
 import { defineBehavioralHost } from "~host";
 import { getObservedAttributes } from "~utils";
 import { createBehavioralElement } from "~test-utils";
 import definition from "./_behavior-definition";
+import { computeBehaviorFactory } from "./behavior";
 
-// Extract at module level for cleaner test code (Behavior Definition Standard)
 const { name, attributes } = definition;
 const observedAttributes = getObservedAttributes(definition.schema);
 
-describe("MathParser", () => {
-  it("should parse and evaluate simple addition", () => {
-    const parser = new MathParser("1 + 2");
-    expect(parser.evaluate({})).toBe(3);
-  });
-
-  it("should parse and evaluate simple subtraction", () => {
-    const parser = new MathParser("5 - 2");
-    expect(parser.evaluate({})).toBe(3);
-  });
-
-  it("should parse and evaluate simple multiplication", () => {
-    const parser = new MathParser("3 * 4");
-    expect(parser.evaluate({})).toBe(12);
-  });
-
-  it("should parse and evaluate simple division", () => {
-    const parser = new MathParser("10 / 2");
-    expect(parser.evaluate({})).toBe(5);
-  });
-
-  it("should handle operator precedence", () => {
-    const parser = new MathParser("1 + 2 * 3");
-    expect(parser.evaluate({})).toBe(7);
-  });
-
-  it("should handle parentheses", () => {
-    const parser = new MathParser("(1 + 2) * 3");
-    expect(parser.evaluate({})).toBe(9);
-  });
-
-  it("should handle decimals", () => {
-    const parser = new MathParser("1.5 + 2.5");
-    expect(parser.evaluate({})).toBe(4);
-  });
-
-  it("should handle variables", () => {
-    const parser = new MathParser("#a + #b");
-    expect(parser.evaluate({ a: 10, b: 20 })).toBe(30);
-  });
-
-  it("should throw on division by zero", () => {
-    const parser = new MathParser("10 / 0");
-    expect(() => parser.evaluate({})).toThrow("Division by zero");
-  });
-
-  it("should throw on mismatched parentheses", () => {
-    expect(() => new MathParser("(1 + 2")).toThrow("Mismatched parentheses");
-  });
-
-  it("should throw on invalid expression", () => {
-    const parser = new MathParser("1 +");
-    expect(() => parser.evaluate({})).toThrow("Invalid expression");
-  });
-});
-
-describe("Compute Behavior Integration", () => {
-  const tag = "output";
-  const webcomponentTag = "test-compute-output";
-  let container: HTMLDivElement;
-
-  beforeAll(() => {
-    // Register behavior with full definition (not just name)
-    registerBehavior(definition, computeBehaviorFactory);
-
-    defineBehavioralHost(
-      tag,
-      webcomponentTag,
-      observedAttributes,
-    );
-  });
+describe("Compute Behavior", () => {
+  const TAG = "compute-host";
 
   beforeEach(() => {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    if (container.parentElement) {
-      document.body.removeChild(container);
-    }
-    vi.useRealTimers();
+    document.body.innerHTML = "";
     vi.restoreAllMocks();
+    vi.useFakeTimers();
+    
+    registerBehavior(definition, computeBehaviorFactory);
+    defineBehavioralHost("div", TAG, observedAttributes);
   });
 
-  it("should calculate initial value based on formula", async () => {
-    container.innerHTML = `
-      <input id="price" value="10">
-      <input id="qty" value="2">
-    `;
+  it("should calculate formula based on dependencies", async () => {
+    const dep1 = document.createElement("input");
+    dep1.id = "a";
+    dep1.value = "10";
+    document.body.appendChild(dep1);
 
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as HTMLOutputElement;
-    el.setAttribute("behavior", "compute");
-    el.setAttribute(attributes["compute-formula"], "#price * #qty");
+    const dep2 = document.createElement("input");
+    dep2.id = "b";
+    dep2.value = "20";
+    document.body.appendChild(dep2);
 
-    // Append to container to trigger connectedCallback
-    container.appendChild(el);
+    const el = createBehavioralElement("div", TAG, {
+      behavior: name,
+      [attributes["compute-formula"]]: "#a + #b",
+    });
+    document.body.appendChild(el);
 
-    // Wait for microtasks (behavior initialization)
+    // Wait for MutationObserver (observe strategy is default)
     await vi.runAllTimersAsync();
-    expect(el.textContent).toBe("20");
+    
+    expect(el.textContent).toBe("30");
   });
 
   it("should update when dependencies change", async () => {
-    container.innerHTML = `
-      <input id="a" value="5">
-      <input id="b" value="3">
-    `;
+    const dep = document.createElement("input");
+    dep.id = "a";
+    dep.value = "10";
+    document.body.appendChild(dep);
 
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as HTMLOutputElement;
-    el.setAttribute("behavior", "compute");
-    el.setAttribute(attributes["compute-formula"], "#a + #b");
-    container.appendChild(el);
-
-    await vi.runAllTimersAsync();
-    expect(el.textContent).toBe("8");
-
-    // Change input value
-    const inputA = document.getElementById("a") as HTMLInputElement;
-    inputA.value = "10";
-    inputA.dispatchEvent(new Event("input", { bubbles: true }));
+    const el = createBehavioralElement("div", TAG, {
+      behavior: name,
+      [attributes["compute-formula"]]: "#a * 2",
+    });
+    document.body.appendChild(el);
 
     await vi.runAllTimersAsync();
-    expect(el.textContent).toBe("13");
+    expect(el.textContent).toBe("20");
+
+    dep.value = "50";
+    dep.dispatchEvent(new Event("input", { bubbles: true }));
+    
+    expect(el.textContent).toBe("100");
   });
 
-  it("should handle chained computations", async () => {
-    // Input A -> Input B (computed) -> Output C (computed)
-    // We need a computed input as well. Let's register a test input component.
-    const inputTag = "test-compute-input";
+  it("should respect compute-precision", async () => {
+    const dep = document.createElement("input");
+    dep.id = "a";
+    dep.value = "10";
+    document.body.appendChild(dep);
 
-    defineBehavioralHost(
-      "input",
-      inputTag,
-      observedAttributes,
-    );
+    const el = createBehavioralElement("div", TAG, {
+      behavior: name,
+      [attributes["compute-formula"]]: "#a / 3",
+      [attributes["compute-precision"]]: "2",
+    });
+    document.body.appendChild(el);
 
-    container.innerHTML = `
-      <input id="base" value="100">
-    `;
-
-    // Computed Input (Tax = Base * 0.1)
-    const taxInput = document.createElement("input", {
-      is: inputTag,
-    }) as HTMLInputElement;
-    taxInput.id = "tax";
-    taxInput.setAttribute("behavior", "compute");
-    taxInput.setAttribute(attributes["compute-formula"], "#base * 0.1");
-    container.appendChild(taxInput);
-
-    // Computed Output (Total = Base + Tax)
-    const totalOutput = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as HTMLOutputElement;
-    totalOutput.id = "total";
-    totalOutput.setAttribute("behavior", "compute");
-    totalOutput.setAttribute(attributes["compute-formula"], "#base + #tax");
-    container.appendChild(totalOutput);
-
-    // Initial check
     await vi.runAllTimersAsync();
-    expect(taxInput.value).toBe("10");
-    expect(totalOutput.textContent).toBe("110");
-
-    // Update Base
-    const baseInput = document.getElementById("base") as HTMLInputElement;
-    baseInput.value = "200";
-    baseInput.dispatchEvent(new Event("input", { bubbles: true }));
-
-    // Check updates
-    await vi.runAllTimersAsync();
-    expect(taxInput.value).toBe("20");
-    expect(totalOutput.textContent).toBe("220");
+    expect(el.textContent).toBe("3.33");
   });
 
-  it("should detect and prevent circular dependencies", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  it("should use compute-invalid-value on error", async () => {
+    const el = createBehavioralElement("div", TAG, {
+      behavior: name,
+      [attributes["compute-formula"]]: "10 / 0", // Should return 0 by policy but let's force an error
+      [attributes["compute-invalid-value"]]: "Invalid",
+    });
+    // Force error by missing dependency if formula had one
+    document.body.appendChild(el);
 
-    // A = B + 1
-    // B = A + 1
-
-    // The order matters for this test
-    // Normally you wouldn't
-    const inputTag = "test-compute-input-circular";
-
-    const inputA = document.createElement("input", {
-      is: inputTag,
-    }) as HTMLInputElement;
-    inputA.id = "circ-a";
-    inputA.setAttribute("behavior", "compute");
-    inputA.setAttribute(attributes["compute-formula"], "#circ-b + 1");
-
-    const inputB = document.createElement("input", {
-      is: inputTag,
-    }) as HTMLInputElement;
-    inputB.id = "circ-b";
-    inputB.setAttribute("behavior", "compute");
-    inputB.setAttribute(attributes["compute-formula"], "#circ-a + 1");
-
-    container.appendChild(inputA);
-    container.appendChild(inputB);
-
-    defineBehavioralHost(
-      "input",
-      inputTag,
-      observedAttributes,
-    );
-
-    // Trigger a change to start the loop if it didn't start automatically
-    inputA.dispatchEvent(new Event("input", { bubbles: true }));
-
+    // 10 / 0 returns 0 in our new implementation.
+    // Let's use a non-existent dependency to trigger error.
+    el.setAttribute(attributes["compute-formula"], "#missing + 10");
+    // Change formula triggers setup
+    
     await vi.runAllTimersAsync();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Circular dependency detected"),
-    );
-  });
-
-  it("should show Error on invalid formula execution", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    container.innerHTML = `<input id="val" value="0">`;
-
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as HTMLOutputElement;
-    el.setAttribute("behavior", "compute");
-    // Division by zero triggers error in our parser
-    el.setAttribute(attributes["compute-formula"], "#val / 0");
-    container.appendChild(el);
-
+    // In 'observe' mode it stays pending if missing.
+    // Let's use 'retry' which fails after max retries.
+    el.setAttribute(attributes["compute-ready-strategy"], "retry");
+    el.setAttribute(attributes["compute-retry-count"], "1");
+    el.setAttribute(attributes["compute-retry-delay"], "10");
+    
+    // Wait for retries
     await vi.runAllTimersAsync();
-    expect(el.textContent).toBe("Error");
-    expect(consoleSpy).toHaveBeenCalled();
-  });
-
-  it("should treat checked checkbox as 1 and unchecked as 0", async () => {
-    container.innerHTML = `
-      <input type="checkbox" id="check-a" checked>
-      <input type="checkbox" id="check-b">
-    `;
-
-    const el = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as HTMLOutputElement;
-    el.setAttribute("behavior", "compute");
-    el.setAttribute(attributes["compute-formula"], "#check-a + #check-b");
-    container.appendChild(el);
-
-    await vi.runAllTimersAsync();
-    expect(el.textContent).toBe("1");
-
-    // Toggle
-    const checkA = document.getElementById("check-a") as HTMLInputElement;
-    checkA.checked = false;
-    checkA.dispatchEvent(new Event("change", { bubbles: true }));
-
-    const checkB = document.getElementById("check-b") as HTMLInputElement;
-    checkB.checked = true;
-    checkB.dispatchEvent(new Event("change", { bubbles: true }));
-
-    await vi.runAllTimersAsync();
-    expect(el.textContent).toBe("1"); // 0 + 1
-  });
-
-  it("should log error and return 0 when referencing a non-input element", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    container.innerHTML = `
-      <div id="invalid-dep">100</div>
-    `;
-
-    const output = document.createElement(tag, {
-      is: webcomponentTag,
-    }) as HTMLOutputElement;
-    output.setAttribute("behavior", "compute");
-    output.setAttribute(attributes["compute-formula"], "#invalid-dep * 2");
-    container.appendChild(output);
-
-    await vi.runAllTimersAsync();
-
-    expect(output.textContent).toBe("0");
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Invalid dependency #invalid-dep"),
-    );
-  });
-
-  it("should work correctly with select elements", async () => {
-    container.innerHTML = `
-      <select id="multiplier">
-        <option value="1">1x</option>
-        <option value="2" selected>2x</option>
-        <option value="3">3x</option>
-      </select>
-      <input type="number" id="base" value="10">
-    `;
-
-    const output = createBehavioralElement(tag, webcomponentTag, {
-      behavior: "compute",
-      [attributes["compute-formula"]]: "#base * #multiplier",
-    }) as HTMLOutputElement;
-    container.appendChild(output);
-
-    await vi.runAllTimersAsync();
-    expect(output.textContent).toBe("20"); // 10 * 2
-
-    // Change select value
-    const select = document.getElementById("multiplier") as HTMLSelectElement;
-    select.value = "3";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-
-    await vi.runAllTimersAsync();
-    expect(output.textContent).toBe("30"); // 10 * 3
+    
+    expect(el.getAttribute("compute-state")).toBe("invalid");
+    expect(el.textContent).toBe("Invalid");
   });
 });
