@@ -15,8 +15,8 @@ const definition = uniqueBehaviorDef({
   name: "set-value",
   schema,
   command: {
-    "set-value": "set-value",
-    "set-value-and-submit": "set-value-and-submit",
+    "set": "set",
+    "set-and-submit": "set-and-submit",
   },
 });
 
