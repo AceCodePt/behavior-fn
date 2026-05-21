@@ -10,7 +10,17 @@
  * - Extends beyond native capabilities
  * 
  * Accepts both `command="show"` (canonical) and `command="--show"` (compatibility).
- * Defers to native API when `--` prefix detected and browser supports it.
+ * 
+ * Native API Delegation:
+ * Defers to native API only when:
+ * - Command has `--` prefix
+ * - Browser supports native Invoker Commands
+ * - No extended features used (single target, single command, no command-by)
+ * 
+ * Extended features always use our dispatcher (even with `--` prefix):
+ * - Multiple targets: `commandfor="modal, panel"`
+ * - Multiple commands: `command="show, focus"`
+ * - Custom triggers: `command-by="mouseenter"`
  */
 
 import { dispatchCommand } from "~registry";
@@ -40,13 +50,17 @@ export function enableCommandDispatcher(): () => void {
     
     if (!commandForAttr || !commandAttr) return;
 
-    // Defer to native API for -- prefixed commands
-    if (commandAttr.startsWith('--') && hasNativeSupport) return;
-
-    if (event.cancelable) event.preventDefault();
-
     const targetIds = commandForAttr.split(/[\s,]+/).filter(Boolean);
     const commands = commandAttr.split(/[\s,]+/).filter(Boolean);
+    const hasCommandBy = trigger.hasAttribute('command-by');
+    const hasMultipleTargets = targetIds.length > 1;
+    const hasMultipleCommands = commands.length > 1;
+    const hasExtendedFeatures = hasCommandBy || hasMultipleTargets || hasMultipleCommands;
+
+    // Defer to native API only if: -- prefix AND no extended features
+    if (commandAttr.startsWith('--') && hasNativeSupport && !hasExtendedFeatures) return;
+
+    if (event.cancelable) event.preventDefault();
 
     // 1 target + N commands: dispatch all commands to that target
     if (targetIds.length === 1 && commands.length > 1) {

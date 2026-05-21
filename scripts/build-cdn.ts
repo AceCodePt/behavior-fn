@@ -5,7 +5,7 @@
  * ESM Module Architecture:
  * 1. Core runtime (behavior-fn-core.js) - Exports core functions (registerBehavior, etc.)
  * 2. Individual behavior bundles (reveal.js, request.js, etc.) - Export factory functions
- * 3. Optional auto-loader (auto-loader.js) - Exports enableAutoLoader function
+ * 3. Utilities (auto-loader.js, command-dispatcher.js) - Optional helpers
  *
  * Key Strategies:
  * - Transform TypeBox schemas to JSON Schema to avoid bundling TypeBox (~40KB)
@@ -164,8 +164,9 @@ async function buildCDNBundles() {
   await buildIndividualBehaviors(behaviorDirs);
 
   // Phase 3: Build Auto-Loader (ESM)
-  console.log("\n📦 Phase 3: Building auto-loader (ESM)...");
+  console.log("\n📦 Phase 3: Building utilities (ESM)...");
   await buildAutoLoader();
+  await buildCommandDispatcher();
 
   // Phase 4: Generate Examples
   console.log("\n📦 Phase 4: Generating examples...");
@@ -177,18 +178,22 @@ async function buildCDNBundles() {
   console.log(`📂 Output directory: ${cdnOutDir}`);
   console.log("\n📘 Loading Pattern (Simplest - Auto-Register & Auto-Enable):");
   console.log("  <script type='module'>");
-  console.log(
-    "    import { defineBehavioralHost } from './behavior-fn-core.js';",
-  );
-  console.log(
-    "    import { metadata } from './reveal.js';  // Auto-registers!",
-  );
-  console.log("    import './auto-loader.js';  // Auto-enables!");
-  console.log("    ");
-  console.log("    // Optional: Define hosts manually for best performance");
-  console.log(
-    "    defineBehavioralHost('dialog', 'behavioral-reveal', metadata.observedAttributes);",
-  );
+  console.log("    import './behavior-fn-core.js';");
+  console.log("    import './reveal.js';  // Auto-registers!");
+  console.log("    import './logger.js';  // Auto-registers!");
+  console.log("    import './command-dispatcher.js';  // Auto-enables command dispatch!");
+  console.log("    import './auto-loader.js';  // Auto-enables is attribute!");
+  console.log("  </script>");
+  console.log("");
+  console.log("📘 Alternate: Explicit Loading Pattern:");
+  console.log("  <script type='module'>");
+  console.log("    import { registerBehavior } from './behavior-fn-core.js';");
+  console.log("    import { revealBehaviorFactory } from './reveal.js';");
+  console.log("    import { loggerBehaviorFactory } from './logger.js';");
+  console.log("    import { enableCommandDispatcher } from './command-dispatcher.js';");
+  console.log("    import { enableAutoLoader } from './auto-loader.js';");
+  console.log("    enableCommandDispatcher();");
+  console.log("    enableAutoLoader();");
   console.log("  </script>");
   console.log("\n📘 Simplest (Auto-Loader Only):");
   console.log("  <script type='module'>");
@@ -495,6 +500,122 @@ console.log('✅ BehaviorFN: Auto-loader enabled automatically');
   });
 
   console.log(`  ✅ auto-loader.js (ESM)`);
+}
+
+/**
+ * Build the command dispatcher module.
+ */
+async function buildCommandDispatcher() {
+  const commandDispatcherEntry = join(cdnOutDir, "_command-dispatcher-entry.js");
+
+  const commandDispatcherCode = `
+// Import dispatchCommand from core bundle
+import { dispatchCommand } from "./behavior-fn-core.js";
+
+// Inline command-dispatcher logic (from registry/utils/command-dispatcher.ts)
+function normalizeCommand(command) {
+  return command.startsWith('--') ? command.slice(2) : command;
+}
+
+function hasNativeInvokerSupport() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return 'CommandEvent' in window;
+  } catch {
+    return false;
+  }
+}
+
+export function enableCommandDispatcher() {
+  const hasNativeSupport = hasNativeInvokerSupport();
+
+  function handleClick(event) {
+    const trigger = event.target.closest('[commandfor]');
+    if (!trigger) return;
+
+    const commandForAttr = trigger.getAttribute('commandfor');
+    const commandAttr = trigger.getAttribute('command');
+    
+    if (!commandForAttr || !commandAttr) return;
+
+    const targetIds = commandForAttr.split(/[\\s,]+/).filter(Boolean);
+    const commands = commandAttr.split(/[\\s,]+/).filter(Boolean);
+    const hasCommandBy = trigger.hasAttribute('command-by');
+    const hasMultipleTargets = targetIds.length > 1;
+    const hasMultipleCommands = commands.length > 1;
+    const hasExtendedFeatures = hasCommandBy || hasMultipleTargets || hasMultipleCommands;
+
+    // Defer to native API only if: -- prefix AND no extended features
+    if (commandAttr.startsWith('--') && hasNativeSupport && !hasExtendedFeatures) return;
+
+    if (event.cancelable) event.preventDefault();
+
+    if (targetIds.length === 1 && commands.length > 1) {
+      const targetElement = document.getElementById(targetIds[0]);
+      if (!targetElement) {
+        console.warn(\`[CommandDispatcher] Target element not found: #\${targetIds[0]}\`);
+        return;
+      }
+
+      commands.forEach(rawCommand => {
+        dispatchCommand(targetElement, normalizeCommand(rawCommand), trigger);
+      });
+    } else {
+      targetIds.forEach((targetId, index) => {
+        const targetElement = document.getElementById(targetId);
+        if (!targetElement) {
+          console.warn(\`[CommandDispatcher] Target element not found: #\${targetId}\`);
+          return;
+        }
+
+        const rawCommand = commands[index] || commands[0];
+        if (!rawCommand) return;
+
+        dispatchCommand(targetElement, normalizeCommand(rawCommand), trigger);
+      });
+    }
+  }
+
+  function handleNativeCommand(event) {
+    if (event.command?.startsWith('--')) return;
+  }
+
+  document.addEventListener('click', handleClick, true);
+  if (hasNativeSupport) {
+    document.addEventListener('command', handleNativeCommand, true);
+  }
+
+  return () => {
+    document.removeEventListener('click', handleClick, true);
+    if (hasNativeSupport) {
+      document.removeEventListener('command', handleNativeCommand, true);
+    }
+  };
+}
+
+// Auto-enable when imported (side-effect)
+enableCommandDispatcher();
+
+// Log when loaded and enabled
+console.log('✅ BehaviorFN: Command dispatcher enabled automatically');
+`;
+
+  await writeFile(commandDispatcherEntry, commandDispatcherCode);
+
+  await build({
+    entryPoints: [commandDispatcherEntry],
+    bundle: true,
+    format: "esm",
+    outfile: join(cdnOutDir, "command-dispatcher.js"),
+    platform: "browser",
+    target: "es2020",
+    minify: true,
+    sourcemap: true,
+    external: ["./behavior-fn-core.js"],
+    plugins: [inlineTypeBoxPlugin],
+  });
+
+  console.log(`  ✅ command-dispatcher.js (ESM)`);
 }
 
 /**

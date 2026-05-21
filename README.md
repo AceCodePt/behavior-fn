@@ -972,7 +972,18 @@ Commands use simple names without prefix (e.g., `command="show"`, `command="hide
 - AI-friendly (simpler patterns for code generation)
 
 **Native API Compatibility:**
-If you're familiar with the browser's experimental Invoker Commands API, note that BehaviorFN accepts both `command="show"` and `command="--show"`, but the non-prefixed version is canonical. When the browser natively supports `--` prefixed commands, our dispatcher defers to the native implementation.
+If you're familiar with the browser's experimental Invoker Commands API, note that BehaviorFN accepts both `command="show"` and `command="--show"`, but the non-prefixed version is canonical.
+
+**When does the dispatcher defer to native API?**
+The dispatcher defers to the browser's native implementation only when ALL of these conditions are met:
+- Command uses `--` prefix (`command="--show"`)
+- Browser supports native Invoker Commands API
+- No extended features are used:
+  - Single target only (not `commandfor="modal, panel"`)
+  - Single command only (not `command="show, focus"`)
+  - No custom trigger (not `command-by="mouseenter"`)
+
+**Extended features always use our dispatcher** (even with `--` prefix) because the native API doesn't support them.
 
 ### Event Propagation and Target Scope
 

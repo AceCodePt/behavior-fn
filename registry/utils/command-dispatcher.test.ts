@@ -274,6 +274,82 @@ describe("Command Dispatcher", () => {
     });
   });
 
+  describe("Extended Features Override Native API", () => {
+    it("should handle --prefixed commands with multiple targets (extended feature)", () => {
+      const target1 = document.createElement("div");
+      target1.id = "target1";
+      const target2 = document.createElement("div");
+      target2.id = "target2";
+      document.body.appendChild(target1);
+      document.body.appendChild(target2);
+
+      const button = document.createElement("button");
+      button.setAttribute("commandfor", "target1, target2");
+      button.setAttribute("command", "--show");
+      document.body.appendChild(button);
+
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
+      target1.addEventListener("command", handler1);
+      target2.addEventListener("command", handler2);
+
+      disconnect = enableCommandDispatcher();
+
+      button.click();
+
+      // Should dispatch even with -- prefix because of multiple targets
+      expect(handler1).toHaveBeenCalledTimes(1);
+      expect(handler2).toHaveBeenCalledTimes(1);
+      expect(handler1.mock.calls[0][0].command).toBe("show");
+    });
+
+    it("should handle --prefixed commands with multiple commands (extended feature)", () => {
+      const target = document.createElement("div");
+      target.id = "target";
+      document.body.appendChild(target);
+
+      const button = document.createElement("button");
+      button.setAttribute("commandfor", "target");
+      button.setAttribute("command", "--show, --focus");
+      document.body.appendChild(button);
+
+      const commandHandler = vi.fn();
+      target.addEventListener("command", commandHandler);
+
+      disconnect = enableCommandDispatcher();
+
+      button.click();
+
+      // Should dispatch both commands even with -- prefix
+      expect(commandHandler).toHaveBeenCalledTimes(2);
+      expect(commandHandler.mock.calls[0][0].command).toBe("show");
+      expect(commandHandler.mock.calls[1][0].command).toBe("focus");
+    });
+
+    it("should handle --prefixed commands with command-by (extended feature)", () => {
+      const target = document.createElement("div");
+      target.id = "target";
+      document.body.appendChild(target);
+
+      const button = document.createElement("button");
+      button.setAttribute("commandfor", "target");
+      button.setAttribute("command", "--show");
+      button.setAttribute("command-by", "mouseenter");
+      document.body.appendChild(button);
+
+      const commandHandler = vi.fn();
+      target.addEventListener("command", commandHandler);
+
+      disconnect = enableCommandDispatcher();
+
+      button.click();
+
+      // Should dispatch because of command-by extended feature
+      expect(commandHandler).toHaveBeenCalledTimes(1);
+      expect(commandHandler.mock.calls[0][0].command).toBe("show");
+    });
+  });
+
   describe("Cleanup", () => {
     it("should stop dispatching after disconnect", () => {
       const target = document.createElement("div");
