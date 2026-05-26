@@ -77,19 +77,16 @@
   </div>
 
   <script type="module">
-    // Import behaviors
-    import '../registry/behaviors/command/behavior.ts';
-    import '../registry/behaviors/reveal/behavior.ts';
-    import '../registry/behaviors/auto-grow/behavior.ts';
-    import '../registry/behaviors/compute/behavior.ts';
+    // Import behaviors (auto-register on import)
+    import '../dist/cdn/command.js';
+    import '../dist/cdn/reveal.js';
+    import '../dist/cdn/auto-grow.js';
+    import '../dist/cdn/compute.js';
     
-    // Import auto-loader
-    import { enableAutoLoader } from '../registry/utils/auto-loader.ts';
+    // Import auto-loader (auto-enables on import)
+    import '../dist/cdn/auto-loader.js';
     
-    // Enable auto-loader
-    enableAutoLoader();
-    
-    console.log('✅ Auto-loader enabled!');
+    console.log('✅ Behaviors loaded with auto-loader!');
   </script>
 </body>
 </html>

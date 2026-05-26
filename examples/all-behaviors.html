@@ -507,69 +507,29 @@
   </div>
 
   <script type="module">
-    // Import all behaviors
-    import '../registry/behaviors/auto-grow/behavior.ts';
-    import '../registry/behaviors/command/behavior.ts';
-    import '../registry/behaviors/compute/behavior.ts';
-    import '../registry/behaviors/condition/behavior.ts';
-    import '../registry/behaviors/dirty-input/behavior.ts';
-    import '../registry/behaviors/element-counter/behavior.ts';
-    import '../registry/behaviors/format/behavior.ts';
-    import '../registry/behaviors/json-template/behavior.ts';
-    import '../registry/behaviors/logger/behavior.ts';
-    import '../registry/behaviors/no-propagate/behavior.ts';
-    import '../registry/behaviors/paste-transform/behavior.ts';
-    import '../registry/behaviors/request/behavior.ts';
-    import '../registry/behaviors/reveal/behavior.ts';
-    import '../registry/behaviors/set-attribute/behavior.ts';
-    import '../registry/behaviors/set-content/behavior.ts';
-    import '../registry/behaviors/set-value/behavior.ts';
-    import '../registry/behaviors/storage/behavior.ts';
+    // Import all behaviors (auto-register on import)
+    import '../dist/cdn/auto-grow.js';
+    import '../dist/cdn/command.js';
+    import '../dist/cdn/compute.js';
+    import '../dist/cdn/condition.js';
+    import '../dist/cdn/dirty-input.js';
+    import '../dist/cdn/element-counter.js';
+    import '../dist/cdn/format.js';
+    import '../dist/cdn/json-template.js';
+    import '../dist/cdn/logger.js';
+    import '../dist/cdn/no-propagate.js';
+    import '../dist/cdn/paste-transform.js';
+    import '../dist/cdn/request.js';
+    import '../dist/cdn/reveal.js';
+    import '../dist/cdn/set-attribute.js';
+    import '../dist/cdn/set-content.js';
+    import '../dist/cdn/set-value.js';
+    import '../dist/cdn/storage.js';
 
-    // Import utilities
-    import { defineBehavioralHost, getObservedAttributes } from '../registry/behaviors/behavioral-host.ts';
-    import { getBehaviorDef } from '../registry/behaviors/behavior-registry.ts';
+    // Import auto-loader (auto-enables on import)
+    import '../dist/cdn/auto-loader.js';
 
-    // Define all behavioral hosts
-    const behaviors = [
-      'auto-grow', 'command', 'compute', 'condition', 'dirty-input',
-      'element-counter', 'format', 'json-template', 'logger', 'no-propagate',
-      'paste-transform', 'request', 'reveal', 'set-attribute', 'set-content',
-      'set-value', 'storage'
-    ];
-
-    const tags = {
-      'auto-grow': ['textarea'],
-      'command': ['button', 'input'],
-      'compute': ['input'],
-      'condition': ['div'],
-      'dirty-input': ['input'],
-      'element-counter': ['output'],
-      'format': ['input'],
-      'json-template': ['ul'],
-      'logger': ['button'],
-      'no-propagate': ['button'],
-      'paste-transform': ['input'],
-      'request': ['button'],
-      'reveal': ['dialog', 'div'],
-      'set-attribute': ['button'],
-      'set-content': ['button'],
-      'set-value': ['button'],
-      'storage': ['input']
-    };
-
-    behaviors.forEach(name => {
-      const def = getBehaviorDef(name);
-      if (def) {
-        const observedAttrs = getObservedAttributes(def.schema);
-        const tagList = tags[name] || ['div'];
-        tagList.forEach(tag => {
-          defineBehavioralHost(tag, `behavioral-${name}`, observedAttrs);
-        });
-      }
-    });
-
-    console.log('✅ All behaviors loaded and registered!');
+    console.log('✅ All 17 behaviors loaded with auto-loader!');
   </script>
 </body>
 </html>
