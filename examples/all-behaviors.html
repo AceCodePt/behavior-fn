@@ -507,6 +507,9 @@
   </div>
 
   <script type="module">
+    // Import core and utilities
+    import { defineBehavioralHost, getObservedAttributes, getBehaviorDef } from '../dist/cdn/behavior-fn-core.js';
+    
     // Import all behaviors (auto-register on import)
     import '../dist/cdn/auto-grow.js';
     import '../dist/cdn/command.js';
@@ -526,10 +529,38 @@
     import '../dist/cdn/set-value.js';
     import '../dist/cdn/storage.js';
 
-    // Import auto-loader (auto-enables on import)
-    import '../dist/cdn/auto-loader.js';
+    // Define behavioral hosts for all behaviors
+    const behaviors = [
+      { name: 'auto-grow', tags: ['textarea'] },
+      { name: 'command', tags: ['button', 'input'] },
+      { name: 'compute', tags: ['input'] },
+      { name: 'condition', tags: ['div'] },
+      { name: 'dirty-input', tags: ['input'] },
+      { name: 'element-counter', tags: ['output'] },
+      { name: 'format', tags: ['input'] },
+      { name: 'json-template', tags: ['ul'] },
+      { name: 'logger', tags: ['button'] },
+      { name: 'no-propagate', tags: ['button'] },
+      { name: 'paste-transform', tags: ['input'] },
+      { name: 'request', tags: ['button'] },
+      { name: 'reveal', tags: ['dialog', 'div'] },
+      { name: 'set-attribute', tags: ['button'] },
+      { name: 'set-content', tags: ['button'] },
+      { name: 'set-value', tags: ['button'] },
+      { name: 'storage', tags: ['input'] }
+    ];
 
-    console.log('✅ All 17 behaviors loaded with auto-loader!');
+    behaviors.forEach(({ name, tags }) => {
+      const def = getBehaviorDef(name);
+      if (def) {
+        const observedAttrs = getObservedAttributes(def.schema);
+        tags.forEach(tag => {
+          defineBehavioralHost(tag, `behavioral-${name}`, observedAttrs);
+        });
+      }
+    });
+
+    console.log('✅ All 17 behaviors loaded and hosts defined!');
   </script>
 </body>
 </html>
