@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BehaviorFN v0.3.0 - All Behaviors Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #0066cc;
+      margin-bottom: 0.5rem;
+    }
+
+    .intro {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .behavior-section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .behavior-section h2 {
+      color: #0066cc;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #eee;
+    }
+
+    .demo {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 0.25rem;
+      font-size: 0.9rem;
+    }
+
+    button:hover {
+      background: #0052a3;
+    }
+
+    input, textarea, select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 0.25rem;
+      font-family: inherit;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    dialog {
+      border: none;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      max-width: 500px;
+    }
+
+    dialog::backdrop {
+      background: rgba(0,0,0,0.5);
+    }
+
+    [popover] {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #28a745;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+
+    .output {
+      background: #f0f0f0;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin: 0.5rem 0;
+      font-family: monospace;
+      min-height: 2rem;
+    }
+
+    code {
+      background: #f0f0f0;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
+    [dirty-state] {
+      border-color: #ffa500 !important;
+      box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.2);
+    }
+
+    [reveal-state="closed"] {
+      display: none;
+    }
+
+    [reveal-state="open"] {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 BehaviorFN v0.3.0 - All Behaviors Demo</h1>
+    
+    <div class="intro">
+      <p><strong>Test all 17 behaviors in one page.</strong> Each section demonstrates a different behavior with working examples.</p>
+      <p>Open the browser console to see logging output from the <code>logger</code> behavior.</p>
+    </div>
+
+    <!-- 1. AUTO-GROW -->
+    <div class="behavior-section">
+      <h2>📏 auto-grow</h2>
+      <p>Automatically adjusts textarea height to fit content.</p>
+      <div class="demo">
+        <textarea
+          is="behavioral-auto-grow"
+          behavior="auto-grow"
+          placeholder="Type multiple lines here... The textarea will grow automatically!"></textarea>
+      </div>
+    </div>
+
+    <!-- 2. COMMAND -->
+    <div class="behavior-section">
+      <h2>⚡ command</h2>
+      <p>Dispatch commands to target elements with custom triggers, delays, and throttling.</p>
+      <div class="demo">
+        <p><strong>Basic click trigger:</strong></p>
+        <button is="behavioral-command" behavior="command" commandfor="cmd-target1" command="show">
+          Show Panel
+        </button>
+        <button is="behavioral-command" behavior="command" commandfor="cmd-target1" command="hide">
+          Hide Panel
+        </button>
+        <div is="behavioral-reveal" id="cmd-target1" behavior="reveal" style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 4px;">
+          ✨ Toggled content
+        </div>
+
+        <p style="margin-top: 1rem;"><strong>Custom trigger (input event):</strong></p>
+        <input
+          is="behavioral-command"
+          behavior="command"
+          commandby="input"
+          commandfor="cmd-output"
+          command="update"
+          placeholder="Type here...">
+        <div id="cmd-output" class="output">Output will appear here as you type</div>
+
+        <p style="margin-top: 1rem;"><strong>With delay (300ms):</strong></p>
+        <input
+          is="behavioral-command"
+          behavior="command"
+          commandby="input"
+          commandfor="cmd-delayed"
+          command="update"
+          commanddelay="300"
+          placeholder="Debounced input...">
+        <div id="cmd-delayed" class="output">Debounced output (300ms delay)</div>
+      </div>
+    </div>
+
+    <!-- 3. COMPUTE -->
+    <div class="behavior-section">
+      <h2>🧮 compute</h2>
+      <p>Calculate values based on formulas referencing other elements.</p>
+      <div class="demo">
+        <label>Price: <input type="number" id="price" value="10"></label>
+        <label>Quantity: <input type="number" id="qty" value="5"></label>
+        <label>Total:
+          <input
+            is="behavioral-compute"
+            behavior="compute"
+            compute-formula="#price * #qty"
+            readonly>
+        </label>
+      </div>
+    </div>
+
+    <!-- 4. CONDITION -->
+    <div class="behavior-section">
+      <h2>🔀 condition</h2>
+      <p>Conditionally dispatch commands based on element state.</p>
+      <div class="demo">
+        <input type="number" id="cond-input" value="0" placeholder="Enter a number">
+        <div
+          is="behavioral-condition"
+          behavior="condition"
+          condition-watch="cond-input"
+          condition-on="value"
+          condition-op=">"
+          condition-value="10"
+          condition-command="show"
+          condition-commandfor="cond-msg"
+          style="display: none;">
+        </div>
+        <div is="behavioral-reveal" id="cond-msg" behavior="reveal" class="output" style="color: green;">
+          ✅ Value is greater than 10!
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. DIRTY-INPUT -->
+    <div class="behavior-section">
+      <h2>🏷️ dirty-input</h2>
+      <p>Track whether input has changed from its original value.</p>
+      <div class="demo">
+        <input
+          is="behavioral-dirty-input"
+          behavior="dirty-input"
+          value="Original value"
+          placeholder="Edit me...">
+        <p><em>Changes color when modified (orange border)</em></p>
+      </div>
+    </div>
+
+    <!-- 6. ELEMENT-COUNTER -->
+    <div class="behavior-section">
+      <h2>🔢 element-counter</h2>
+      <p>Count elements matching a selector.</p>
+      <div class="demo">
+        <div id="counter-root">
+          <div class="countable-item">Item 1</div>
+          <div class="countable-item">Item 2</div>
+          <div class="countable-item">Item 3</div>
+        </div>
+        <p>Total items:
+          <output
+            is="behavioral-element-counter"
+            behavior="element-counter"
+            element-counter-root="counter-root"
+            element-counter-selector=".countable-item">0</output>
+        </p>
+      </div>
+    </div>
+
+    <!-- 7. FORMAT -->
+    <div class="behavior-section">
+      <h2>💰 format</h2>
+      <p>Format numbers, currency, and dates.</p>
+      <div class="demo">
+        <label>Currency:
+          <input
+            is="behavioral-format"
+            behavior="format"
+            format-type="currency"
+            format-locale="en-US"
+            format-currency="USD"
+            value="1234.56">
+        </label>
+        <label>Number (2 decimals):
+          <input
+            is="behavioral-format"
+            behavior="format"
+            format-type="number"
+            format-min-fraction-digits="2"
+            format-max-fraction-digits="2"
+            value="1234.5">
+        </label>
+      </div>
+    </div>
+
+    <!-- 8. JSON-TEMPLATE -->
+    <div class="behavior-section">
+      <h2>📄 json-template</h2>
+      <p>Render templates from JSON data.</p>
+      <div class="demo">
+        <script id="users-data" type="application/json">
+          {
+            "users": [
+              { "name": "Alice", "role": "Admin" },
+              { "name": "Bob", "role": "User" }
+            ]
+          }
+        </script>
+        <ul
+          is="behavioral-json-template"
+          behavior="json-template"
+          json-template-source="#users-data"
+          json-template-path="users">
+          <template>
+            <li><strong data-key="name"></strong> - <span data-key="role"></span></li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 9. LOGGER -->
+    <div class="behavior-section">
+      <h2>📝 logger</h2>
+      <p>Log events to console. <em>Open DevTools to see logs.</em></p>
+      <div class="demo">
+        <button
+          is="behavioral-logger"
+          behavior="logger"
+          logger-trigger="click">
+          Click me (check console)
+        </button>
+        <button
+          is="behavioral-logger"
+          behavior="logger"
+          logger-trigger="mouseenter">
+          Hover me (check console)
+        </button>
+      </div>
+    </div>
+
+    <!-- 10. NO-PROPAGATE -->
+    <div class="behavior-section">
+      <h2>🚫 no-propagate</h2>
+      <p>Stop event propagation for nested interactive elements.</p>
+      <div class="demo">
+        <div onclick="alert('Parent clicked')" style="padding: 1rem; background: #e3f2fd; border-radius: 4px; cursor: pointer;">
+          Click me (parent)
+          <button
+            is="behavioral-no-propagate"
+            behavior="no-propagate"
+            no-propagate-events="click"
+            onclick="alert('Child clicked')">
+            Click me (child - won't trigger parent)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11. PASTE-TRANSFORM -->
+    <div class="behavior-section">
+      <h2>📋 paste-transform</h2>
+      <p>Transform pasted text with regex patterns.</p>
+      <div class="demo">
+        <input
+          is="behavioral-paste-transform"
+          behavior="paste-transform"
+          paste-transform-patterns="[0-9]"
+          paste-transform-replaces="X"
+          placeholder="Paste text with numbers (they'll be replaced with X)">
+      </div>
+    </div>
+
+    <!-- 12. REQUEST -->
+    <div class="behavior-section">
+      <h2>🌐 request</h2>
+      <p>Fetch data and swap content.</p>
+      <div class="demo">
+        <button
+          is="behavioral-request"
+          behavior="request"
+          request-url="https://jsonplaceholder.typicode.com/todos/1"
+          request-target="#request-output"
+          request-trigger="click">
+          Fetch Data
+        </button>
+        <div id="request-output" class="output">Click button to fetch data</div>
+      </div>
+    </div>
+
+    <!-- 13. REVEAL -->
+    <div class="behavior-section">
+      <h2>👁️ reveal</h2>
+      <p>Show/hide elements including dialogs and popovers.</p>
+      <div class="demo">
+        <button is="behavioral-command" behavior="command" commandfor="reveal-modal" command="show">
+          Open Dialog
+        </button>
+        <dialog is="behavioral-reveal" id="reveal-modal" behavior="reveal">
+          <h3>Modal Dialog</h3>
+          <p>This is a modal dialog controlled by the reveal behavior.</p>
+          <button is="behavioral-command" behavior="command" commandfor="reveal-modal" command="hide">
+            Close
+          </button>
+        </dialog>
+
+        <button is="behavioral-command" behavior="command" commandfor="reveal-popover" command="toggle">
+          Toggle Popover
+        </button>
+        <div is="behavioral-reveal" id="reveal-popover" behavior="reveal" popover>
+          <p>✨ I'm a popover!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. SET-ATTRIBUTE -->
+    <div class="behavior-section">
+      <h2>🏷️ set-attribute</h2>
+      <p>Set, toggle, or remove attributes via commands.</p>
+      <div class="demo">
+        <button
+          is="behavioral-set-attribute"
+          behavior="set-attribute"
+          set-attribute-name="disabled"
+          set-attribute-value=""
+          commandby="click"
+          command="toggle">
+          Toggle Disabled
+        </button>
+        <input id="set-attr-target" placeholder="I get disabled/enabled">
+      </div>
+    </div>
+
+    <!-- 15. SET-CONTENT -->
+    <div class="behavior-section">
+      <h2>📝 set-content</h2>
+      <p>Set element text content via commands.</p>
+      <div class="demo">
+        <button
+          is="behavioral-set-content"
+          behavior="set-content"
+          set-content-value="Content updated!"
+          commandby="click"
+          command="set">
+          Update Content
+        </button>
+        <div id="set-content-target" class="output">Original content</div>
+      </div>
+    </div>
+
+    <!-- 16. SET-VALUE -->
+    <div class="behavior-section">
+      <h2>💾 set-value</h2>
+      <p>Set form element values via commands.</p>
+      <div class="demo">
+        <button
+          is="behavioral-set-value"
+          behavior="set-value"
+          set-value-value="Value from button!"
+          commandby="click"
+          command="set">
+          Set Input Value
+        </button>
+        <input id="set-value-target" value="Original value">
+        <button
+          is="behavioral-command"
+          behavior="command"
+          commandfor="set-value-target"
+          command="reset">
+          Reset to Original
+        </button>
+      </div>
+    </div>
+
+    <!-- 17. STORAGE -->
+    <div class="behavior-section">
+      <h2>💾 storage</h2>
+      <p>Sync input values with localStorage/sessionStorage.</p>
+      <div class="demo">
+        <input
+          is="behavioral-storage"
+          behavior="storage"
+          storage-key="demo-storage-value"
+          storage-type="local"
+          placeholder="Type here (persists across reloads)">
+        <p><em>Reload the page - your value will be restored!</em></p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // Import all behaviors
+    import '../registry/behaviors/auto-grow/behavior.ts';
+    import '../registry/behaviors/command/behavior.ts';
+    import '../registry/behaviors/compute/behavior.ts';
+    import '../registry/behaviors/condition/behavior.ts';
+    import '../registry/behaviors/dirty-input/behavior.ts';
+    import '../registry/behaviors/element-counter/behavior.ts';
+    import '../registry/behaviors/format/behavior.ts';
+    import '../registry/behaviors/json-template/behavior.ts';
+    import '../registry/behaviors/logger/behavior.ts';
+    import '../registry/behaviors/no-propagate/behavior.ts';
+    import '../registry/behaviors/paste-transform/behavior.ts';
+    import '../registry/behaviors/request/behavior.ts';
+    import '../registry/behaviors/reveal/behavior.ts';
+    import '../registry/behaviors/set-attribute/behavior.ts';
+    import '../registry/behaviors/set-content/behavior.ts';
+    import '../registry/behaviors/set-value/behavior.ts';
+    import '../registry/behaviors/storage/behavior.ts';
+
+    // Import utilities
+    import { defineBehavioralHost, getObservedAttributes } from '../registry/behaviors/behavioral-host.ts';
+    import { getBehaviorDef } from '../registry/behaviors/behavior-registry.ts';
+
+    // Define all behavioral hosts
+    const behaviors = [
+      'auto-grow', 'command', 'compute', 'condition', 'dirty-input',
+      'element-counter', 'format', 'json-template', 'logger', 'no-propagate',
+      'paste-transform', 'request', 'reveal', 'set-attribute', 'set-content',
+      'set-value', 'storage'
+    ];
+
+    const tags = {
+      'auto-grow': ['textarea'],
+      'command': ['button', 'input'],
+      'compute': ['input'],
+      'condition': ['div'],
+      'dirty-input': ['input'],
+      'element-counter': ['output'],
+      'format': ['input'],
+      'json-template': ['ul'],
+      'logger': ['button'],
+      'no-propagate': ['button'],
+      'paste-transform': ['input'],
+      'request': ['button'],
+      'reveal': ['dialog', 'div'],
+      'set-attribute': ['button'],
+      'set-content': ['button'],
+      'set-value': ['button'],
+      'storage': ['input']
+    };
+
+    behaviors.forEach(name => {
+      const def = getBehaviorDef(name);
+      if (def) {
+        const observedAttrs = getObservedAttributes(def.schema);
+        const tagList = tags[name] || ['div'];
+        tagList.forEach(tag => {
+          defineBehavioralHost(tag, `behavioral-${name}`, observedAttrs);
+        });
+      }
+    });
+
+    console.log('✅ All behaviors loaded and registered!');
+  </script>
+</body>
+</html>
