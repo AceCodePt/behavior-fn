@@ -1,4 +1,4 @@
-import { registerBehavior } from "~registry";
+import { registerBehavior, dispatchCommand } from "~registry";
 import definition from "./_behavior-definition";
 
 const { attributes } = definition;
@@ -6,52 +6,66 @@ const { attributes } = definition;
 /**
  * Command behavior factory.
  * 
- * Provides advanced control (delay, throttle) over the standard Command Protocol.
- * Leverages the core 'command', 'commandfor', and 'command-by' attributes.
+ * Enables any element to dispatch commands to targets.
+ * Supports delay, throttle, multiple targets, and custom event triggers.
  */
 export const commandBehaviorFactory = (el: HTMLElement) => {
-  let timeoutId: any = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastExec = 0;
   const handlers = new Map<string, EventListener>();
 
   const handler = (e: Event) => {
-    const delayAttr = el.getAttribute(attributes["command-delay"]);
-    const throttleAttr = el.getAttribute(attributes["command-throttle"]);
+    const delayAttr = el.getAttribute(attributes["commanddelay"]);
+    const throttleAttr = el.getAttribute(attributes["commandthrottle"]);
     
-    // If no advanced features are needed, let the core handle it.
-    if (!delayAttr && !throttleAttr) return;
+    e.preventDefault();
+    if (e.cancelable) e.stopImmediatePropagation();
 
-    // We have advanced features, so we take over.
-    e.stopImmediatePropagation();
-
-    const cmd = el.getAttribute(attributes["command-value"]) || el.getAttribute("command");
-    const cmdFor = el.getAttribute(attributes["command-for"]) || el.getAttribute("commandfor");
+    const cmd = el.getAttribute(attributes["command"]) || el.getAttribute("command");
+    const cmdFor = el.getAttribute(attributes["commandfor"]) || el.getAttribute("commandfor");
+    
     if (!cmd || !cmdFor) return;
 
     const delay = delayAttr ? parseInt(delayAttr, 10) : 0;
     const throttle = throttleAttr ? parseInt(throttleAttr, 10) : 0;
 
     const execute = () => {
-      import("~registry").then(({ dispatchCommand }) => {
-        const targets = cmdFor.split(/[\s,]+/).filter(Boolean);
-        const commands = cmd.split(/[\s,]+/).filter(Boolean);
-        
+      // Parse space-separated targets and commands (no commas, no spaces in values)
+      const targets = cmdFor.split(/\s+/).filter(Boolean);
+      const commands = cmd.split(/\s+/).filter(Boolean);
+      
+      // Strategy: 1 target + N commands = dispatch all to target
+      if (targets.length === 1 && commands.length > 1) {
+        const targetEl = document.getElementById(targets[0]!);
+        if (!targetEl) {
+          console.warn(`[Command] Target not found: #${targets[0]}`);
+          return;
+        }
+        commands.forEach(cmdName => dispatchCommand(targetEl, cmdName, el));
+      } else {
+        // N targets: map 1:1 or broadcast first command
         targets.forEach((id, i) => {
           const targetEl = document.getElementById(id);
+          if (!targetEl) {
+            console.warn(`[Command] Target not found: #${id}`);
+            return;
+          }
           const commandName = commands[i] || commands[0];
-          if (targetEl && commandName) {
+          if (commandName) {
             dispatchCommand(targetEl, commandName, el);
           }
         });
-      });
+      }
     };
 
+    // Throttle check
     if (throttle > 0) {
       const now = Date.now();
       if (now - lastExec < throttle) return;
       lastExec = now;
     }
 
+    // Delay execution
     if (delay > 0) {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(execute, delay);
@@ -62,7 +76,11 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
 
   return {
     connectedCallback() {
-      const commandBy = el.getAttribute(attributes["command-by"]) || (el.tagName === "FORM" ? "submit" : "click");
+      // Default: click for buttons/links, submit for forms
+      const commandBy = el.getAttribute(attributes["commandby"]) || 
+                        (el.tagName === "FORM" ? "submit" : "click");
+      
+      // Support space-separated events
       const events = commandBy.split(/\s+/).filter(Boolean);
       
       events.forEach(evt => {

@@ -11,17 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-**Command Dispatcher**
-- New `command-dispatcher.js` utility for declarative command protocol
-- Auto-enables command dispatch when imported
-- Supports multiple targets: `commandfor="modal, panel"`
-- Supports multiple commands: `command="show, focus"`
-- Smart delegation to native Invoker Commands API when appropriate
-- Extended features (multiple targets/commands, `command-by`) override native delegation
-- Comprehensive test suite (15 tests)
+**Command Behavior**
+- New `command` behavior enables any element to dispatch commands
+- Supports custom event triggers: `commandby="input"`, `commandby="mouseenter"`, etc.
+- Supports multiple targets: `commandfor="modal panel sidebar"` (space-separated)
+- Supports multiple commands: `command="show focus"` (space-separated)
+- Delay support: `commanddelay="300"` (milliseconds)
+- Throttle support: `commandthrottle="500"` (milliseconds)
+- No commas allowed - use spaces for separation
+- Proper lifecycle management (connectedCallback, disconnectedCallback)
 
 **New Behaviors**
-- `command` - Advanced command control with delay and throttle support
 - `condition` - Conditional command dispatch based on element state
 - `format` - Number, date, and currency formatting for inputs
 - `paste-transform` - Transform pasted text with regex patterns
@@ -39,11 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-**Command Naming**
-- Commands no longer use `--` prefix by default
-- Canonical: `command="show"` (not `command="--show"`)
-- `--` prefix accepted for compatibility but normalized internally
-- Documentation updated across all guides and examples
+**Command Protocol**
+- Commands use space-separated values (no commas): `commandfor="a b c"`
+- Command names cannot contain spaces
+- Attribute names simplified (no hyphens):
+  - `command-by` → `commandby`
+  - `command-delay` → `commanddelay`
+  - `command-throttle` → `commandthrottle`
+- Triggers must have `behavior="command"` attribute
+- Commands no longer use `--` prefix: `command="show"` (not `command="--show"`)
 
 **File Structure**
 - Moved `auto-loader` to `registry/utils/` (infrastructure, not a behavior)

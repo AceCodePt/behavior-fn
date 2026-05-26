@@ -36,25 +36,29 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
     <script type="module">
       // Import behaviors (auto-register on import)
       import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command.js";
       
-      // Import utilities (auto-enable on import)
-      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command-dispatcher.js";
+      // Import auto-loader (auto-enables on import)
       import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/auto-loader.js";
     </script>
   </head>
   <body>
-    <!-- No is attribute needed with auto-loader -->
-    <button commandfor="modal" command="show">Open Modal</button>
+    <!-- No 'is' attribute needed with auto-loader -->
+    <button behavior="command" commandfor="modal" command="show">
+      Open Modal
+    </button>
     
     <dialog behavior="reveal" id="modal">
       <h2>Hello World!</h2>
-      <button commandfor="modal" command="hide">Close</button>
+      <button behavior="command" commandfor="modal" command="hide">
+        Close
+      </button>
     </dialog>
   </body>
 </html>
 ```
 
-**Total:** ~17KB minified (~6KB gzipped)  
+**Total:** ~18KB minified (~6KB gzipped)  
 **Best for:** Most use cases, cleanest code
 
 ---
@@ -67,60 +71,83 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
   <head>
     <script type="module">
       import { defineBehavioralHost } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.js";
-      import { metadata } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
-      import { enableCommandDispatcher } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command-dispatcher.js";
+      import { metadata as revealMeta } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+      import { metadata as commandMeta } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command.js";
 
-      // Define behavioral host manually
-      defineBehavioralHost("dialog", "behavioral-reveal", metadata.observedAttributes);
-      
-      // Enable command dispatcher
-      enableCommandDispatcher();
+      // Define behavioral hosts manually
+      defineBehavioralHost("dialog", "behavioral-reveal", revealMeta.observedAttributes);
+      defineBehavioralHost("button", "behavioral-command", commandMeta.observedAttributes);
     </script>
   </head>
   <body>
-    <button commandfor="modal" command="show">Open Modal</button>
+    <!-- Explicit 'is' attribute required -->
+    <button is="behavioral-command" behavior="command" 
+            commandfor="modal" command="show">
+      Open Modal
+    </button>
     
-    <!-- Explicit is attribute required without auto-loader -->
     <dialog is="behavioral-reveal" behavior="reveal" id="modal">
       <h2>Hello World!</h2>
-      <button commandfor="modal" command="hide">Close</button>
+      <button is="behavioral-command" behavior="command"
+              commandfor="modal" command="hide">
+        Close
+      </button>
     </dialog>
   </body>
 </html>
 ```
 
-**Total:** ~12KB minified (~4KB gzipped)  
+**Total:** ~13KB minified (~5KB gzipped)  
 **Best for:** Production apps, maximum control
 
 ---
 
-## 🎯 Command Dispatcher
+## 🎯 Command Behavior
 
-The **command dispatcher** enables declarative command protocol without requiring behaviors on trigger elements.
+The **command behavior** enables any element to dispatch commands to targets.
 
 ```html
 <script type="module">
-  import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command-dispatcher.js";
+  import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command.js";
   import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
 </script>
 
-<!-- Trigger: Just commandfor + command attributes -->
-<button commandfor="modal" command="show">Open</button>
+<!-- Basic: click trigger -->
+<button is="behavioral-command" behavior="command"
+        commandfor="modal" command="show">
+  Open
+</button>
 
-<!-- Target: Needs behavior -->
+<!-- Advanced: input trigger with delay -->
+<input is="behavioral-command" behavior="command"
+       commandby="input"
+       commandfor="output" 
+       command="update"
+       commanddelay="300">
+
+<!-- Multiple targets (space-separated, no commas) -->
+<button is="behavioral-command" behavior="command"
+        commandfor="modal panel sidebar"
+        command="show">
+  Show All
+</button>
+
+<!-- Target -->
 <dialog is="behavioral-reveal" id="modal" behavior="reveal">
   Content here
 </dialog>
 ```
 
 **Features:**
-- ✅ No `--` prefix required (use `command="show"` not `command="--show"`)
-- ✅ Multiple targets: `commandfor="modal, panel"`
-- ✅ Multiple commands: `command="show, focus"`
-- ✅ Automatic cleanup and event delegation
-- ✅ Defers to native Invoker Commands API when appropriate
+- ✅ Any element can be a trigger (buttons, inputs, divs, etc.)
+- ✅ Custom event triggers: `commandby="input"`, `commandby="mouseenter"`, etc.
+- ✅ Multiple targets: `commandfor="modal panel"` (space-separated)
+- ✅ Multiple commands: `command="show focus"` (space-separated)
+- ✅ Delay support: `commanddelay="300"` (milliseconds)
+- ✅ Throttle support: `commandthrottle="500"` (milliseconds)
+- ✅ No commas, no spaces in command/target names
 
-**See:** [Command Dispatcher Example](examples/command-dispatcher-basic.html)
+**See:** [Command Examples](examples/command-basic.html)
 
 **Total:** ~11KB minified (~4KB gzipped)  
 **Best for:** Production apps, best performance
