@@ -51,14 +51,14 @@
 
   <div class="demo">
     <h2>Command + Reveal</h2>
-    <button behavior="command" commandfor="modal" command="show">
+    <button is="behavioral-command" behavior="command" commandfor="modal" command="show">
       Open Modal
     </button>
     
-    <dialog behavior="reveal" id="modal">
+    <dialog is="behavioral-reveal" behavior="reveal" id="modal">
       <h3>Hello from Reveal!</h3>
       <p>This dialog uses reveal behavior.</p>
-      <button behavior="command" commandfor="modal" command="hide">
+      <button is="behavioral-command" behavior="command" commandfor="modal" command="hide">
         Close
       </button>
     </dialog>
@@ -66,27 +66,46 @@
 
   <div class="demo">
     <h2>Auto-Grow Textarea</h2>
-    <textarea behavior="auto-grow" placeholder="Type multiple lines..."></textarea>
+    <textarea is="behavioral-auto-grow" behavior="auto-grow" placeholder="Type multiple lines..."></textarea>
   </div>
 
   <div class="demo">
     <h2>Compute</h2>
     <input type="number" id="a" value="5" placeholder="A">
     <input type="number" id="b" value="3" placeholder="B">
-    <input behavior="compute" compute-formula="#a + #b" readonly placeholder="Result">
+    <input is="behavioral-compute" behavior="compute" compute-formula="#a + #b" readonly placeholder="Result">
   </div>
 
   <script type="module">
+    // Import core and utilities
+    import { defineBehavioralHost, getObservedAttributes, getBehaviorDef } from '../dist/cdn/behavior-fn-core.js';
+    
     // Import behaviors (auto-register on import)
     import '../dist/cdn/command.js';
     import '../dist/cdn/reveal.js';
     import '../dist/cdn/auto-grow.js';
     import '../dist/cdn/compute.js';
     
-    // Import auto-loader (auto-enables on import)
-    import '../dist/cdn/auto-loader.js';
+    // Define behavioral hosts
+    const commandDef = getBehaviorDef('command');
+    const revealDef = getBehaviorDef('reveal');
+    const autoGrowDef = getBehaviorDef('auto-grow');
+    const computeDef = getBehaviorDef('compute');
     
-    console.log('✅ Behaviors loaded with auto-loader!');
+    if (commandDef) {
+      defineBehavioralHost('button', 'behavioral-command', getObservedAttributes(commandDef.schema));
+    }
+    if (revealDef) {
+      defineBehavioralHost('dialog', 'behavioral-reveal', getObservedAttributes(revealDef.schema));
+    }
+    if (autoGrowDef) {
+      defineBehavioralHost('textarea', 'behavioral-auto-grow', getObservedAttributes(autoGrowDef.schema));
+    }
+    if (computeDef) {
+      defineBehavioralHost('input', 'behavioral-compute', getObservedAttributes(computeDef.schema));
+    }
+    
+    console.log('✅ Behaviors loaded and hosts defined!');
   </script>
 </body>
 </html>

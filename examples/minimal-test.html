@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Test</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; }
+    button { padding: 0.5rem 1rem; margin: 0.5rem; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    dialog { border: none; border-radius: 8px; padding: 2rem; }
+    dialog::backdrop { background: rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+  <h1>Minimal Test</h1>
+  
+  <h2>Test 1: No Behaviors (Pure JavaScript)</h2>
+  <button id="js-trigger">Open JS Dialog</button>
+  <dialog id="js-modal">
+    <h3>JS Dialog</h3>
+    <button id="js-close">Close</button>
+  </dialog>
+
+  <hr style="margin: 2rem 0;">
+
+  <h2>Test 2: With is Attribute (Explicit)</h2>
+  <button is="behavioral-command" behavior="command" commandfor="explicit-modal" command="show">
+    Open Explicit Dialog
+  </button>
+  <dialog is="behavioral-reveal" behavior="reveal" id="explicit-modal">
+    <h3>Explicit Dialog</h3>
+    <button is="behavioral-command" behavior="command" commandfor="explicit-modal" command="hide">
+      Close
+    </button>
+  </dialog>
+
+  <script>
+    // Test 1: Pure JS (should always work)
+    document.getElementById('js-trigger').addEventListener('click', () => {
+      console.log('JS trigger clicked');
+      document.getElementById('js-modal').showModal();
+    });
+    document.getElementById('js-close').addEventListener('click', () => {
+      console.log('JS close clicked');
+      document.getElementById('js-modal').close();
+    });
+    console.log('✅ Pure JS setup complete');
+  </script>
+
+  <script type="module">
+    console.log('=== Starting Module ===');
+    
+    // Import core
+    const core = await import('../dist/cdn/behavior-fn-core.js');
+    console.log('✅ Core loaded:', Object.keys(core));
+    
+    // Import command
+    const cmd = await import('../dist/cdn/command.js');
+    console.log('✅ Command loaded:', Object.keys(cmd));
+    
+    // Import reveal
+    const rev = await import('../dist/cdn/reveal.js');
+    console.log('✅ Reveal loaded:', Object.keys(rev));
+    
+    // Define behavioral hosts explicitly
+    const { defineBehavioralHost, getObservedAttributes, getBehavior, getBehaviorDef } = core;
+    
+    const commandDef = getBehaviorDef('command');
+    const revealDef = getBehaviorDef('reveal');
+    
+    console.log('Command def:', commandDef);
+    console.log('Reveal def:', revealDef);
+    
+    if (commandDef && revealDef) {
+      const commandAttrs = getObservedAttributes(commandDef.schema);
+      const revealAttrs = getObservedAttributes(revealDef.schema);
+      
+      console.log('Command attrs:', commandAttrs);
+      console.log('Reveal attrs:', revealAttrs);
+      
+      defineBehavioralHost('button', 'behavioral-command', commandAttrs);
+      defineBehavioralHost('dialog', 'behavioral-reveal', revealAttrs);
+      
+      console.log('✅ Behavioral hosts defined');
+    } else {
+      console.error('❌ Definitions not found!');
+    }
+    
+    // Check if elements exist
+    const btn = document.querySelector('[is="behavioral-command"]');
+    const dlg = document.querySelector('[is="behavioral-reveal"]');
+    
+    console.log('Button element:', btn);
+    console.log('Dialog element:', dlg);
+    
+    console.log('=== Setup Complete ===');
+  </script>
+</body>
+</html>
