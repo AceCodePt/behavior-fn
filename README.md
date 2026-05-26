@@ -172,10 +172,10 @@ The 72KB all-in-one bundle has been **completely removed**. You now load only th
 - **Massive Size Reduction:** 73% to 90% smaller for typical use cases
 - **TypeBox Eliminated:** Transformed to JSON Schema at build time (0 bytes in bundles)
 - **Opt-In Loading:** Load only what you need (1.9KB to 4.6KB gzipped per behavior)
-- **Simple Usage:** Just 2 script tags with auto-loader
-- **Backward Compatible:** Individual bundle pattern still works
+- **Simple Usage:** Just import behaviors and auto-loader
+- **Flexible:** Choose between auto-loader or explicit setup
 
-**📋 [Migration Guide](CHANGELOG.md)** | **🔄 [Full Changelog](CHANGELOG.md)**
+**🔄 [Full Changelog](CHANGELOG.md)**
 
 ---
 
