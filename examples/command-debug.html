@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Debug</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    button, input {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .output {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 0.5rem 0;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+    .log {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      font-size: 0.85em;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐛 Command Debug</h1>
+
+  <h2>Test 1: Input with Command</h2>
+  <input
+    is="behavioral-command"
+    behavior="command"
+    commandby="input"
+    commandfor="output1"
+    command="update"
+    placeholder="Type here...">
+  <div id="output1" class="output">Output will appear here</div>
+
+  <h2>Test 2: Input with Delay</h2>
+  <input
+    is="behavioral-command"
+    behavior="command"
+    commandby="input"
+    commandfor="output2"
+    command="update"
+    commanddelay="300"
+    placeholder="Type here (300ms delay)...">
+  <div id="output2" class="output">Delayed output will appear here</div>
+
+  <h2>Event Log:</h2>
+  <div id="event-log"></div>
+
+  <script type="module">
+    import { defineBehavioralHost, getObservedAttributes, getBehaviorDef } from '../dist/cdn/behavior-fn-core.js';
+    import '../dist/cdn/command.js';
+
+    const commandDef = getBehaviorDef('command');
+    if (commandDef) {
+      defineBehavioralHost('input', 'behavioral-command', getObservedAttributes(commandDef.schema));
+    }
+
+    const logEl = document.getElementById('event-log');
+    
+    function log(msg, data = {}) {
+      const div = document.createElement('div');
+      div.className = 'log';
+      div.textContent = `${new Date().toLocaleTimeString()}: ${msg} ${JSON.stringify(data)}`;
+      logEl.insertBefore(div, logEl.firstChild);
+      console.log(msg, data);
+    }
+
+    // Listen on document
+    document.addEventListener('command', (e) => {
+      log('Document listener fired', {
+        'e.target.id': e.target.id,
+        'e.target.tagName': e.target.tagName,
+        'e.currentTarget': e.currentTarget.nodeName,
+        'e.command': e.command,
+        'e.source': e.source?.tagName,
+        'e.source.id': e.source?.id,
+        'e.bubbles': e.bubbles
+      });
+
+      // Try to handle the command
+      if (e.target.id === 'output1' && e.command === 'update') {
+        e.target.textContent = `Output 1: ${e.source.value}`;
+        log('✅ Handled output1');
+      } else if (e.target.id === 'output2' && e.command === 'update') {
+        e.target.textContent = `Output 2 (delayed): ${e.source.value}`;
+        log('✅ Handled output2');
+      } else {
+        log('❌ No handler matched', {
+          targetId: e.target.id,
+          command: e.command
+        });
+      }
+    });
+
+    // Also listen on the targets directly
+    document.getElementById('output1').addEventListener('command', (e) => {
+      log('Output1 direct listener fired', {
+        command: e.command,
+        sourceValue: e.source?.value
+      });
+    });
+
+    document.getElementById('output2').addEventListener('command', (e) => {
+      log('Output2 direct listener fired', {
+        command: e.command,
+        sourceValue: e.source?.value
+      });
+    });
+
+    log('✅ Setup complete');
+  </script>
+</body>
+</html>
