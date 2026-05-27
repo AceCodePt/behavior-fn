@@ -37,6 +37,9 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
       const targets = cmdFor.split(/\s+/).filter(Boolean);
       const commands = cmd.split(/\s+/).filter(Boolean);
       
+      // Get command-value if present
+      const commandValue = el.getAttribute("command-value");
+      
       // Strategy: 1 target + N commands = dispatch all to target
       if (targets.length === 1 && commands.length > 1) {
         const targetEl = document.getElementById(targets[0]!);
@@ -44,7 +47,7 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
           console.warn(`[Command] Target not found: #${targets[0]}`);
           return;
         }
-        commands.forEach(cmdName => dispatchCommand(targetEl, cmdName, el));
+        commands.forEach(cmdName => dispatchCommand(targetEl, cmdName, el, commandValue));
       } else {
         // N targets: map 1:1 or broadcast first command
         targets.forEach((id, i) => {
@@ -55,7 +58,7 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
           }
           const commandName = commands[i] || commands[0];
           if (commandName) {
-            dispatchCommand(targetEl, commandName, el);
+            dispatchCommand(targetEl, commandName, el, commandValue);
           }
         });
       }
