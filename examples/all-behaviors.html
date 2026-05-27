@@ -566,7 +566,7 @@
       const commandInputs = document.querySelectorAll('[behavior="command"]');
       console.log(`Found ${commandInputs.length} elements with behavior="command":`);
       commandInputs.forEach((el, i) => {
-        console.log(`  ${i + 1}. <${el.tagName.toLowerCase()}>`, {
+        const attrs = {
           id: el.id || '(no id)',
           is: el.getAttribute('is'),
           behavior: el.getAttribute('behavior'),
@@ -574,17 +574,21 @@
           command: el.getAttribute('command'),
           commandby: el.getAttribute('commandby'),
           commanddelay: el.getAttribute('commanddelay')
-        });
+        };
+        console.log(`  ${i + 1}. <${el.tagName.toLowerCase()}> commandby="${attrs.commandby}" commanddelay="${attrs.commanddelay}"`, attrs);
       });
       
       // Test: manually trigger input event on #3
       console.log('\n🧪 Testing input #3 (cmd-output):');
       const input3 = commandInputs[2];
       if (input3) {
+        console.log('Input #3 commandby attribute:', input3.getAttribute('commandby'));
+        console.log('Input #3 all attributes:', Array.from(input3.attributes).map(a => `${a.name}="${a.value}"`).join(' '));
+        
         input3.value = 'test';
         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
         input3.dispatchEvent(inputEvent);
-        console.log('Dispatched input event on input #3');
+        console.log('✅ Dispatched input event on input #3');
       }
     }, 100);
 
