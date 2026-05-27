@@ -629,7 +629,7 @@ Set form input values from command sources (typically buttons), useful for auto-
 **Example:**
 
 ```html
-<!-- Option 1: Use command-value on buttons (recommended) -->
+<!-- Canned response buttons with command-value -->
 <div>
   <button 
     is="behavioral-button" 
@@ -650,21 +650,11 @@ Set form input values from command sources (typically buttons), useful for auto-
     commandfor="message"
     command="set-and-submit"
     command-value="Looks good to me!">
-    Approve
+    Approve & Send
   </button>
 </div>
 
-<!-- Option 2: Use button text content (fallback) -->
-<div>
-  <button is="behavioral-button" commandfor="email" command="set">
-    john@example.com
-  </button>
-  <button is="behavioral-button" commandfor="email" command="set">
-    jane@example.com
-  </button>
-</div>
-
-<!-- Target input has the behavior (no attributes needed) -->
+<!-- Target input (zero-config) -->
 <form>
   <textarea
     is="behavioral-textarea"
@@ -674,12 +664,6 @@ Set form input values from command sources (typically buttons), useful for auto-
   ></textarea>
   <button type="submit">Send</button>
 </form>
-
-<input
-  is="behavioral-input"
-  type="email"
-  id="email"
-  behavior="set-value">
 ```
 
 **Common Use Cases:**

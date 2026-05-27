@@ -478,27 +478,37 @@
           behavior="command"
           commandfor="set-value-target"
           command="set"
-          command-value="Hello from command-value!">
-          Set from command-value
+          command-value="Thanks for your help!">
+          Thanks
         </button>
         <button
           is="behavioral-button"
           behavior="command"
           commandfor="set-value-target"
-          command="set">
-          Set from button text
+          command="set"
+          command-value="I'll get back to you soon.">
+          Later
+        </button>
+        <button
+          is="behavioral-button"
+          behavior="command"
+          commandfor="set-value-target"
+          command="set"
+          command-value="Looks good to me!">
+          Approve
         </button>
         <input
           is="behavioral-input"
           id="set-value-target"
           behavior="set-value"
-          value="Original value">
+          placeholder="Choose a response..."
+          value="">
         <button
           is="behavioral-button"
           behavior="command"
           commandfor="set-value-target"
           command="reset">
-          Reset to Original
+          Reset
         </button>
       </div>
     </div>
