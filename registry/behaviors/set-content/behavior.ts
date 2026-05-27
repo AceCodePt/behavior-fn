@@ -15,7 +15,8 @@ export const setContentBehaviorFactory = (el: HTMLElement) => {
     onCommand(e: CommandEvent<string>) {
       if (!command) return;
 
-      const value = el.getAttribute(attributes["set-content-value"]) ?? e.source.innerText;
+      // Use command-value from invoker (e.value), fallback to empty string
+      const value = e.value ?? "";
 
       if (e.command === command["set"]) {
         el.textContent = value;

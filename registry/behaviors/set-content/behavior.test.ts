@@ -21,7 +21,7 @@ describe("Set-Content Behavior", () => {
     defineBehavioralHost("div", TAG, observedAttributes);
   });
 
-  it("should set textContent from command source innerText", () => {
+  it("should set textContent from command-value", () => {
     const el = createBehavioralElement("div", TAG, {
       behavior: name,
     });
@@ -29,32 +29,29 @@ describe("Set-Content Behavior", () => {
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.innerText = "New Content";
 
-    dispatchCommand(el, command["set"], source);
+    dispatchCommand(el, command["set"], source, "New Content");
 
     expect(el.textContent).toBe("New Content");
   });
 
-  it("should set textContent from set-content-value attribute", () => {
+  it("should use empty string if command-value missing", () => {
     const el = createBehavioralElement("div", TAG, {
       behavior: name,
-      [attributes["set-content-value"]]: "Fixed Content",
     });
+    el.textContent = "Original";
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.innerText = "Ignored Source";
 
     dispatchCommand(el, command["set"], source);
 
-    expect(el.textContent).toBe("Fixed Content");
+    expect(el.textContent).toBe("");
   });
 
   it("should toggle textContent", () => {
     const el = createBehavioralElement("div", TAG, {
       behavior: name,
-      [attributes["set-content-value"]]: "Toggled",
     });
     el.textContent = "Original";
     document.body.appendChild(el);
@@ -62,11 +59,11 @@ describe("Set-Content Behavior", () => {
     const source = createCommandSource();
 
     // First toggle
-    dispatchCommand(el, command["toggle"], source);
+    dispatchCommand(el, command["toggle"], source, "Toggled");
     expect(el.textContent).toBe("Toggled");
 
     // Second toggle
-    dispatchCommand(el, command["toggle"], source);
+    dispatchCommand(el, command["toggle"], source, "Toggled");
     expect(el.textContent).toBe("Original");
   });
 });

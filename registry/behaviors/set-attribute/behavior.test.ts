@@ -21,7 +21,7 @@ describe("Set-Attribute Behavior", () => {
     defineBehavioralHost("div", TAG, observedAttributes);
   });
 
-  it("should set attribute from source innerText", () => {
+  it("should set attribute from command-value", () => {
     const el = createBehavioralElement("div", TAG, {
       behavior: name,
       [attributes["set-attribute-name"]]: "data-test",
@@ -29,41 +29,37 @@ describe("Set-Attribute Behavior", () => {
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.innerText = "value-from-source";
 
-    dispatchCommand(el, command["set"], source);
+    dispatchCommand(el, command["set"], source, "value-from-command");
 
-    expect(el.getAttribute("data-test")).toBe("value-from-source");
+    expect(el.getAttribute("data-test")).toBe("value-from-command");
   });
 
-  it("should set attribute from set-attribute-value if present", () => {
+  it("should use empty string if command-value missing", () => {
     const el = createBehavioralElement("div", TAG, {
       behavior: name,
       [attributes["set-attribute-name"]]: "data-test",
-      [attributes["set-attribute-value"]]: "fixed-value",
     });
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.innerText = "ignored";
 
     dispatchCommand(el, command["set"], source);
 
-    expect(el.getAttribute("data-test")).toBe("fixed-value");
+    expect(el.getAttribute("data-test")).toBe("");
   });
 
   it("should toggle attribute", () => {
     const el = createBehavioralElement("div", TAG, {
       behavior: name,
       [attributes["set-attribute-name"]]: "disabled",
-      [attributes["set-attribute-value"]]: "",
     });
     document.body.appendChild(el);
 
-    dispatchCommand(el, command["toggle"]);
+    dispatchCommand(el, command["toggle"], undefined, "");
     expect(el.hasAttribute("disabled")).toBe(true);
 
-    dispatchCommand(el, command["toggle"]);
+    dispatchCommand(el, command["toggle"], undefined, "");
     expect(el.hasAttribute("disabled")).toBe(false);
   });
 

@@ -428,21 +428,29 @@
     <!-- 14. SET-ATTRIBUTE -->
     <div class="behavior-section">
       <h2>🏷️ set-attribute</h2>
-      <p>Set, toggle, or remove attributes via commands.</p>
+      <p>Set, toggle, or remove attributes via commands (using command-value).</p>
       <div class="demo">
         <button
-         
+          is="behavioral-button"
           behavior="command"
           commandfor="set-attr-target"
-          command="toggle">
+          command="toggle"
+          command-value="">
           Toggle Disabled
         </button>
+        <button
+          is="behavioral-button"
+          behavior="command"
+          commandfor="set-attr-target"
+          command="set"
+          command-value="dark">
+          Set Theme Dark
+        </button>
         <input
-         
+          is="behavioral-input"
           id="set-attr-target"
           behavior="set-attribute"
           set-attribute-name="disabled"
-          set-attribute-value=""
           placeholder="I get disabled/enabled">
       </div>
     </div>
@@ -450,20 +458,28 @@
     <!-- 15. SET-CONTENT -->
     <div class="behavior-section">
       <h2>📝 set-content</h2>
-      <p>Set element text content via commands.</p>
+      <p>Set element text content via commands (using command-value).</p>
       <div class="demo">
         <button
-         
+          is="behavioral-button"
           behavior="command"
           commandfor="set-content-target"
-          command="set">
+          command="set"
+          command-value="Content updated from command-value!">
           Update Content
         </button>
+        <button
+          is="behavioral-button"
+          behavior="command"
+          commandfor="set-content-target"
+          command="toggle"
+          command-value="Toggled content!">
+          Toggle Content
+        </button>
         <div
-         
+          is="behavioral-div"
           id="set-content-target"
           behavior="set-content"
-          set-content-value="Content updated!"
           class="output">Original content</div>
       </div>
     </div>

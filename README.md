@@ -571,36 +571,123 @@ Watch form inputs and update the element's content with their values.
 
 ---
 
-### 📝 **content-setter**
+### 📝 **set-content**
 
-Set or modify attributes and properties on elements programmatically.
+Set element text content via commands (using command-value from invoker).
 
 **Attributes:**
 
-- `content-setter-attribute` — The attribute to modify (use `textContent` for text content)
-- `content-setter-value` — The value to set
-- `content-setter-mode` — How to apply: `set` (default), `toggle`, or `remove`
+- None (zero-config behavior - purely command-driven)
+
+**Commands:**
+
+- `set` — Set text content from `command-value` attribute on invoker
+- `toggle` — Toggle between original and new content
+
+**Features:**
+
+- Zero-config on target element (all configuration on invoker)
+- Uses `command-value` from button/invoker
+- Preserves original content for toggle functionality
+- Works on any HTML element
 
 **Example:**
 
 ```html
+<!-- Invoker buttons with command-value -->
 <button
   is="behavioral-button"
-  behavior="content-setter"
-  content-setter-attribute="data-theme"
-  content-setter-value="dark"
-  content-setter-mode="toggle"
->
-  Toggle Theme
+  behavior="command"
+  commandfor="status"
+  command="set"
+  command-value="Content updated!">
+  Update
 </button>
+<button
+  is="behavioral-button"
+  behavior="command"
+  commandfor="status"
+  command="toggle"
+  command-value="Toggled content!">
+  Toggle
+</button>
+
+<!-- Target element (zero-config) -->
+<div
+  is="behavioral-div"
+  id="status"
+  behavior="set-content">
+  Original content
+</div>
 ```
+
+**Common Use Cases:**
+
+- Status messages and notifications
+- Dynamic heading updates
+- Content replacement without full page reload
+- Toggle between different text states
+
+---
+
+### 🏷️ **set-attribute**
+
+Set, toggle, or remove attributes via commands (using command-value from invoker).
+
+**Attributes:**
+
+- `set-attribute-name` — The attribute name to modify (required on target)
+
+**Commands:**
+
+- `set` — Set attribute value from `command-value` on invoker
+- `toggle` — Toggle attribute presence (add/remove)
+- `remove` — Remove the attribute
 
 **Features:**
 
-- Set attributes, data attributes, or text content
-- Toggle mode for boolean-like attributes
-- Remove mode to delete attributes
-- Works with ARIA attributes for accessibility
+- Target specifies WHICH attribute to modify (`set-attribute-name`)
+- Invoker specifies the VALUE via `command-value`
+- Toggle mode for boolean attributes (disabled, hidden, etc.)
+- Works with data attributes, ARIA attributes, any custom attributes
+
+**Example:**
+
+```html
+<!-- Invoker buttons with command-value -->
+<button
+  is="behavioral-button"
+  behavior="command"
+  commandfor="theme-box"
+  command="set"
+  command-value="dark">
+  Dark Theme
+</button>
+<button
+  is="behavioral-button"
+  behavior="command"
+  commandfor="theme-box"
+  command="toggle"
+  command-value="">
+  Toggle Disabled
+</button>
+
+<!-- Target with attribute name -->
+<div
+  is="behavioral-div"
+  id="theme-box"
+  behavior="set-attribute"
+  set-attribute-name="data-theme">
+  Theme container
+</div>
+```
+
+**Common Use Cases:**
+
+- Toggle form input disabled/readonly states
+- Set data attributes for styling (themes, states)
+- Manage ARIA attributes for accessibility
+- Control custom attribute-based behaviors
 
 ---
 

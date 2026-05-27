@@ -11,7 +11,8 @@ export const setAttributeBehaviorFactory = (el: HTMLElement) => {
       const attrName = el.getAttribute(attributes["set-attribute-name"]);
       if (!attrName) return;
 
-      const value = el.getAttribute(attributes["set-attribute-value"]) ?? e.source.innerText;
+      // Use command-value from invoker (e.value), fallback to empty string
+      const value = e.value ?? "";
 
       if (e.command === command["set"]) {
         el.setAttribute(attrName, value);
