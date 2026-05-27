@@ -585,24 +585,19 @@
         console.log('Input #3 commandby attribute:', input3.getAttribute('commandby'));
         console.log('Input #3 all attributes:', Array.from(input3.attributes).map(a => `${a.name}="${a.value}"`).join(' '));
         console.log('Input #3 constructor name:', input3.constructor.name);
-        console.log('Input #3 is HTMLInputElement?', input3 instanceof HTMLInputElement);
-        console.log('Input #3 has connectedCallback?', typeof input3.connectedCallback);
+        console.log('Input #3 has connectedCallback?', typeof input3.connectedCallback === 'function');
+        console.log('Input #3 is custom element?', customElements.get('behavioral-command'));
         
-        // Check if behavior methods exist
-        console.log('Input #3 _behaviors:', input3._behaviors);
-        
-        // Listen directly for input event
-        let inputEventFired = false;
+        // Check if event listeners are attached
+        console.log('Trying to manually add input listener...');
         input3.addEventListener('input', (e) => {
-          inputEventFired = true;
-          console.log('📥 Direct input event listener fired!', { value: input3.value });
-        }, { once: true });
+          console.log('🎯 Native input event fired!', e.target.value);
+        });
         
         input3.value = 'test';
         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
         input3.dispatchEvent(inputEvent);
         console.log('✅ Dispatched input event on input #3');
-        console.log('Input event fired?', inputEventFired);
       }
     }, 100);
 
