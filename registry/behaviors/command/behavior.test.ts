@@ -101,6 +101,7 @@ describe("Command Behavior", () => {
     expect(commandHandler).toHaveBeenCalledTimes(2);
   });
 
+  // TODO: Fix this test - custom triggers work in browser but fail in jsdom
   it.skip("should support custom trigger via commandby", () => {
     const target = document.createElement("div");
     target.id = "target";
@@ -117,7 +118,9 @@ describe("Command Behavior", () => {
     });
     document.body.appendChild(el);
 
-    el.dispatchEvent(new Event("input", { bubbles: true }));
+    // Manually trigger input event
+    const inputEvent = new Event("input", { bubbles: true, cancelable: true });
+    el.dispatchEvent(inputEvent);
     
     expect(commandHandler).toHaveBeenCalledTimes(1);
     expect(commandHandler.mock.calls[0][0].command).toBe("update");
