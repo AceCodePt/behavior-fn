@@ -550,13 +550,32 @@
       const def = getBehaviorDef(name);
       if (def) {
         const observedAttrs = getObservedAttributes(def.schema);
+        console.log(`Defining behavioral host for ${name}:`, { tags, observedAttrs });
         tags.forEach(tag => {
           defineBehavioralHost(tag, `behavioral-${name}`, observedAttrs);
         });
+      } else {
+        console.error(`❌ Definition not found for behavior: ${name}`);
       }
     });
 
     console.log('✅ All 17 behaviors loaded and hosts defined!');
+    
+    // Debug: Check if command inputs are properly created
+    setTimeout(() => {
+      const commandInputs = document.querySelectorAll('[behavior="command"]');
+      console.log(`Found ${commandInputs.length} elements with behavior="command":`);
+      commandInputs.forEach((el, i) => {
+        console.log(`  ${i + 1}. <${el.tagName.toLowerCase()}>`, {
+          id: el.id || '(no id)',
+          is: el.getAttribute('is'),
+          behavior: el.getAttribute('behavior'),
+          commandfor: el.getAttribute('commandfor'),
+          command: el.getAttribute('command'),
+          commandby: el.getAttribute('commandby')
+        });
+      });
+    }, 100);
 
     // Consolidated command event listener for demo examples
     document.addEventListener('command', (e) => {
