@@ -406,18 +406,18 @@
       <h2>👁️ reveal</h2>
       <p>Show/hide elements including dialogs and popovers.</p>
       <div class="demo">
-        <button is="behavioral-command" behavior="command" commandfor="reveal-modal" command="show">
+        <button is="behavioral-button" behavior="command" commandfor="reveal-modal" command="show">
           Open Dialog
         </button>
         <dialog is="behavioral-dialog" id="reveal-modal" behavior="reveal">
           <h3>Modal Dialog</h3>
           <p>This is a modal dialog controlled by the reveal behavior.</p>
-          <button is="behavioral-command" behavior="command" commandfor="reveal-modal" command="hide">
+          <button is="behavioral-button" behavior="command" commandfor="reveal-modal" command="hide">
             Close
           </button>
         </dialog>
 
-        <button is="behavioral-command" behavior="command" commandfor="reveal-popover" command="toggle">
+        <button is="behavioral-button" behavior="command" commandfor="reveal-popover" command="toggle">
           Toggle Popover
         </button>
         <div is="behavioral-dialog" id="reveal-popover" behavior="reveal" popover>
@@ -433,14 +433,18 @@
       <div class="demo">
         <button
           is="behavioral-button"
-          behavior="set-attribute"
-          set-attribute-name="disabled"
-          set-attribute-value=""
-          commandby="click"
+          behavior="command"
+          commandfor="set-attr-target"
           command="toggle">
           Toggle Disabled
         </button>
-        <input id="set-attr-target" placeholder="I get disabled/enabled">
+        <input
+          is="behavioral-input"
+          id="set-attr-target"
+          behavior="set-attribute"
+          set-attribute-name="disabled"
+          set-attribute-value=""
+          placeholder="I get disabled/enabled">
       </div>
     </div>
 
@@ -451,13 +455,17 @@
       <div class="demo">
         <button
           is="behavioral-button"
-          behavior="set-content"
-          set-content-value="Content updated!"
-          commandby="click"
+          behavior="command"
+          commandfor="set-content-target"
           command="set">
           Update Content
         </button>
-        <div id="set-content-target" class="output">Original content</div>
+        <div
+          is="behavioral-div"
+          id="set-content-target"
+          behavior="set-content"
+          set-content-value="Content updated!"
+          class="output">Original content</div>
       </div>
     </div>
 
@@ -468,15 +476,19 @@
       <div class="demo">
         <button
           is="behavioral-button"
-          behavior="set-value"
-          set-value-value="Value from button!"
-          commandby="click"
+          behavior="command"
+          commandfor="set-value-target"
           command="set">
           Set Input Value
         </button>
-        <input id="set-value-target" value="Original value">
+        <input
+          is="behavioral-input"
+          id="set-value-target"
+          behavior="set-value"
+          set-value-value="Value from button!"
+          value="Original value">
         <button
-          is="behavioral-command"
+          is="behavioral-button"
           behavior="command"
           commandfor="set-value-target"
           command="reset">
