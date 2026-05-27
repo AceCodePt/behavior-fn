@@ -71,24 +71,26 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
   <head>
     <script type="module">
       import { defineBehavioralHost } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/behavior-fn-core.js";
-      import { metadata as revealMeta } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
-      import { metadata as commandMeta } from "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command.js";
+      
+      // Import behaviors (auto-register on import)
+      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+      import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command.js";
 
-      // Define behavioral hosts manually
-      defineBehavioralHost("dialog", "behavioral-reveal", revealMeta.observedAttributes);
-      defineBehavioralHost("button", "behavioral-command", commandMeta.observedAttributes);
+      // Define behavioral hosts per tag type (not per behavior)
+      defineBehavioralHost("dialog");   // Creates behavioral-dialog
+      defineBehavioralHost("button");   // Creates behavioral-button
     </script>
   </head>
   <body>
-    <!-- Explicit 'is' attribute required -->
-    <button is="behavioral-command" behavior="command" 
+    <!-- Explicit 'is' attribute required (tag-based naming) -->
+    <button is="behavioral-button" behavior="command" 
             commandfor="modal" command="show">
       Open Modal
     </button>
     
-    <dialog is="behavioral-reveal" behavior="reveal" id="modal">
+    <dialog is="behavioral-dialog" behavior="reveal" id="modal">
       <h2>Hello World!</h2>
-      <button is="behavioral-command" behavior="command"
+      <button is="behavioral-button" behavior="command"
               commandfor="modal" command="hide">
         Close
       </button>
@@ -102,6 +104,41 @@ Traditional component libraries force you into their ecosystem. BehaviorFN takes
 
 ---
 
+### 🏷️ Tag-Based Naming (Important!)
+
+BehaviorFN uses **tag-based custom element naming**, not behavior-based:
+
+```html
+<!-- ✅ CORRECT: is attribute matches tag type -->
+<button is="behavioral-button" behavior="command">
+<input is="behavioral-input" behavior="command dirty-input">
+<dialog is="behavioral-dialog" behavior="reveal">
+
+<!-- ❌ WRONG: Don't use behavior names in is attribute -->
+<button is="behavioral-command" behavior="command">
+<input is="behavioral-command" behavior="command">
+```
+
+**Why?** Custom elements can only extend ONE base tag. Using `is="behavioral-command"` for both `<button>` and `<input>` creates conflicts.
+
+**Pattern:**
+- `is` attribute = tag type (`behavioral-button`, `behavioral-input`, `behavioral-dialog`)
+- `behavior` attribute = which behaviors to load (`command`, `reveal logger`, etc.)
+- One behavioral host per tag: `defineBehavioralHost('button')` creates `behavioral-button`
+
+**With Auto-Loader:**
+No need for `is` attributes! Auto-loader detects the tag type and adds the correct `is` automatically:
+
+```html
+<!-- You write: -->
+<button behavior="command" commandfor="modal" command="show">
+
+<!-- Auto-loader upgrades to: -->
+<button is="behavioral-button" behavior="command" commandfor="modal" command="show">
+```
+
+---
+
 ## 🎯 Command Behavior
 
 The **command behavior** enables any element to dispatch commands to targets.
@@ -110,30 +147,30 @@ The **command behavior** enables any element to dispatch commands to targets.
 <script type="module">
   import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/command.js";
   import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/reveal.js";
+  import "https://unpkg.com/behavior-fn@0.3.0/dist/cdn/auto-loader.js";
 </script>
 
-<!-- Basic: click trigger -->
-<button is="behavioral-command" behavior="command"
-        commandfor="modal" command="show">
+<!-- Basic: click trigger (auto-loader adds is="behavioral-button") -->
+<button behavior="command" commandfor="modal" command="show">
   Open
 </button>
 
 <!-- Advanced: input trigger with delay -->
-<input is="behavioral-command" behavior="command"
+<input behavior="command"
        commandby="input"
        commandfor="output" 
        command="update"
-       commanddelay="300">
+       command-delay="300">
 
 <!-- Multiple targets (space-separated, no commas) -->
-<button is="behavioral-command" behavior="command"
+<button behavior="command"
         commandfor="modal panel sidebar"
         command="show">
   Show All
 </button>
 
-<!-- Target -->
-<dialog is="behavioral-reveal" id="modal" behavior="reveal">
+<!-- Target (auto-loader adds is="behavioral-dialog") -->
+<dialog id="modal" behavior="reveal">
   Content here
 </dialog>
 ```
@@ -143,7 +180,7 @@ The **command behavior** enables any element to dispatch commands to targets.
 - ✅ Custom event triggers: `commandby="input"`, `commandby="mouseenter"`, etc.
 - ✅ Multiple targets: `commandfor="modal panel"` (space-separated)
 - ✅ Multiple commands: `command="show focus"` (space-separated)
-- ✅ Delay support: `commanddelay="300"` (milliseconds)
+- ✅ Delay support: `command-delay="300"` (milliseconds)
 - ✅ Throttle support: `commandthrottle="500"` (milliseconds)
 - ✅ No commas, no spaces in command/target names
 
