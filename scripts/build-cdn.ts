@@ -331,151 +331,27 @@ console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
 async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
 
-  // Create auto-loader entry that imports from CDN core bundle
-  // We can't use the source file directly because it uses path aliases (~registry, ~host)
-  // that need to be rewritten to import from ./behavior-fn-core.js
+  // Create auto-loader entry that imports core utilities from CDN bundle
+  // The source file (registry/utils/auto-loader.ts) uses ~registry aliases
+  // esbuild will bundle the source and resolve those to the external core bundle
+  const autoLoaderPath = join(
+    process.cwd(),
+    "registry/utils/auto-loader.ts",
+  );
+
   const autoLoaderCode = `
-// Import dependencies from core bundle (these will be external in the build)
+// Import core utilities from built bundle (external - not bundled)
 import { getBehavior, getBehaviorDef, getObservedAttributes, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
 
-// Copy the auto-loader logic from registry/utils/auto-loader.ts
-// but with imports rewritten to use the CDN core bundle
-export function enableAutoLoader() {
-  const processedElements = new WeakSet();
-  const registeredHosts = new Set();
+// Import auto-loader from source (will be bundled, with ~registry imports resolved)
+import { enableAutoLoader } from "${autoLoaderPath.replace(/\\/g, "/")}";
 
-  function processElement(element) {
-    if (processedElements.has(element)) return;
-    if (!(element instanceof HTMLElement)) return;
-    if (element.hasAttribute("is")) {
-      processedElements.add(element);
-      return;
-    }
-    if (!element.hasAttribute("behavior")) {
-      processedElements.add(element);
-      return;
-    }
-
-    const behaviorAttr = element.getAttribute("behavior");
-    const behaviors = parseBehaviorNames(behaviorAttr);
-    if (behaviors.length === 0) {
-      processedElements.add(element);
-      return;
-    }
-
-    // Use tag-based naming, not behavior-based
-    const tagName = element.tagName.toLowerCase();
-    const customElementName = \`behavioral-\${tagName}\`;
-
-    if (!registeredHosts.has(customElementName)) {
-      if (!customElements.get(customElementName)) {
-        const observedAttributes = [];
-        let hasUnknownBehavior = false;
-
-        for (const behaviorName of behaviors) {
-          const behaviorFactory = getBehavior(behaviorName);
-          if (!behaviorFactory) {
-            console.warn(\`[AutoLoader] Unknown behavior "\${behaviorName}" on element:\`, element);
-            hasUnknownBehavior = true;
-            continue;
-          }
-
-          const def = getBehaviorDef(behaviorName);
-          if (def) {
-            const attrs = getObservedAttributes(def.schema);
-            for (const attr of attrs) {
-              if (!observedAttributes.includes(attr)) {
-                observedAttributes.push(attr);
-              }
-            }
-          }
-        }
-
-        try {
-          defineBehavioralHost(tagName, customElementName, observedAttributes);
-          registeredHosts.add(customElementName);
-        } catch (error) {
-          console.error(\`[AutoLoader] Failed to register behavioral host "\${customElementName}":\`, error);
-          processedElements.add(element);
-          return;
-        }
-      } else {
-        registeredHosts.add(customElementName);
-      }
-    }
-
-    try {
-      const newElement = document.createElement(tagName, { is: customElementName });
-      if (!newElement.hasAttribute("is")) {
-        newElement.setAttribute("is", customElementName);
-      }
-
-      for (let i = 0; i < element.attributes.length; i++) {
-        const attr = element.attributes[i];
-        if (attr.name !== "is") {
-          newElement.setAttribute(attr.name, attr.value);
-        }
-      }
-
-      while (element.firstChild) {
-        newElement.appendChild(element.firstChild);
-      }
-
-      if (element.parentNode) {
-        element.parentNode.replaceChild(newElement, element);
-        processedElements.add(newElement);
-        console.log(\`[AutoLoader] ✅ Upgraded <\${tagName}#\${newElement.id || "(no id)"}> to \${customElementName}\`);
-      } else {
-        element.setAttribute("is", customElementName);
-        processedElements.add(element);
-        console.warn("[AutoLoader] Element not in DOM, falling back to setAttribute:", element);
-      }
-    } catch (error) {
-      console.error("[AutoLoader] ❌ Failed to upgrade element:", element, error);
-      element.setAttribute("is", customElementName);
-      processedElements.add(element);
-    }
-  }
-
-  function processTree(node) {
-    if (!(node instanceof Element)) return;
-    processElement(node);
-    const elements = node.querySelectorAll("[behavior]");
-    for (let i = 0; i < elements.length; i++) {
-      processElement(elements[i]);
-    }
-  }
-
-  processTree(document.documentElement);
-
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      for (let i = 0; i < mutation.addedNodes.length; i++) {
-        processTree(mutation.addedNodes[i]);
-      }
-    }
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
-
-  return () => {
-    observer.disconnect();
-  };
-}
+// Re-export for manual usage
+export { enableAutoLoader };
 
 // Auto-enable when imported (side-effect)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    enableAutoLoader();
-    console.log('✅ BehaviorFN: Auto-loader enabled automatically');
-  });
-} else {
-  enableAutoLoader();
-  console.log('✅ BehaviorFN: Auto-loader enabled automatically');
-}
+enableAutoLoader();
+console.log('✅ BehaviorFN: Auto-loader enabled automatically');
 `;
 
   await writeFile(autoLoaderEntry, autoLoaderCode);
