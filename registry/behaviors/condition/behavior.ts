@@ -6,6 +6,8 @@ const { attributes } = definition;
 
 export const conditionBehaviorFactory = (el: HTMLElement) => {
   let observer: MutationObserver | null = null;
+  let eventListener: EventListener | null = null;
+  let targetEl: HTMLElement | null = null;
 
   const check = () => {
     const targetId = el.getAttribute(attributes["condition-watch"]);
@@ -17,11 +19,18 @@ export const conditionBehaviorFactory = (el: HTMLElement) => {
 
     if (!targetId || !targetAttr || !op || expected === null || !command || !commandForId) return;
 
-    const targetEl = document.getElementById(targetId);
+    const target = document.getElementById(targetId);
     const commandTarget = document.getElementById(commandForId);
-    if (!targetEl || !commandTarget) return;
+    if (!target || !commandTarget) return;
 
-    const actualValue = targetEl.getAttribute(targetAttr);
+    // Get value from property first (for form elements), fallback to attribute
+    let actualValue: string | null = null;
+    if (targetAttr === 'value' && 'value' in target) {
+      actualValue = String((target as HTMLInputElement).value);
+    } else {
+      actualValue = target.getAttribute(targetAttr);
+    }
+
     const actualNum = parseNumericValue(actualValue);
     const expectedNum = parseNumericValue(expected);
 
@@ -43,15 +52,31 @@ export const conditionBehaviorFactory = (el: HTMLElement) => {
   return {
     connectedCallback() {
       const targetId = el.getAttribute(attributes["condition-watch"]);
-      const targetEl = targetId ? document.getElementById(targetId) : null;
+      const targetAttr = el.getAttribute(attributes["condition-on"]);
+      targetEl = targetId ? document.getElementById(targetId) : null;
+      
       if (targetEl) {
-        observer = new MutationObserver(check);
-        observer.observe(targetEl, { attributes: true, attributeFilter: [el.getAttribute(attributes["condition-on"]) || ""] });
+        // For 'value' property on form elements, listen to input/change events
+        if (targetAttr === 'value' && (targetEl instanceof HTMLInputElement || 
+                                       targetEl instanceof HTMLTextAreaElement || 
+                                       targetEl instanceof HTMLSelectElement)) {
+          eventListener = check;
+          targetEl.addEventListener('input', eventListener);
+          targetEl.addEventListener('change', eventListener);
+        } else {
+          // For other attributes, use MutationObserver
+          observer = new MutationObserver(check);
+          observer.observe(targetEl, { attributes: true, attributeFilter: [targetAttr || ""] });
+        }
       }
       check();
     },
     disconnectedCallback() {
       observer?.disconnect();
+      if (eventListener && targetEl) {
+        targetEl.removeEventListener('input', eventListener);
+        targetEl.removeEventListener('change', eventListener);
+      }
     },
   };
 };
