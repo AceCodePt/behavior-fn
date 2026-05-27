@@ -30,71 +30,97 @@ const cdnOutDir = join(rootDir, "dist", "cdn");
 const jiti = createJiti(__filename);
 
 /**
- * esbuild plugin to stub TypeBox imports for CDN builds.
- *
- * This plugin intercepts @sinclair/typebox imports and provides a minimal
- * stub that builds plain JSON Schema objects instead of TypeBox schemas.
- * This eliminates the runtime TypeBox dependency (~40KB) from CDN bundles.
+ * Create an esbuild plugin that injects a pre-computed behavior definition.
+ * This completely avoids bundling TypeBox and schema.ts files.
+ * 
+ * The definition is extracted at build time using jiti (real TypeBox execution),
+ * then injected as a plain JavaScript object (no TypeBox dependency).
  */
-const inlineTypeBoxPlugin: Plugin = {
-  name: "inline-typebox",
-  setup(build) {
-    // Intercept TypeBox imports
-    build.onResolve({ filter: /@sinclair\/typebox/ }, (args) => {
-      return { path: args.path, namespace: "typebox-stub" };
-    });
+function createDefinitionInjectorPlugin(
+  behaviorName: string,
+  observedAttributes: string[],
+  jsonSchema: any,
+  commandMetadata: Record<string, string>
+): Plugin {
+  return {
+    name: "inject-definition",
+    setup(build) {
+      // Intercept _behavior-definition imports (with or without .ts extension)
+      build.onResolve({ filter: /_behavior-definition/ }, (args) => {
+        return { path: args.path, namespace: "injected-definition" };
+      });
 
-    // Provide stub implementation that builds plain JSON Schema objects
-    build.onLoad({ filter: /.*/, namespace: "typebox-stub" }, async () => {
-      return {
-        contents: `
-          // Minimal TypeBox stub for CDN builds
-          // Builds plain JSON Schema objects instead of TypeBox schemas
-          export const Type = {
-            Object: (props, opts = {}) => ({ 
-              type: 'object', 
-              properties: props,
-              ...opts 
-            }),
-            String: (opts = {}) => ({ type: 'string', ...opts }),
-            Number: (opts = {}) => ({ type: 'number', ...opts }),
-            Integer: (opts = {}) => ({ type: 'integer', ...opts }),
-            Boolean: (opts = {}) => ({ type: 'boolean', ...opts }),
-            Null: (opts = {}) => ({ type: 'null', ...opts }),
-            Array: (items, opts = {}) => ({ type: 'array', items, ...opts }),
-            Tuple: (items, opts = {}) => ({ type: 'array', items, ...opts }),
-            Optional: (schema) => schema,
-            Literal: (value, opts = {}) => ({ 
-              type: typeof value, 
-              const: value,
-              ...opts 
-            }),
-            Union: (schemas, opts = {}) => ({ anyOf: schemas, ...opts }),
-            Intersect: (schemas, opts = {}) => ({ allOf: schemas, ...opts }),
-            Record: (key, value, opts = {}) => ({ 
-              type: 'object', 
-              additionalProperties: value,
-              ...opts 
-            }),
-            Any: (opts = {}) => ({ ...opts }),
-            Unknown: (opts = {}) => ({ ...opts }),
-            Never: (opts = {}) => ({ not: {}, ...opts }),
-            Enum: (values, opts = {}) => ({ 
-              enum: Object.values(values),
-              ...opts 
-            }),
-            Ref: (ref, opts = {}) => ({ $ref: ref, ...opts }),
-          };
-          
-          // Export common type utilities (no-op for stub)
-          export const Kind = Symbol.for('TypeBox.Kind');
-          export const Hint = Symbol.for('TypeBox.Hint');
-        `,
-        loader: "js",
-      };
-    });
-  },
-};
+      build.onLoad({ filter: /.*/, namespace: "injected-definition" }, () => {
+        // Calculate attributes from schema (key === value pattern)
+        // Defensive: ensure observedAttributes is an array
+        const attrs = Array.isArray(observedAttributes) ? observedAttributes : [];
+        const attributes = attrs.reduce((acc, attr) => {
+          acc[attr] = attr;
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Build definition object (only include command if it exists)
+        const definitionObj: any = {
+          name: behaviorName,
+          schema: jsonSchema,
+          attributes,
+        };
+
+        // Only add command if it has keys
+        if (Object.keys(commandMetadata).length > 0) {
+          definitionObj.command = commandMetadata;
+        }
+
+        // Return a plain JS object with the pre-computed metadata
+        // This completely avoids bundling schema.ts and TypeBox
+        return {
+          contents: `
+            // Pre-computed definition for ${behaviorName} (no TypeBox dependency)
+            export default ${JSON.stringify(definitionObj, null, 2)};
+          `,
+          loader: "js",
+        };
+      });
+
+      // Intercept ~registry imports (behavior-registry.ts)
+      // Replace with external import from behavior-fn-core.js
+      build.onResolve({ filter: /^~registry$/ }, (args) => {
+        return { path: "./behavior-fn-core.js", external: true };
+      });
+
+      // Intercept ~utils imports (behavior-utils.ts) 
+      // Replace with external import from behavior-fn-core.js
+      build.onResolve({ filter: /^~utils$/ }, (args) => {
+        return { path: "./behavior-fn-core.js", external: true };
+      });
+
+      // Intercept ~host imports (behavioral-host.ts)
+      // Replace with external import from behavior-fn-core.js  
+      build.onResolve({ filter: /^~host$/ }, (args) => {
+        return { path: "./behavior-fn-core.js", external: true };
+      });
+
+      // Transform behavior.ts files to remove registerBehavior calls
+      // and export definition for reuse
+      build.onLoad({ filter: /\/behavior\.ts$/ }, async (args) => {
+        const fs = await import('fs/promises');
+        let contents = await fs.readFile(args.path, 'utf-8');
+        
+        // Remove the registerBehavior call at the end of the file
+        // Pattern: registerBehavior(definition, someBehaviorFactory);
+        contents = contents.replace(
+          /\nregisterBehavior\s*\(\s*definition\s*,\s*\w+\s*\)\s*;?\s*$/,
+          '\n// registerBehavior call removed for CDN build (handled in entry)\nexport { definition };'
+        );
+        
+        return {
+          contents,
+          loader: 'ts',
+        };
+      });
+    },
+  };
+}
 
 interface BuildTarget {
   name: string;
@@ -202,18 +228,26 @@ async function buildCore() {
 
   const coreCode = `
 // Import core runtime modules
-import { registerBehavior, getBehavior, getBehaviorDef } from "${join(registryDir, "behavior-registry.ts")}";
+import { registerBehavior, getBehavior, getBehaviorDef, dispatchCommand, ensureBehavior } from "${join(registryDir, "behavior-registry.ts")}";
 import { defineBehavioralHost } from "${join(registryDir, "behavioral-host.ts")}";
-import { parseBehaviorNames, getObservedAttributes } from "${join(registryDir, "behavior-utils.ts")}";
+import { parseBehaviorNames, getObservedAttributes, parseNumericValue, hasValue } from "${join(registryDir, "behavior-utils.ts")}";
 
 // Export all core functions as ESM
-export { registerBehavior, getBehavior, getBehaviorDef, defineBehavioralHost, parseBehaviorNames, getObservedAttributes };
+export { 
+  registerBehavior, 
+  getBehavior, 
+  getBehaviorDef, 
+  dispatchCommand, 
+  ensureBehavior, 
+  defineBehavioralHost, 
+  parseBehaviorNames, 
+  getObservedAttributes,
+  parseNumericValue,
+  hasValue
+};
 
 // Version info
 export const version = '0.2.0';
-
-// Log when loaded
-console.log('✅ BehaviorFN Core v0.2.0 (ESM) loaded');
 `;
 
   await writeFile(coreEntry, coreCode);
@@ -227,8 +261,10 @@ console.log('✅ BehaviorFN Core v0.2.0 (ESM) loaded');
     platform: "browser",
     target: "es2020",
     minify: true,
+    minifyWhitespace: true,
+    minifyIdentifiers: true,
+    minifySyntax: true,
     sourcemap: true,
-    plugins: [inlineTypeBoxPlugin],
   });
 
   console.log(`  ✅ behavior-fn-core.js (ESM)`);
@@ -268,35 +304,46 @@ async function buildIndividualBehaviors(behaviorDirs: string[]) {
     const observedAttributes = schemaMeta?.observedAttributes || [];
     const jsonSchema = schemaMeta?.jsonSchema || {};
 
+    // Extract command metadata from _behavior-definition.ts using jiti (real execution)
+    let commandMetadata: Record<string, string> = {};
+    try {
+      const defPath = join(registryDir, behaviorName, "_behavior-definition.ts");
+      const defMod = (await jiti.import(defPath)) as { default?: any };
+      if (defMod.default?.command && typeof defMod.default.command === 'object') {
+        commandMetadata = defMod.default.command as Record<string, string>;
+      }
+    } catch (error) {
+      console.warn(`  ⚠️  Could not extract command metadata for ${behaviorName}:`, error);
+    }
+
+    // Create plugin that injects pre-computed definition (no TypeBox needed)
+    const injectDefinitionPlugin = createDefinitionInjectorPlugin(
+      behaviorName,
+      observedAttributes,
+      jsonSchema,
+      commandMetadata
+    );
+
     // Create behavior entry as ESM module with auto-registration
     const behaviorEntry = join(cdnOutDir, `_${behaviorName}-entry.js`);
     const behaviorCode = `
 // Import core from built bundle (external - not bundled)
 import { registerBehavior } from "./behavior-fn-core.js";
 
-// Import behavior (will be bundled)
-import { ${exportName} } from "${behaviorPath}";
+// Import behavior and definition (will be bundled, definition is injected and exported)
+import { ${exportName}, definition } from "${behaviorPath}";
 
 // Export factory function
 export { ${exportName} };
 
-// Export metadata (observed attributes and JSON Schema)
+// Export metadata (reuse definition to avoid duplication)
 export const metadata = {
   observedAttributes: ${JSON.stringify(observedAttributes)},
-  schema: ${JSON.stringify(jsonSchema, null, 2)},
-};
-
-// Behavior definition for registration
-const definition = {
-  name: '${behaviorName}',
-  schema: ${JSON.stringify(jsonSchema, null, 2)},
+  schema: definition.schema,
 };
 
 // Auto-register on import with definition (side-effect)
 registerBehavior(definition, ${exportName});
-
-// Log when loaded and registered
-console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
 `;
 
     await writeFile(behaviorEntry, behaviorCode);
@@ -310,12 +357,15 @@ console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
       platform: "browser",
       target: "es2020",
       minify: true,
+      minifyWhitespace: true,
+      minifyIdentifiers: true,
+      minifySyntax: true,
       sourcemap: true,
       external: [
         // Don't bundle core - it's imported from behavior-fn-core.js
         "./behavior-fn-core.js",
       ],
-      plugins: [inlineTypeBoxPlugin],
+      plugins: [injectDefinitionPlugin],
     });
 
     console.log(`  ✅ ${behaviorName}.js (ESM)`);
@@ -380,12 +430,15 @@ export { enableAutoLoader };
     platform: "browser",
     target: "es2020",
     minify: true,
+    minifyWhitespace: true,
+    minifyIdentifiers: true,
+    minifySyntax: true,
     sourcemap: true,
     external: [
       // Don't bundle core - it's imported from behavior-fn-core.js
       "./behavior-fn-core.js",
     ],
-    plugins: [inlineTypeBoxPlugin, rewriteAliasPlugin],
+    plugins: [rewriteAliasPlugin],
   });
 
   console.log(`  ✅ auto-loader.js (ESM)`);
