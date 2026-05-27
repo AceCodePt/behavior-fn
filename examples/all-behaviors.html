@@ -562,6 +562,13 @@
     document.addEventListener('command', (e) => {
       const target = e.target;
       
+      // Debug logging (comment out in production)
+      console.log('[Command Event]', {
+        targetId: target.id,
+        command: e.command,
+        sourceValue: e.source?.value
+      });
+      
       // Command section demos
       if (target.id === 'cmd-target1') {
         if (e.command === 'show') target.style.display = 'block';
