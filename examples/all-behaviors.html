@@ -572,9 +572,20 @@
           behavior: el.getAttribute('behavior'),
           commandfor: el.getAttribute('commandfor'),
           command: el.getAttribute('command'),
-          commandby: el.getAttribute('commandby')
+          commandby: el.getAttribute('commandby'),
+          commanddelay: el.getAttribute('commanddelay')
         });
       });
+      
+      // Test: manually trigger input event on #3
+      console.log('\n🧪 Testing input #3 (cmd-output):');
+      const input3 = commandInputs[2];
+      if (input3) {
+        input3.value = 'test';
+        const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+        input3.dispatchEvent(inputEvent);
+        console.log('Dispatched input event on input #3');
+      }
     }, 100);
 
     // Consolidated command event listener for demo examples
