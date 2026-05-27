@@ -100,4 +100,32 @@ describe("Set-Value Behavior", () => {
 
     expect(el.value).toBe("initial");
   });
+
+  it("should set input value when button with command-value is clicked (integration)", () => {
+    // Define behavioral host for button (command protocol is built into behavioral host)
+    defineBehavioralHost("button", "button-test-host", []);
+
+    // Create input with set-value behavior
+    const input = createBehavioralElement("input", TAG, {
+      behavior: name,
+      id: "test-input",
+    });
+    document.body.appendChild(input);
+
+    // Create button with command attributes (no behavior needed - command protocol is in host)
+    const button = document.createElement("button", { is: "button-test-host" }) as HTMLButtonElement;
+    button.setAttribute("commandfor", "test-input");
+    button.setAttribute("command", "set");
+    button.setAttribute("command-value", "Value from button click");
+    document.body.appendChild(button);
+
+    // Initially empty
+    expect(input.value).toBe("");
+
+    // Click the button
+    button.click();
+
+    // Input value should be set from command-value
+    expect(input.value).toBe("Value from button click");
+  });
 });
