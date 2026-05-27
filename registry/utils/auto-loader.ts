@@ -212,10 +212,6 @@ export function enableAutoLoader(): () => void {
 
         // Mark the NEW element as processed (not the old one)
         processedElements.add(newElement);
-
-        console.log(
-          `[AutoLoader] ✅ Upgraded <${tagName}#${newElement.id || "(no id)"}> to ${customElementName}`,
-        );
       } else {
         // Element is not in the DOM yet, just mark it as processed
         // and set the is attribute (fallback, shouldn't normally happen)
