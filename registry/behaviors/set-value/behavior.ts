@@ -26,11 +26,8 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
       }
 
       if (e.command === command["set"] || e.command === command["set-and-submit"]) {
-        // Priority: event.value (from command-value) > source textContent
-        const value = 
-          e.value ?? 
-          e.source.textContent?.trim() ?? 
-          "";
+        // Only use command-value (from invoker's command-value attribute)
+        const value = e.value ?? "";
 
         input.value = value;
         

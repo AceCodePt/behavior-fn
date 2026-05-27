@@ -34,18 +34,19 @@ describe("Set-Value Behavior", () => {
     expect(el.value).toBe("Hello from command-value");
   });
 
-  it("should fall back to source textContent if no command-value", () => {
+  it("should use empty string if no command-value", () => {
     const el = createBehavioralElement("input", TAG, {
       behavior: name,
     });
+    el.value = "Initial Value";
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.textContent = "Source Text Content";
+    source.textContent = "Button Text (should be ignored)";
 
     dispatchCommand(el, command["set"], source);
 
-    expect(el.value).toBe("Source Text Content");
+    expect(el.value).toBe("");
   });
 
   it("should dispatch input and change events after setting value", () => {
@@ -60,9 +61,8 @@ describe("Set-Value Behavior", () => {
     el.addEventListener("change", changeHandler);
 
     const source = createCommandSource();
-    source.innerText = "New Value";
 
-    dispatchCommand(el, command["set"], source);
+    dispatchCommand(el, command["set"], source, "Test Value");
 
     expect(inputHandler).toHaveBeenCalled();
     expect(changeHandler).toHaveBeenCalled();
@@ -79,11 +79,10 @@ describe("Set-Value Behavior", () => {
     const submitSpy = vi.spyOn(form, "requestSubmit").mockImplementation(() => {});
     
     const source = createCommandSource();
-    source.textContent = "Submit Me";
 
-    dispatchCommand(el, command["set-and-submit"], source);
+    dispatchCommand(el, command["set-and-submit"], source, "Submit Value");
 
-    expect(el.value).toBe("Submit Me");
+    expect(el.value).toBe("Submit Value");
     expect(submitSpy).toHaveBeenCalled();
   });
 

@@ -614,7 +614,7 @@ Set form input values from command sources (typically buttons), useful for auto-
 
 **Commands:**
 
-- `set` — Set input value from `command-value` or source's text content
+- `set` — Set input value from `command-value` attribute on invoker
 - `set-and-submit` — Set value and submit parent form
 - `reset` — Reset input to original value attribute
 
@@ -624,7 +624,7 @@ Set form input values from command sources (typically buttons), useful for auto-
 - Returns empty object if attached to non-form elements
 - Dispatches both `input` and `change` events to trigger reactive systems
 - Uses `requestSubmit()` for form submission (respects validation)
-- Value priority: `command-value` (from invoker) > source text content
+- **Requires `command-value` on invoker** - no automatic fallbacks
 
 **Example:**
 
