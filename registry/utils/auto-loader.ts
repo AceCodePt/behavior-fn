@@ -3,20 +3,30 @@ import { getBehavior, getBehaviorDef } from "~registry";
 import { parseBehaviorNames, getObservedAttributes } from "~utils";
 
 /**
- * Opt-in utility that automatically adds `is="behavioral-*"` attributes
+ * Opt-in utility that automatically adds `is="behavioral-{tagname}"` attributes
  * to elements with `behavior` attributes.
  *
  * This eliminates the need for manual `is` attribute declaration while
  * maintaining the explicit, predictable core architecture.
  *
- * **Behavior-Based Host Pattern:**
- * - The `is` attribute describes **behaviors**, not tag types
- * - Multiple tag types can share the same behavioral host
- * - Example: `<button behavior="reveal">` and `<dialog behavior="reveal">`
- *   both use `is="behavioral-reveal"`
+ * **Tag-Based Host Pattern:**
+ * - The `is` attribute describes **tag type**, not behaviors
+ * - Each tag type has ONE behavioral host: `behavioral-{tagname}`
+ * - The `behavior` attribute specifies which behaviors to load
+ * - Example: `<button behavior="command">` → `<button is="behavioral-button" behavior="command">`
+ * - Example: `<input behavior="command dirty-input">` → `<input is="behavioral-input" behavior="command dirty-input">`
+ *
+ * **Why Tag-Based?**
+ * Custom elements can only extend ONE base tag. We can't have:
+ * - `<button is="behavioral-command">` ✓
+ * - `<input is="behavioral-command">` ✗ (conflicts! same custom element, different base tags)
+ *
+ * Instead we use:
+ * - `<button is="behavioral-button" behavior="command">` ✓
+ * - `<input is="behavioral-input" behavior="command">` ✓
  *
  * **Tradeoffs:**
- * - ✅ Cleaner HTML syntax
+ * - ✅ Cleaner HTML syntax (no manual `is` attributes)
  * - ✅ Closer to Alpine.js/HTMX patterns
  * - ⚠️ Adds ~2KB + MutationObserver overhead
  * - ⚠️ Less explicit (harder to debug)
@@ -41,10 +51,12 @@ import { parseBehaviorNames, getObservedAttributes } from "~utils";
  * @example
  * ```html
  * <!-- Before auto-loader -->
- * <button behavior="reveal">Toggle</button>
+ * <button behavior="command">Toggle</button>
+ * <input behavior="command dirty-input">
  *
  * <!-- After enableAutoLoader() processes the DOM -->
- * <button is="behavioral-reveal" behavior="reveal">Toggle</button>
+ * <button is="behavioral-button" behavior="command">Toggle</button>
+ * <input is="behavioral-input" behavior="command dirty-input">
  * ```
  */
 export function enableAutoLoader(): () => void {
@@ -88,27 +100,27 @@ export function enableAutoLoader(): () => void {
 
     const behaviorAttr = element.getAttribute("behavior");
 
-    // Parse behavior names using the canonical parser
-    // This ensures consistency with behavioral-host.ts
+    // Get the tag name for registration
+    const tagName = element.tagName.toLowerCase();
+    
+    // Create custom element name based on TAG TYPE, not behaviors
+    // This allows multiple behaviors on the same tag type
+    const customElementName = `behavioral-${tagName}`;
+
+    // Parse behavior names to collect observed attributes
     const behaviors = parseBehaviorNames(behaviorAttr);
 
-    // Skip if no valid behaviors
+    // Skip if no valid behaviors (but still mark as processed)
     if (behaviors.length === 0) {
       processedElements.add(element);
       return;
     }
 
-    // Create custom element name from sorted behaviors
-    const customElementName = `behavioral-${behaviors.join("-")}`;
-
-    // Get the tag name for registration
-    const tagName = element.tagName.toLowerCase();
-
     // Check if this behavioral host is already registered
     if (!registeredHosts.has(customElementName)) {
       // Check if already registered in customElements
       if (!customElements.get(customElementName)) {
-        // Collect observed attributes from all behaviors
+        // Collect observed attributes from all behaviors on this element
         const observedAttributes: string[] = [];
         let hasUnknownBehavior = false;
 
