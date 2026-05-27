@@ -117,9 +117,13 @@ BehaviorFN uses **tag-based custom element naming**, not behavior-based:
 <!-- ❌ WRONG: Don't use behavior names in is attribute -->
 <button is="behavioral-command" behavior="command">
 <input is="behavioral-command" behavior="command">
+
+<!-- ✅ CORRECT: Use tag names in is attribute -->
+<button is="behavioral-button" behavior="command">
+<input is="behavioral-input" behavior="command">
 ```
 
-**Why?** Custom elements can only extend ONE base tag. Using `is="behavioral-command"` for both `<button>` and `<input>` creates conflicts.
+**Why?** Custom elements can only extend ONE base tag. Using tag-based naming (`behavioral-button`, `behavioral-input`) prevents conflicts.
 
 **Pattern:**
 - `is` attribute = tag type (`behavioral-button`, `behavioral-input`, `behavioral-dialog`)
@@ -307,10 +311,10 @@ import { getObservedAttributes } from "./behaviors/behavior-utils";
 // Register the reveal behavior with its definition
 registerBehavior(definition, revealBehaviorFactory);
 
-// Register dialog as a behavioral host for the "reveal" behavior
+// Register dialog as a behavioral host (tag-based naming)
 defineBehavioralHost(
   "dialog",
-  "behavioral-reveal",
+  "behavioral-dialog",
   getObservedAttributes(definition.schema),
 );
 ```
@@ -323,19 +327,21 @@ Then in your HTML:
   Toggle Modal
 </button>
 
-<!-- Dialog has the reveal behavior (needs is attribute with behavior names) -->
-<dialog is="behavioral-reveal" id="modal" behavior="reveal">
+<!-- Dialog has the reveal behavior (needs is attribute with tag name) -->
+<dialog is="behavioral-dialog" id="modal" behavior="reveal">
   This content will be revealed!
 </dialog>
 ```
 
-> **⚠️ Important:** The `is` attribute is **required** on elements with the `behavior` attribute to activate behavior loading. The `is` value should be `behavioral-{behavior-names}` where behavior names are sorted alphabetically and joined with hyphens.
+> **⚠️ Important:** The `is` attribute is **required** on elements with the `behavior` attribute to activate behavior loading. The `is` value is **tag-based**: `behavioral-{tagname}` NOT `behavioral-{behavior}`.
 >
 > **Examples:**
 >
-> - `behavior="reveal"` → `is="behavioral-reveal"`
-> - `behavior="reveal logger"` → `is="behavioral-logger-reveal"` (sorted alphabetically)
-> - `behavior="request"` → `is="behavioral-request"`
+> - `<dialog behavior="reveal">` → `is="behavioral-dialog"` (tag name)
+> - `<textarea behavior="auto-grow">` → `is="behavioral-textarea"` (tag name)
+> - `<div behavior="reveal logger">` → `is="behavioral-div"` (tag name, behaviors are space-separated in `behavior` attribute)
+>
+> **Why tag-based?** Custom elements can only extend ONE base tag. Using tag names for `is` ensures no conflicts regardless of which behaviors are applied.
 >
 > **Command Protocol V2:** Trigger elements that use `commandfor` + `command` must use a behavioral host (`is="behavioral-..."`) so command dispatch can be wired.
 
@@ -360,23 +366,24 @@ Now you can write:
   Toggle
 </button>
 
-<!-- Target with auto-loader (adds is="behavioral-reveal" automatically) -->
+<!-- Target with auto-loader (adds is="behavioral-dialog" automatically) -->
 <dialog id="modal" behavior="reveal">Content here</dialog>
 ```
 
 **How it works:**
 
 1. Scans DOM for all elements with `behavior` attribute
-2. Parses and sorts behaviors alphabetically for each element
-3. Creates custom element name: `behavioral-{sorted-behaviors}` (e.g., `behavioral-logger-reveal`)
+2. Extracts the tag name (e.g., `dialog`, `button`, `textarea`)
+3. Creates custom element name: `behavioral-{tagname}` (e.g., `behavioral-dialog`)
 4. Registers the behavioral host if not already registered: `defineBehavioralHost(tagName, customElementName)`
 5. Adds appropriate `is` attribute to the element
 
 **Examples:**
 
-- `<div behavior="reveal">` → `<div is="behavioral-reveal" behavior="reveal">`
-- `<button behavior="reveal logger">` → `<button is="behavioral-logger-reveal" behavior="reveal logger">`
-- Multiple tags can share the same host: both `<button>` and `<dialog>` with `behavior="reveal"` use `is="behavioral-reveal"`
+- `<dialog behavior="reveal">` → `<dialog is="behavioral-dialog" behavior="reveal">`
+- `<textarea behavior="auto-grow">` → `<textarea is="behavioral-textarea" behavior="auto-grow">`
+- `<div behavior="reveal logger">` → `<div is="behavioral-div" behavior="reveal logger">`
+- **One host per tag:** All `<dialog>` elements use `is="behavioral-dialog"` regardless of which behaviors they have
 
 **Tradeoffs:**
 
@@ -426,8 +433,8 @@ Show/hide elements with popovers, dialogs, or hidden attribute. Supports focus m
   Open Modal
 </button>
 
-<!-- Dialog with reveal behavior (needs is="behavioral-reveal") -->
-<dialog is="behavioral-reveal" id="modal" behavior="reveal">
+<!-- Dialog with reveal behavior (needs is="behavioral-dialog") -->
+<dialog is="behavioral-dialog" id="modal" behavior="reveal">
   <p>Modal content here</p>
   <button is="behavioral-button" commandfor="modal" command="hide">
     Close
@@ -458,7 +465,7 @@ Automatically adjusts textarea height to fit content as the user types, eliminat
 ```html
 <!-- Simple auto-growing textarea -->
 <textarea
-  is="behavioral-auto-grow"
+  is="behavioral-textarea"
   behavior="auto-grow"
   placeholder="Type here and watch the textarea expand..."
 ></textarea>
@@ -508,7 +515,7 @@ Declarative HTTP requests with loading states, error handling, and Server-Sent E
 
 ```html
 <input
-  is="behavioral-request"
+  is="behavioral-input"
   behavior="request"
   request-url="/api/search"
   request-trigger="input"
@@ -578,7 +585,7 @@ Set or modify attributes and properties on elements programmatically.
 
 ```html
 <button
-  is="behavioral-content-setter"
+  is="behavioral-button"
   behavior="content-setter"
   content-setter-attribute="data-theme"
   content-setter-value="dark"
@@ -640,7 +647,7 @@ Set form input values from command sources (typically buttons), useful for auto-
 
 <form>
   <textarea
-    is="behavioral-set-value"
+    is="behavioral-textarea"
     id="message"
     behavior="set-value"
     placeholder="Type a message or use a template..."
@@ -685,7 +692,7 @@ Reactive computed values from watched inputs with mathematical formulas.
 <input type="number" id="qty" value="2" />
 
 <output
-  is="behavioral-compute"
+  is="behavioral-output"
   behavior="compute"
   compute-formula="#price * #qty"
 >
@@ -724,7 +731,7 @@ Count matching elements in the DOM and display the count reactively.
 </ul>
 
 <span
-  is="behavioral-element-counter"
+  is="behavioral-span"
   behavior="element-counter"
   element-counter-root="todo-list"
   element-counter-selector="li"
@@ -779,7 +786,7 @@ Data binding and template rendering for JSON data sources using intuitive curly 
 
 <!-- Renderer with curly brace syntax -->
 <div
-  is="behavioral-json-template"
+  is="behavioral-div"
   behavior="json-template"
   json-template-for="user-data"
 >
@@ -908,7 +915,7 @@ Debug helper that logs interaction events to the console.
 **Example:**
 
 ```html
-<button is="behavioral-logger" behavior="logger" logger-trigger="click">
+<button is="behavioral-button" behavior="logger" logger-trigger="click">
   Click Me
 </button>
 ```
@@ -1206,13 +1213,14 @@ Behaviors **do not load automatically**. To activate behaviors on an element, yo
 
 2. **Use the `is` attribute** in your HTML to activate the host:
    ```html
-   <dialog is="behavioral-reveal" behavior="reveal"></dialog>
+   <dialog is="behavioral-dialog" behavior="reveal"></dialog>
    ```
 
-**Important:** The `is` attribute value is based on the **behavior names**, not the tag name:
+**Important:** The `is` attribute value is based on the **tag name**, not the behavior names:
 
-- Single behavior: `is="behavioral-{behaviorName}"` (e.g., `is="behavioral-reveal"`)
-- Multiple behaviors: `is="behavioral-{sorted-behaviors}"` (e.g., `is="behavioral-logger-reveal"`)
+- Tag-based naming: `is="behavioral-{tagname}"` (e.g., `is="behavioral-dialog"`, `is="behavioral-textarea"`)
+- Multiple behaviors on same element: `<div is="behavioral-div" behavior="reveal logger">` (behaviors are space-separated in `behavior` attribute)
+- **Why tag-based?** Custom elements can only extend ONE base tag. Using tag names ensures no conflicts.
 - Behaviors are sorted alphabetically to ensure consistency
 
 Without the `is` attribute, the `behavior` attribute will be ignored. This is by design—behavioral hosts must be explicitly activated to ensure predictable behavior loading.
