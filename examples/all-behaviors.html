@@ -471,23 +471,31 @@
     <!-- 16. SET-VALUE -->
     <div class="behavior-section">
       <h2>💾 set-value</h2>
-      <p>Set form element values via commands.</p>
+      <p>Set form element values via commands (using command-value).</p>
       <div class="demo">
         <button
-         
+          is="behavioral-button"
+          behavior="command"
+          commandfor="set-value-target"
+          command="set"
+          command-value="Hello from command-value!">
+          Set from command-value
+        </button>
+        <button
+          is="behavioral-button"
           behavior="command"
           commandfor="set-value-target"
           command="set">
-          Set Input Value
+          Set from button text
         </button>
         <input
-         
+          is="behavioral-input"
           id="set-value-target"
           behavior="set-value"
-          set-value-value="Value from button!"
+          set-value-fallback="Fallback value"
           value="Original value">
         <button
-         
+          is="behavioral-button"
           behavior="command"
           commandfor="set-value-target"
           command="reset">
