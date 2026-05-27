@@ -85,7 +85,7 @@ describe("Auto-Loader", () => {
       
       // Check end state: element should have is attribute and behavior should work
       const element = document.getElementById("test-upgrade");
-      expect(element?.getAttribute("is")).toBe("behavioral-reveal");
+      expect(element?.getAttribute("is")).toBe("behavioral-button");
       expect(element?.getAttribute("behavior")).toBe("reveal");
     });
 
@@ -102,8 +102,8 @@ describe("Auto-Loader", () => {
       // Re-query to get the NEW upgraded element
       const upgradedButton = document.getElementById("test-button");
       
-      // Check that is attribute was added to the new element
-      expect(upgradedButton?.getAttribute("is")).toBe("behavioral-reveal");
+      // Check that is attribute was added to the new element (tag-based naming)
+      expect(upgradedButton?.getAttribute("is")).toBe("behavioral-button");
       expect(upgradedButton?.getAttribute("behavior")).toBe("reveal");
     });
 
@@ -123,8 +123,8 @@ describe("Auto-Loader", () => {
       // Re-query to get the upgraded element
       const upgradedButton = document.getElementById("test-button-2");
       
-      // Check that is attribute was added
-      expect(upgradedButton?.getAttribute("is")).toBe("behavioral-reveal");
+      // Check that is attribute was added (tag-based naming)
+      expect(upgradedButton?.getAttribute("is")).toBe("behavioral-button");
     });
 
     it("should process multiple behaviors and sort them alphabetically", () => {
@@ -138,8 +138,8 @@ describe("Auto-Loader", () => {
       // Re-query to get upgraded element
       const upgraded = document.getElementById("test-multi-behavior");
       
-      // Should sort to "logger reveal" -> "behavioral-logger-reveal"
-      expect(upgraded?.getAttribute("is")).toBe("behavioral-logger-reveal");
+      // Tag-based naming: is="behavioral-div" (NOT behavioral-logger-reveal)
+      expect(upgraded?.getAttribute("is")).toBe("behavioral-div");
     });
 
     it("should handle behaviors in different order consistently", () => {
@@ -155,14 +155,14 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: both should have the same is attribute (agnostic to how we got here)
-      expect(document.getElementById("test-order-1")?.getAttribute("is")).toBe("behavioral-logger-reveal");
-      expect(document.getElementById("test-order-2")?.getAttribute("is")).toBe("behavioral-logger-reveal");
+      // Check end state: both should have the same is attribute (tag-based naming)
+      expect(document.getElementById("test-order-1")?.getAttribute("is")).toBe("behavioral-div");
+      expect(document.getElementById("test-order-2")?.getAttribute("is")).toBe("behavioral-div");
     });
   });
 
-  describe("Behavior-Based Host Pattern", () => {
-    it("should use same behavioral host for different tag types with same behavior", () => {
+  describe("Tag-Based Host Pattern", () => {
+    it("should use different behavioral hosts for different tag types", () => {
       const button = document.createElement("button");
       button.setAttribute("behavior", "reveal");
       button.setAttribute("id", "test-button-host");
@@ -175,12 +175,12 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: both should use the same behavioral host
-      expect(document.getElementById("test-button-host")?.getAttribute("is")).toBe("behavioral-reveal");
-      expect(document.getElementById("test-dialog-host")?.getAttribute("is")).toBe("behavioral-reveal");
+      // Check end state: each tag type gets its own host (tag-based naming)
+      expect(document.getElementById("test-button-host")?.getAttribute("is")).toBe("behavioral-button");
+      expect(document.getElementById("test-dialog-host")?.getAttribute("is")).toBe("behavioral-dialog");
     });
 
-    it("should create different hosts for different behavior combinations", () => {
+    it("should use same host for same tag regardless of behaviors", () => {
       const el1 = document.createElement("div");
       el1.setAttribute("behavior", "reveal");
       el1.setAttribute("id", "test-combo-1");
@@ -198,10 +198,10 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state
-      expect(document.getElementById("test-combo-1")?.getAttribute("is")).toBe("behavioral-reveal");
-      expect(document.getElementById("test-combo-2")?.getAttribute("is")).toBe("behavioral-logger");
-      expect(document.getElementById("test-combo-3")?.getAttribute("is")).toBe("behavioral-logger-reveal");
+      // Check end state: all divs use behavioral-div (tag-based naming)
+      expect(document.getElementById("test-combo-1")?.getAttribute("is")).toBe("behavioral-div");
+      expect(document.getElementById("test-combo-2")?.getAttribute("is")).toBe("behavioral-div");
+      expect(document.getElementById("test-combo-3")?.getAttribute("is")).toBe("behavioral-div");
     });
   });
 
@@ -251,8 +251,8 @@ describe("Auto-Loader", () => {
         disconnect = enableAutoLoader();
       }).not.toThrow();
 
-      // Check end state: should still add is attribute (even if behavior is unknown)
-      expect(document.getElementById("test-unknown")?.getAttribute("is")).toBe("behavioral-unknown-behavior");
+      // Check end state: should still add is attribute (tag-based naming)
+      expect(document.getElementById("test-unknown")?.getAttribute("is")).toBe("behavioral-button");
     });
 
     it("should handle mixed known and unknown behaviors", () => {
@@ -263,9 +263,9 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: should add is attribute with sorted behaviors
+      // Check end state: should add is attribute (tag-based naming)
       expect(document.getElementById("test-mixed-unknown")?.getAttribute("is")).toBe(
-        "behavioral-reveal-unknown-behavior",
+        "behavioral-button",
       );
     });
 
@@ -277,8 +277,8 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state
-      expect(document.getElementById("test-spaces")?.getAttribute("is")).toBe("behavioral-logger-reveal");
+      // Check end state (tag-based naming)
+      expect(document.getElementById("test-spaces")?.getAttribute("is")).toBe("behavioral-button");
     });
 
     it("should support comma-separated behaviors", () => {
@@ -289,8 +289,8 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state
-      expect(document.getElementById("test-comma")?.getAttribute("is")).toBe("behavioral-logger-reveal");
+      // Check end state (tag-based naming)
+      expect(document.getElementById("test-comma")?.getAttribute("is")).toBe("behavioral-button");
     });
 
     it("should handle hyphenated behavior names correctly", () => {
@@ -308,8 +308,8 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state
-      expect(document.getElementById("test-hyphen")?.getAttribute("is")).toBe("behavioral-input-watcher");
+      // Check end state (tag-based naming)
+      expect(document.getElementById("test-hyphen")?.getAttribute("is")).toBe("behavioral-input");
     });
 
     it("should handle mixed comma and space separators", () => {
@@ -320,9 +320,9 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: should sort to input-watcher, logger, reveal
+      // Check end state: tag-based naming (behavioral-div, not behavior-based)
       expect(document.getElementById("test-mixed-sep")?.getAttribute("is")).toBe(
-        "behavioral-input-watcher-logger-reveal",
+        "behavioral-div",
       );
     });
 
@@ -334,8 +334,8 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: numbers should be removed, leaving "reveal logger"
-      expect(document.getElementById("test-invalid-chars")?.getAttribute("is")).toBe("behavioral-logger-reveal");
+      // Check end state: tag-based naming (behavioral-button)
+      expect(document.getElementById("test-invalid-chars")?.getAttribute("is")).toBe("behavioral-button");
     });
 
     it("should not process the same element multiple times", async () => {
@@ -346,9 +346,9 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: get the initial is attribute
+      // Check end state: get the initial is attribute (tag-based)
       const initialIs = document.getElementById("test-no-reprocess")?.getAttribute("is");
-      expect(initialIs).toBe("behavioral-reveal");
+      expect(initialIs).toBe("behavioral-button");
 
       // Trigger a mutation by adding a different attribute
       document.getElementById("test-no-reprocess")?.setAttribute("data-test", "value");
@@ -368,8 +368,8 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state
-      expect(document.getElementById("test-no-update")?.getAttribute("is")).toBe("behavioral-reveal");
+      // Check end state (tag-based)
+      expect(document.getElementById("test-no-update")?.getAttribute("is")).toBe("behavioral-button");
 
       // Change the behavior attribute
       document.getElementById("test-no-update")?.setAttribute("behavior", "logger");
@@ -378,8 +378,8 @@ describe("Auto-Loader", () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Check end state: should NOT update the is attribute (Custom Elements can't be re-upgraded)
-      // This is a fundamental limitation of the Custom Elements spec
-      expect(document.getElementById("test-no-update")?.getAttribute("is")).toBe("behavioral-reveal");
+      // This is a fundamental limitation of the Custom Elements spec (stays behavioral-button)
+      expect(document.getElementById("test-no-update")?.getAttribute("is")).toBe("behavioral-button");
     });
   });
 
@@ -417,8 +417,8 @@ describe("Auto-Loader", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Check end state
-      expect(document.getElementById("test-re-enable")?.getAttribute("is")).toBe("behavioral-reveal");
+      // Check end state (tag-based)
+      expect(document.getElementById("test-re-enable")?.getAttribute("is")).toBe("behavioral-button");
     });
   });
 
@@ -434,9 +434,9 @@ describe("Auto-Loader", () => {
 
       disconnect = enableAutoLoader();
 
-      // Check end state: query by ID to get upgraded elements
-      expect(document.getElementById("test-nested-div")?.getAttribute("is")).toBe("behavioral-reveal");
-      expect(document.getElementById("test-nested-button")?.getAttribute("is")).toBe("behavioral-logger");
+      // Check end state: query by ID to get upgraded elements (tag-based)
+      expect(document.getElementById("test-nested-div")?.getAttribute("is")).toBe("behavioral-div");
+      expect(document.getElementById("test-nested-button")?.getAttribute("is")).toBe("behavioral-button");
     });
 
     it("should process elements added in a subtree", async () => {
@@ -452,18 +452,18 @@ describe("Auto-Loader", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Check end state: query by ID
-      expect(document.getElementById("test-subtree-div")?.getAttribute("is")).toBe("behavioral-reveal");
-      expect(document.getElementById("test-subtree-button")?.getAttribute("is")).toBe("behavioral-logger");
+      // Check end state: query by ID (tag-based)
+      expect(document.getElementById("test-subtree-div")?.getAttribute("is")).toBe("behavioral-div");
+      expect(document.getElementById("test-subtree-button")?.getAttribute("is")).toBe("behavioral-button");
     });
   });
 
   describe("Integration with defineBehavioralHost", () => {
     it("should not re-register already registered behavioral hosts", () => {
-      // Pre-register a behavioral host
-      defineBehavioralHost("button", "behavioral-reveal");
+      // Pre-register a behavioral host with standard tag-based name
+      defineBehavioralHost("button", "behavioral-button");
 
-      // Add element with same behavior
+      // Add element with behavior
       const button = document.createElement("button");
       button.setAttribute("behavior", "reveal");
       button.setAttribute("id", "test-no-re-register");
@@ -474,8 +474,8 @@ describe("Auto-Loader", () => {
         disconnect = enableAutoLoader();
       }).not.toThrow();
 
-      // Check end state
-      expect(document.getElementById("test-no-re-register")?.getAttribute("is")).toBe("behavioral-reveal");
+      // Check end state (uses pre-registered host)
+      expect(document.getElementById("test-no-re-register")?.getAttribute("is")).toBe("behavioral-button");
     });
   });
 });
