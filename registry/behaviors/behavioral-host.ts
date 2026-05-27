@@ -13,12 +13,38 @@ import {
 import { parseBehaviorNames } from "./behavior-utils";
 
 /**
+ * Gets a command attribute value, supporting both hyphenated and non-hyphenated forms.
+ * 
+ * Both forms are first-class citizens:
+ * - commandfor (native Invoker Commands API spec)
+ * - command-for (alternative hyphenated form for consistency)
+ * - command-by (always hyphenated)
+ * - command-value (always hyphenated)
+ * 
+ * For command-for: We check BOTH commandfor and command-for.
+ * For command-by/command-value: Hyphenated form only.
+ */
+function getCommandAttribute(
+  element: Element,
+  name: "command-for" | "command-by" | "command-value"
+): string | null {
+  // For command-for, support both native commandfor and hyphenated command-for
+  if (name === "command-for") {
+    return element.getAttribute("commandfor") || element.getAttribute("command-for");
+  }
+  
+  // For command-by and command-value, use hyphenated form only
+  return element.getAttribute(name);
+}
+
+/**
  * Validates that elements with command protocol attributes are behavioral hosts.
  */
 const validateCommandAttributesRequireIs = (node: Element) => {
   if (
     !node.hasAttribute("command") &&
     !node.hasAttribute("commandfor") &&
+    !node.hasAttribute("command-for") &&
     !node.hasAttribute("command-by")
   ) {
     return;
@@ -29,7 +55,7 @@ const validateCommandAttributesRequireIs = (node: Element) => {
 
   if (!isBehavioral && !isWebComponent) {
     console.error(
-      `[CommandProtocol] Element with [command], [commandfor], or [command-by] must also have a [behavior] attribute or be a behavioral Web Component ([is="behavioral-..."]).`,
+      `[CommandProtocol] Element with [command], [commandfor]/[command-for], or [command-by] must also have a [behavior] attribute or be a behavioral Web Component ([is="behavioral-..."]).`,
       node,
     );
   }
@@ -45,7 +71,7 @@ export function installCommandAttributeGuard() {
 
   const validateTree = (root: ParentNode) => {
     root
-      .querySelectorAll("[command], [commandfor], [command-by]")
+      .querySelectorAll("[command], [commandfor], [command-for], [command-by]")
       .forEach((node) => {
         validateCommandAttributesRequireIs(node);
       });
@@ -84,7 +110,7 @@ export function installCommandAttributeGuard() {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ["command", "commandfor", "command-by", "is"],
+    attributeFilter: ["command", "commandfor", "command-for", "command-by", "command-value", "is"],
   });
 }
 
@@ -143,6 +169,7 @@ function dispatchCommands(
   source: HTMLElement,
   commandfor: string,
   command: string,
+  commandValue?: string | null,
 ): void {
   const targetIds = parseFlexibleList(commandfor);
   const commands = parseFlexibleList(command);
@@ -184,7 +211,7 @@ function dispatchCommands(
       console.warn(`[CommandDispatch] Target not found: ${targetId}`);
       continue;
     }
-    dispatchCommand(targetElement, cmd, source);
+    dispatchCommand(targetElement, cmd, source, commandValue);
   }
 }
 
@@ -233,7 +260,7 @@ export function withBehaviors<
         }
       });
 
-      if (["commandfor", "command", "command-by"].includes(name)) {
+      if (["commandfor", "command-for", "command", "command-by", "command-value"].includes(name)) {
         this._wireCommandDispatch();
       }
     }
@@ -307,12 +334,13 @@ export function withBehaviors<
       });
       this._commandCleanupFns = [];
 
-      const commandfor = this.getAttribute("commandfor");
+      const commandFor = getCommandAttribute(this, "command-for");
       const command = this.getAttribute("command");
 
-      if (commandfor && command) {
+      if (commandFor && command) {
         const commandBy =
-          this.getAttribute("command-by") || getDefaultCommandBy(this);
+          getCommandAttribute(this, "command-by") || getDefaultCommandBy(this);
+        const commandValue = getCommandAttribute(this, "command-value");
 
         const events = commandBy.split(/\s+/).filter(Boolean);
 
@@ -321,7 +349,7 @@ export function withBehaviors<
             if (eventName === "submit") {
               e.preventDefault();
             }
-            dispatchCommands(this, commandfor, command);
+            dispatchCommands(this, commandFor, command, commandValue);
           };
           this.addEventListener(eventName, handler);
           this._commandCleanupFns.push(() => {
