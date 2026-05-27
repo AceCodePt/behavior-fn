@@ -325,149 +325,21 @@ console.log('✅ BehaviorFN: Auto-registered "${behaviorName}" behavior');
 /**
  * Build the optional auto-loader module.
  * Auto-enables when imported (side-effect).
+ * 
+ * This imports the actual source file, not an inlined copy!
  */
 async function buildAutoLoader() {
   const autoLoaderEntry = join(cdnOutDir, "_auto-loader-entry.js");
 
+  // Import the actual auto-loader source file (single source of truth)
+  // Entry file will be in dist/cdn/, needs to go up to project root, then to registry/utils
   const autoLoaderCode = `
-// Import ALL dependencies from core bundle (external - not bundled)
-import { getBehavior, getBehaviorDef, getObservedAttributes, defineBehavioralHost, parseBehaviorNames } from "./behavior-fn-core.js";
+// Re-export everything from the actual source file
+export { enableAutoLoader } from "../../registry/utils/auto-loader.ts";
 
-// Inline auto-loader logic (from registry/utils/auto-loader.ts)
-export function enableAutoLoader() {
-  const upgraded = new WeakSet();
-  const registeredHosts = new Set();
-
-  function upgradeElement(el) {
-    if (upgraded.has(el) || !(el instanceof HTMLElement)) return;
-    
-    if (el.hasAttribute('is')) {
-      upgraded.add(el);
-      return;
-    }
-    
-    if (!el.hasAttribute('behavior')) {
-      upgraded.add(el);
-      return;
-    }
-    
-    const behaviorAttr = el.getAttribute('behavior');
-    const behaviorNames = parseBehaviorNames(behaviorAttr);
-    
-    if (behaviorNames.length === 0) {
-      upgraded.add(el);
-      return;
-    }
-    
-    // Use tag-based naming, not behavior-based
-    const tagName = el.tagName.toLowerCase();
-    const hostName = \`behavioral-\${tagName}\`;
-    
-    if (!registeredHosts.has(hostName)) {
-      if (customElements.get(hostName)) {
-        registeredHosts.add(hostName);
-      } else {
-        const observedAttrs = [];
-        let hasUnknown = false;
-        
-        for (const name of behaviorNames) {
-          if (!getBehavior(name)) {
-            console.warn(\`[AutoLoader] Unknown behavior "\${name}" on element:\`, el);
-            hasUnknown = true;
-            continue;
-          }
-          
-          // Get observed attributes from behavior definition in registry
-          const def = getBehaviorDef(name);
-          if (def) {
-            const attrs = getObservedAttributes(def.schema);
-            for (const attr of attrs) {
-              if (!observedAttrs.includes(attr)) {
-                observedAttrs.push(attr);
-              }
-            }
-          }
-        }
-        
-        try {
-          defineBehavioralHost(tagName, hostName, observedAttrs);
-          registeredHosts.add(hostName);
-        } catch (err) {
-          console.error(\`[AutoLoader] Failed to register behavioral host "\${hostName}":\`, err);
-          upgraded.add(el);
-          return;
-        }
-      }
-    }
-    
-    try {
-      const newEl = document.createElement(tagName, { is: hostName });
-      
-      if (!newEl.hasAttribute('is')) {
-        newEl.setAttribute('is', hostName);
-      }
-      
-      for (let i = 0; i < el.attributes.length; i++) {
-        const attr = el.attributes[i];
-        if (attr.name !== 'is') {
-          newEl.setAttribute(attr.name, attr.value);
-        }
-      }
-      
-      while (el.firstChild) {
-        newEl.appendChild(el.firstChild);
-      }
-      
-      if (el.parentNode) {
-        el.parentNode.replaceChild(newEl, el);
-        upgraded.add(newEl);
-        console.log(\`[AutoLoader] ✅ Upgraded <\${tagName}#\${newEl.id || '(no id)'}> to \${hostName}\`);
-      } else {
-        el.setAttribute('is', hostName);
-        upgraded.add(el);
-        console.warn('[AutoLoader] Element not in DOM, falling back to setAttribute:', el);
-      }
-    } catch (err) {
-      console.error('[AutoLoader] ❌ Failed to upgrade element:', el, err);
-      el.setAttribute('is', hostName);
-      upgraded.add(el);
-    }
-  }
-  
-  function scanSubtree(root) {
-    if (!(root instanceof Element)) return;
-    
-    upgradeElement(root);
-    const elements = root.querySelectorAll('[behavior]');
-    for (let i = 0; i < elements.length; i++) {
-      upgradeElement(elements[i]);
-    }
-  }
-  
-  scanSubtree(document.documentElement);
-  
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      for (let i = 0; i < mutation.addedNodes.length; i++) {
-        scanSubtree(mutation.addedNodes[i]);
-      }
-    }
-  });
-  
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
-  
-  return () => {
-    observer.disconnect();
-  };
-}
-
-// Auto-enable when imported (side-effect)
+// Auto-enable on import (side-effect)
+import { enableAutoLoader } from "../../registry/utils/auto-loader.ts";
 enableAutoLoader();
-
-// Log when loaded and enabled
 console.log('✅ BehaviorFN: Auto-loader enabled automatically');
 `;
 
