@@ -166,7 +166,7 @@
       <p>Automatically adjusts textarea height to fit content.</p>
       <div class="demo">
         <textarea
-          is="behavioral-auto-grow"
+          is="behavioral-textarea"
           behavior="auto-grow"
           placeholder="Type multiple lines here... The textarea will grow automatically!"></textarea>
       </div>
@@ -178,10 +178,10 @@
       <p>Dispatch commands to target elements with custom triggers, delays, and throttling.</p>
       <div class="demo">
         <p><strong>Basic click trigger:</strong></p>
-        <button is="behavioral-command" behavior="command" commandfor="cmd-target1" command="show">
+        <button is="behavioral-button" behavior="command" commandfor="cmd-target1" command="show">
           Show Panel
         </button>
-        <button is="behavioral-command" behavior="command" commandfor="cmd-target1" command="hide">
+        <button is="behavioral-button" behavior="command" commandfor="cmd-target1" command="hide">
           Hide Panel
         </button>
         <div id="cmd-target1" style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 4px; display: none;">
@@ -190,7 +190,7 @@
 
         <p style="margin-top: 1rem;"><strong>Custom trigger (input event):</strong></p>
         <input
-          is="behavioral-command"
+          is="behavioral-input"
           behavior="command"
           commandby="input"
           commandfor="cmd-output"
@@ -200,7 +200,7 @@
 
         <p style="margin-top: 1rem;"><strong>With delay (300ms):</strong></p>
         <input
-          is="behavioral-command"
+          is="behavioral-input"
           behavior="command"
           commandby="input"
           commandfor="cmd-delayed"
@@ -220,7 +220,7 @@
         <label>Quantity: <input type="number" id="qty" value="5"></label>
         <label>Total:
           <input
-            is="behavioral-compute"
+            is="behavioral-input"
             behavior="compute"
             compute-formula="#price * #qty"
             readonly>
@@ -235,7 +235,7 @@
       <div class="demo">
         <input type="number" id="cond-input" value="0" placeholder="Enter a number">
         <div
-          is="behavioral-condition"
+          is="behavioral-div"
           behavior="condition"
           condition-watch="cond-input"
           condition-on="value"
@@ -256,7 +256,7 @@
       <p>Track whether input has changed from its original value.</p>
       <div class="demo">
         <input
-          is="behavioral-dirty-input"
+          is="behavioral-input"
           behavior="dirty-input"
           value="Original value"
           placeholder="Edit me...">
@@ -276,7 +276,7 @@
         </div>
         <p>Total items:
           <output
-            is="behavioral-element-counter"
+            is="behavioral-output"
             behavior="element-counter"
             element-counter-root="counter-root"
             element-counter-selector=".countable-item">0</output>
@@ -291,7 +291,7 @@
       <div class="demo">
         <label>Currency:
           <input
-            is="behavioral-format"
+            is="behavioral-input"
             behavior="format"
             format-type="currency"
             format-locale="en-US"
@@ -300,7 +300,7 @@
         </label>
         <label>Number (2 decimals):
           <input
-            is="behavioral-format"
+            is="behavioral-input"
             behavior="format"
             format-type="number"
             format-min-fraction-digits="2"
@@ -322,7 +322,7 @@
           ]
         </script>
         <ul
-          is="behavioral-json-template"
+          is="behavioral-ul"
           behavior="json-template"
           json-template-for="users-data">
           <template>
@@ -338,13 +338,13 @@
       <p>Log events to console. <em>Open DevTools to see logs.</em></p>
       <div class="demo">
         <button
-          is="behavioral-logger"
+          is="behavioral-button"
           behavior="logger"
           logger-trigger="click">
           Click me (check console)
         </button>
         <button
-          is="behavioral-logger"
+          is="behavioral-button"
           behavior="logger"
           logger-trigger="mouseenter">
           Hover me (check console)
@@ -360,7 +360,7 @@
         <div onclick="alert('Parent clicked')" style="padding: 1rem; background: #e3f2fd; border-radius: 4px; cursor: pointer;">
           Click me (parent)
           <button
-            is="behavioral-no-propagate"
+            is="behavioral-button"
             behavior="no-propagate"
             no-propagate-events="click"
             onclick="alert('Child clicked')">
@@ -376,7 +376,7 @@
       <p>Transform pasted text with regex patterns.</p>
       <div class="demo">
         <input
-          is="behavioral-paste-transform"
+          is="behavioral-input"
           behavior="paste-transform"
           paste-transform-patterns="[0-9]"
           paste-transform-replaces="X"
@@ -390,7 +390,7 @@
       <p>Fetch data and swap content.</p>
       <div class="demo">
         <button
-          is="behavioral-request"
+          is="behavioral-button"
           behavior="request"
           request-url="https://jsonplaceholder.typicode.com/todos/1"
           request-target="#request-output"
@@ -409,7 +409,7 @@
         <button is="behavioral-command" behavior="command" commandfor="reveal-modal" command="show">
           Open Dialog
         </button>
-        <dialog is="behavioral-reveal" id="reveal-modal" behavior="reveal">
+        <dialog is="behavioral-dialog" id="reveal-modal" behavior="reveal">
           <h3>Modal Dialog</h3>
           <p>This is a modal dialog controlled by the reveal behavior.</p>
           <button is="behavioral-command" behavior="command" commandfor="reveal-modal" command="hide">
@@ -420,7 +420,7 @@
         <button is="behavioral-command" behavior="command" commandfor="reveal-popover" command="toggle">
           Toggle Popover
         </button>
-        <div is="behavioral-reveal" id="reveal-popover" behavior="reveal" popover>
+        <div is="behavioral-dialog" id="reveal-popover" behavior="reveal" popover>
           <p>✨ I'm a popover!</p>
         </div>
       </div>
@@ -432,7 +432,7 @@
       <p>Set, toggle, or remove attributes via commands.</p>
       <div class="demo">
         <button
-          is="behavioral-set-attribute"
+          is="behavioral-button"
           behavior="set-attribute"
           set-attribute-name="disabled"
           set-attribute-value=""
@@ -450,7 +450,7 @@
       <p>Set element text content via commands.</p>
       <div class="demo">
         <button
-          is="behavioral-set-content"
+          is="behavioral-button"
           behavior="set-content"
           set-content-value="Content updated!"
           commandby="click"
@@ -467,7 +467,7 @@
       <p>Set form element values via commands.</p>
       <div class="demo">
         <button
-          is="behavioral-set-value"
+          is="behavioral-button"
           behavior="set-value"
           set-value-value="Value from button!"
           commandby="click"
@@ -491,7 +491,7 @@
       <p>Sync input values with localStorage/sessionStorage.</p>
       <div class="demo">
         <input
-          is="behavioral-storage"
+          is="behavioral-input"
           behavior="storage"
           storage-key="demo-storage-value"
           storage-type="local"
@@ -503,6 +503,9 @@
   </div>
 
   <script type="module">
+    // Import core
+    import { defineBehavioralHost } from '../dist/cdn/behavior-fn-core.js';
+    
     // Import all behaviors (auto-register on import)
     import '../dist/cdn/auto-grow.js';
     import '../dist/cdn/command.js';
@@ -522,10 +525,17 @@
     import '../dist/cdn/set-value.js';
     import '../dist/cdn/storage.js';
     
-    // Import auto-loader to upgrade existing elements
-    import '../dist/cdn/auto-loader.js';
+    // Define behavioral hosts for each tag type
+    // is="behavioral-{tagname}" behavior="behavior1 behavior2"
+    defineBehavioralHost('button');
+    defineBehavioralHost('input');
+    defineBehavioralHost('textarea');
+    defineBehavioralHost('dialog');
+    defineBehavioralHost('div');
+    defineBehavioralHost('output');
+    defineBehavioralHost('ul');
 
-    console.log('✅ All 17 behaviors loaded with auto-loader!');
+    console.log('✅ All 17 behaviors loaded and behavioral hosts defined!');
 
     // Consolidated command event listener for demo examples
     document.addEventListener('command', (e) => {
