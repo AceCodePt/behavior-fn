@@ -338,9 +338,19 @@ async function buildAutoLoader() {
 export { enableAutoLoader } from "../../registry/utils/auto-loader.ts";
 
 // Auto-enable on import (side-effect)
+// Wait for DOM to be ready to ensure all behavior imports have completed
 import { enableAutoLoader } from "../../registry/utils/auto-loader.ts";
-enableAutoLoader();
-console.log('✅ BehaviorFN: Auto-loader enabled automatically');
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    enableAutoLoader();
+    console.log('✅ BehaviorFN: Auto-loader enabled automatically');
+  });
+} else {
+  // DOM already loaded, run immediately
+  enableAutoLoader();
+  console.log('✅ BehaviorFN: Auto-loader enabled automatically');
+}
 `;
 
   await writeFile(autoLoaderEntry, autoLoaderCode);

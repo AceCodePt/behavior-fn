@@ -516,28 +516,32 @@
 
   <script type="module">
     // Import all behaviors (auto-register on import)
-    import '../dist/cdn/auto-grow.js';
-    import '../dist/cdn/command.js';
-    import '../dist/cdn/compute.js';
-    import '../dist/cdn/condition.js';
-    import '../dist/cdn/dirty-input.js';
-    import '../dist/cdn/element-counter.js';
-    import '../dist/cdn/format.js';
-    import '../dist/cdn/json-template.js';
-    import '../dist/cdn/logger.js';
-    import '../dist/cdn/no-propagate.js';
-    import '../dist/cdn/paste-transform.js';
-    import '../dist/cdn/request.js';
-    import '../dist/cdn/reveal.js';
-    import '../dist/cdn/set-attribute.js';
-    import '../dist/cdn/set-content.js';
-    import '../dist/cdn/set-value.js';
-    import '../dist/cdn/storage.js';
+    // Use await to ensure they complete before auto-loader runs
+    await import('../dist/cdn/auto-grow.js');
+    await import('../dist/cdn/command.js');
+    await import('../dist/cdn/compute.js');
+    await import('../dist/cdn/condition.js');
+    await import('../dist/cdn/dirty-input.js');
+    await import('../dist/cdn/element-counter.js');
+    await import('../dist/cdn/format.js');
+    await import('../dist/cdn/json-template.js');
+    await import('../dist/cdn/logger.js');
+    await import('../dist/cdn/no-propagate.js');
+    await import('../dist/cdn/paste-transform.js');
+    await import('../dist/cdn/request.js');
+    await import('../dist/cdn/reveal.js');
+    await import('../dist/cdn/set-attribute.js');
+    await import('../dist/cdn/set-content.js');
+    await import('../dist/cdn/set-value.js');
+    await import('../dist/cdn/storage.js');
     
-    // Import auto-loader (auto-enables and upgrades elements)
-    import '../dist/cdn/auto-loader.js';
-
-    console.log('✅ All 17 behaviors loaded with auto-loader!');
+    console.log('✅ All behaviors registered!');
+    
+    // NOW import auto-loader (after all behaviors are registered)
+    const { enableAutoLoader } = await import('../dist/cdn/auto-loader.js');
+    enableAutoLoader();
+    
+    console.log('✅ Auto-loader enabled!');
 
     // Consolidated command event listener for demo examples
     document.addEventListener('command', (e) => {
