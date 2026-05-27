@@ -349,9 +349,9 @@ import { enableAutoLoader } from "${autoLoaderPath.replace(/\\/g, "/")}";
 // Re-export for manual usage
 export { enableAutoLoader };
 
-// Auto-enable when imported (side-effect)
-enableAutoLoader();
-console.log('✅ BehaviorFN: Auto-loader enabled automatically');
+// NOTE: We do NOT auto-enable here!
+// The user must call enableAutoLoader() after importing all behaviors
+// This ensures behaviors are registered before auto-loader tries to use them
 `;
 
   await writeFile(autoLoaderEntry, autoLoaderCode);
