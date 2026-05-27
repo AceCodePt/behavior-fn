@@ -184,9 +184,20 @@
         <button is="behavioral-command" behavior="command" commandfor="cmd-target1" command="hide">
           Hide Panel
         </button>
-        <div is="behavioral-reveal" id="cmd-target1" behavior="reveal" style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 4px;">
+        <div id="cmd-target1" style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 4px; display: none;">
           ✨ Toggled content
         </div>
+        
+        <script>
+          // Simple show/hide for demo (reveal is for dialogs/popovers)
+          document.addEventListener('command', (e) => {
+            const target = e.target;
+            if (target.id === 'cmd-target1') {
+              if (e.command === 'show') target.style.display = 'block';
+              if (e.command === 'hide') target.style.display = 'none';
+            }
+          });
+        </script>
 
         <p style="margin-top: 1rem;"><strong>Custom trigger (input event):</strong></p>
         <input
@@ -197,6 +208,15 @@
           command="update"
           placeholder="Type here...">
         <div id="cmd-output" class="output">Output will appear here as you type</div>
+        
+        <script>
+          document.addEventListener('command', (e) => {
+            const target = e.target;
+            if (target.id === 'cmd-output') {
+              target.textContent = `You typed: ${e.source.value}`;
+            }
+          });
+        </script>
 
         <p style="margin-top: 1rem;"><strong>With delay (300ms):</strong></p>
         <input
@@ -208,6 +228,15 @@
           commanddelay="300"
           placeholder="Debounced input...">
         <div id="cmd-delayed" class="output">Debounced output (300ms delay)</div>
+        
+        <script>
+          document.addEventListener('command', (e) => {
+            const target = e.target;
+            if (target.id === 'cmd-delayed') {
+              target.textContent = `Debounced: ${e.source.value} (300ms delay)`;
+            }
+          });
+        </script>
       </div>
     </div>
 
@@ -242,12 +271,21 @@
           condition-op=">"
           condition-value="10"
           condition-command="show"
-          condition-commandfor="cond-msg"
-          style="display: none;">
+          condition-commandfor="cond-msg">
         </div>
-        <div is="behavioral-reveal" id="cond-msg" behavior="reveal" class="output" style="color: green;">
+        <div id="cond-msg" class="output" style="color: green; display: none;">
           ✅ Value is greater than 10!
         </div>
+        
+        <script>
+          document.addEventListener('command', (e) => {
+            const target = e.target;
+            if (target.id === 'cond-msg') {
+              if (e.command === 'show') target.style.display = 'block';
+              if (e.command === 'hide') target.style.display = 'none';
+            }
+          });
+        </script>
       </div>
     </div>
 
@@ -317,18 +355,15 @@
       <p>Render templates from JSON data.</p>
       <div class="demo">
         <script id="users-data" type="application/json">
-          {
-            "users": [
-              { "name": "Alice", "role": "Admin" },
-              { "name": "Bob", "role": "User" }
-            ]
-          }
+          [
+            { "name": "Alice", "role": "Admin" },
+            { "name": "Bob", "role": "User" }
+          ]
         </script>
         <ul
           is="behavioral-json-template"
           behavior="json-template"
-          json-template-source="#users-data"
-          json-template-path="users">
+          json-template-for="users-data">
           <template>
             <li><strong data-key="name"></strong> - <span data-key="role"></span></li>
           </template>
