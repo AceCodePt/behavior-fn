@@ -34,22 +34,7 @@ describe("Set-Value Behavior", () => {
     expect(el.value).toBe("Hello from command-value");
   });
 
-  it("should fall back to set-value-fallback attribute if no command-value", () => {
-    const el = createBehavioralElement("input", TAG, {
-      behavior: name,
-      [attributes["set-value-fallback"]]: "Fallback Value",
-    });
-    document.body.appendChild(el);
-
-    const source = createCommandSource();
-    source.textContent = "Source Text";
-
-    dispatchCommand(el, command["set"], source);
-
-    expect(el.value).toBe("Fallback Value");
-  });
-
-  it("should fall back to source textContent if no command-value or fallback", () => {
+  it("should fall back to source textContent if no command-value", () => {
     const el = createBehavioralElement("input", TAG, {
       behavior: name,
     });

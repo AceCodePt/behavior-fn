@@ -610,7 +610,7 @@ Set form input values from command sources (typically buttons), useful for auto-
 
 **Attributes:**
 
-- `set-value-fallback` — Fallback value if command doesn't include `command-value` (optional)
+- None (zero-config behavior - purely command-driven)
 
 **Commands:**
 
@@ -624,7 +624,7 @@ Set form input values from command sources (typically buttons), useful for auto-
 - Returns empty object if attached to non-form elements
 - Dispatches both `input` and `change` events to trigger reactive systems
 - Uses `requestSubmit()` for form submission (respects validation)
-- Value priority: `command-value` > `set-value-fallback` attribute > source text content
+- Value priority: `command-value` (from invoker) > source text content
 
 **Example:**
 
@@ -664,7 +664,7 @@ Set form input values from command sources (typically buttons), useful for auto-
   </button>
 </div>
 
-<!-- Target input has the behavior -->
+<!-- Target input has the behavior (no attributes needed) -->
 <form>
   <textarea
     is="behavioral-textarea"
@@ -679,8 +679,7 @@ Set form input values from command sources (typically buttons), useful for auto-
   is="behavioral-input"
   type="email"
   id="email"
-  behavior="set-value"
-  set-value-fallback="default@example.com">
+  behavior="set-value">
 ```
 
 **Common Use Cases:**

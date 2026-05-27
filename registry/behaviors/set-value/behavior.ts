@@ -26,10 +26,9 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
       }
 
       if (e.command === command["set"] || e.command === command["set-and-submit"]) {
-        // Priority: event.value (from command-value) > fallback attribute > source innerText
+        // Priority: event.value (from command-value) > source textContent
         const value = 
           e.value ?? 
-          el.getAttribute(attributes["set-value-fallback"]) ?? 
           e.source.textContent?.trim() ?? 
           "";
 

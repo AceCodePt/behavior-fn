@@ -1,9 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import { type InferSchema } from "~types";
 
-export const schema = Type.Object({
-  /** Fallback value if command doesn't include value (optional) */
-  "set-value-fallback": Type.Optional(Type.String()),
-});
+// No attributes - purely command-driven behavior
+export const schema = Type.Object({});
 
 export type SchemaType = InferSchema<typeof schema>;
