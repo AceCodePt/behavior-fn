@@ -18,7 +18,10 @@ export const commandBehaviorFactory = (el: HTMLElement) => {
     const delayAttr = el.getAttribute(attributes["commanddelay"]);
     const throttleAttr = el.getAttribute(attributes["commandthrottle"]);
     
-    e.preventDefault();
+    // Don't preventDefault on input events - it breaks typing
+    if (e.type !== 'input' && e.type !== 'change') {
+      e.preventDefault();
+    }
     if (e.cancelable) e.stopImmediatePropagation();
 
     const cmd = el.getAttribute(attributes["command"]) || el.getAttribute("command");
