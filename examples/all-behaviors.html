@@ -503,9 +503,6 @@
   </div>
 
   <script type="module">
-    // Import core and utilities
-    import { defineBehavioralHost, getObservedAttributes, getBehaviorDef } from '../dist/cdn/behavior-fn-core.js';
-    
     // Import all behaviors (auto-register on import)
     import '../dist/cdn/auto-grow.js';
     import '../dist/cdn/command.js';
@@ -524,93 +521,15 @@
     import '../dist/cdn/set-content.js';
     import '../dist/cdn/set-value.js';
     import '../dist/cdn/storage.js';
-
-    // Define behavioral hosts for all behaviors
-    const behaviors = [
-      { name: 'auto-grow', tags: ['textarea'] },
-      { name: 'command', tags: ['button', 'input'] },
-      { name: 'compute', tags: ['input'] },
-      { name: 'condition', tags: ['div'] },
-      { name: 'dirty-input', tags: ['input'] },
-      { name: 'element-counter', tags: ['output'] },
-      { name: 'format', tags: ['input'] },
-      { name: 'json-template', tags: ['ul'] },
-      { name: 'logger', tags: ['button'] },
-      { name: 'no-propagate', tags: ['button'] },
-      { name: 'paste-transform', tags: ['input'] },
-      { name: 'request', tags: ['button'] },
-      { name: 'reveal', tags: ['dialog', 'div'] },
-      { name: 'set-attribute', tags: ['button'] },
-      { name: 'set-content', tags: ['button'] },
-      { name: 'set-value', tags: ['button'] },
-      { name: 'storage', tags: ['input'] }
-    ];
-
-    behaviors.forEach(({ name, tags }) => {
-      const def = getBehaviorDef(name);
-      if (def) {
-        const observedAttrs = getObservedAttributes(def.schema);
-        console.log(`Defining behavioral host for ${name}:`, { tags, observedAttrs });
-        tags.forEach(tag => {
-          defineBehavioralHost(tag, `behavioral-${name}`, observedAttrs);
-        });
-      } else {
-        console.error(`❌ Definition not found for behavior: ${name}`);
-      }
-    });
-
-    console.log('✅ All 17 behaviors loaded and hosts defined!');
     
-    // Debug: Check if command inputs are properly created
-    setTimeout(() => {
-      const commandInputs = document.querySelectorAll('[behavior="command"]');
-      console.log(`Found ${commandInputs.length} elements with behavior="command":`);
-      commandInputs.forEach((el, i) => {
-        const attrs = {
-          id: el.id || '(no id)',
-          is: el.getAttribute('is'),
-          behavior: el.getAttribute('behavior'),
-          commandfor: el.getAttribute('commandfor'),
-          command: el.getAttribute('command'),
-          commandby: el.getAttribute('commandby'),
-          commanddelay: el.getAttribute('commanddelay')
-        };
-        console.log(`  ${i + 1}. <${el.tagName.toLowerCase()}> commandby="${attrs.commandby}" commanddelay="${attrs.commanddelay}"`, attrs);
-      });
-      
-      // Test: manually trigger input event on #3
-      console.log('\n🧪 Testing input #3 (cmd-output):');
-      const input3 = commandInputs[2];
-      if (input3) {
-        console.log('Input #3 commandby attribute:', input3.getAttribute('commandby'));
-        console.log('Input #3 all attributes:', Array.from(input3.attributes).map(a => `${a.name}="${a.value}"`).join(' '));
-        console.log('Input #3 constructor name:', input3.constructor.name);
-        console.log('Input #3 has connectedCallback?', typeof input3.connectedCallback === 'function');
-        console.log('Input #3 is custom element?', customElements.get('behavioral-command'));
-        
-        // Check if event listeners are attached
-        console.log('Trying to manually add input listener...');
-        input3.addEventListener('input', (e) => {
-          console.log('🎯 Native input event fired!', e.target.value);
-        });
-        
-        input3.value = 'test';
-        const inputEvent = new Event('input', { bubbles: true, cancelable: true });
-        input3.dispatchEvent(inputEvent);
-        console.log('✅ Dispatched input event on input #3');
-      }
-    }, 100);
+    // Import auto-loader to upgrade existing elements
+    import '../dist/cdn/auto-loader.js';
+
+    console.log('✅ All 17 behaviors loaded with auto-loader!');
 
     // Consolidated command event listener for demo examples
     document.addEventListener('command', (e) => {
       const target = e.target;
-      
-      // Debug logging (comment out in production)
-      console.log('[Command Event]', {
-        targetId: target.id,
-        command: e.command,
-        sourceValue: e.source?.value
-      });
       
       // Command section demos
       if (target.id === 'cmd-target1') {
