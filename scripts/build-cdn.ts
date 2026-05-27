@@ -359,8 +359,9 @@ export function enableAutoLoader() {
       return;
     }
     
-    const hostName = \`behavioral-\${behaviorNames.join('-')}\`;
+    // Use tag-based naming, not behavior-based
     const tagName = el.tagName.toLowerCase();
+    const hostName = \`behavioral-\${tagName}\`;
     
     if (!registeredHosts.has(hostName)) {
       if (customElements.get(hostName)) {
