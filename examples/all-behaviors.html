@@ -187,17 +187,6 @@
         <div id="cmd-target1" style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 4px; display: none;">
           ✨ Toggled content
         </div>
-        
-        <script>
-          // Simple show/hide for demo (reveal is for dialogs/popovers)
-          document.addEventListener('command', (e) => {
-            const target = e.target;
-            if (target.id === 'cmd-target1') {
-              if (e.command === 'show') target.style.display = 'block';
-              if (e.command === 'hide') target.style.display = 'none';
-            }
-          });
-        </script>
 
         <p style="margin-top: 1rem;"><strong>Custom trigger (input event):</strong></p>
         <input
@@ -208,15 +197,6 @@
           command="update"
           placeholder="Type here...">
         <div id="cmd-output" class="output">Output will appear here as you type</div>
-        
-        <script>
-          document.addEventListener('command', (e) => {
-            const target = e.target;
-            if (target.id === 'cmd-output') {
-              target.textContent = `You typed: ${e.source.value}`;
-            }
-          });
-        </script>
 
         <p style="margin-top: 1rem;"><strong>With delay (300ms):</strong></p>
         <input
@@ -228,15 +208,6 @@
           commanddelay="300"
           placeholder="Debounced input...">
         <div id="cmd-delayed" class="output">Debounced output (300ms delay)</div>
-        
-        <script>
-          document.addEventListener('command', (e) => {
-            const target = e.target;
-            if (target.id === 'cmd-delayed') {
-              target.textContent = `Debounced: ${e.source.value} (300ms delay)`;
-            }
-          });
-        </script>
       </div>
     </div>
 
@@ -276,16 +247,6 @@
         <div id="cond-msg" class="output" style="color: green; display: none;">
           ✅ Value is greater than 10!
         </div>
-        
-        <script>
-          document.addEventListener('command', (e) => {
-            const target = e.target;
-            if (target.id === 'cond-msg') {
-              if (e.command === 'show') target.style.display = 'block';
-              if (e.command === 'hide') target.style.display = 'none';
-            }
-          });
-        </script>
       </div>
     </div>
 
@@ -596,6 +557,29 @@
     });
 
     console.log('✅ All 17 behaviors loaded and hosts defined!');
+
+    // Consolidated command event listener for demo examples
+    document.addEventListener('command', (e) => {
+      const target = e.target;
+      
+      // Command section demos
+      if (target.id === 'cmd-target1') {
+        if (e.command === 'show') target.style.display = 'block';
+        if (e.command === 'hide') target.style.display = 'none';
+      }
+      else if (target.id === 'cmd-output' && e.command === 'update') {
+        target.textContent = `You typed: ${e.source.value}`;
+      }
+      else if (target.id === 'cmd-delayed' && e.command === 'update') {
+        target.textContent = `Debounced: ${e.source.value} (300ms delay)`;
+      }
+      
+      // Condition section demo
+      else if (target.id === 'cond-msg') {
+        if (e.command === 'show') target.style.display = 'block';
+        if (e.command === 'hide') target.style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
