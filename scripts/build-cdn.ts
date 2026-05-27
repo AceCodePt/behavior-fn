@@ -356,6 +356,21 @@ export { enableAutoLoader };
 
   await writeFile(autoLoaderEntry, autoLoaderCode);
 
+  // Plugin to rewrite ~registry/~host/~utils imports to ./behavior-fn-core.js
+  const rewriteAliasPlugin: Plugin = {
+    name: "rewrite-alias",
+    setup(build) {
+      // Intercept imports with ~ aliases
+      build.onResolve({ filter: /^~(registry|host|utils)$/ }, (args) => {
+        // Rewrite to external core bundle
+        return {
+          path: "./behavior-fn-core.js",
+          external: true,
+        };
+      });
+    },
+  };
+
   // Build ESM version only
   await build({
     entryPoints: [autoLoaderEntry],
@@ -370,7 +385,7 @@ export { enableAutoLoader };
       // Don't bundle core - it's imported from behavior-fn-core.js
       "./behavior-fn-core.js",
     ],
-    plugins: [inlineTypeBoxPlugin],
+    plugins: [inlineTypeBoxPlugin, rewriteAliasPlugin],
   });
 
   console.log(`  ✅ auto-loader.js (ESM)`);
