@@ -610,41 +610,61 @@ Set form input values from command sources (typically buttons), useful for auto-
 
 **Attributes:**
 
-- None (zero-config behavior)
+- `set-value-fallback` — Fallback value if command doesn't include `command-value` (optional)
 
 **Commands:**
 
-- `--set-value` — Set input value from command source's `innerText`
-- `--set-value-and-submit` — Set value and submit parent form
+- `set` — Set input value from `command-value` or source's text content
+- `set-and-submit` — Set value and submit parent form
+- `reset` — Reset input to original value attribute
 
 **Features:**
 
 - Works only on form input elements (`<input>`, `<textarea>`, `<select>`)
-- Throws error if attached to non-form elements
+- Returns empty object if attached to non-form elements
 - Dispatches both `input` and `change` events to trigger reactive systems
 - Uses `requestSubmit()` for form submission (respects validation)
-- Button's `innerText` becomes the input value
+- Value priority: `command-value` > `set-value-fallback` attribute > source text content
 
 **Example:**
 
 ```html
-<!-- Suggestion buttons set textarea value -->
+<!-- Option 1: Use command-value on buttons (recommended) -->
 <div>
-  <button is="behavioral-button" commandfor="message" command="set-value">
-    Thanks for your help!
+  <button 
+    is="behavioral-button" 
+    commandfor="message" 
+    command="set"
+    command-value="Thanks for your help!">
+    Thanks
   </button>
-  <button is="behavioral-button" commandfor="message" command="set-value">
-    I'll get back to you soon.
+  <button 
+    is="behavioral-button" 
+    commandfor="message" 
+    command="set"
+    command-value="I'll get back to you soon.">
+    Later
   </button>
   <button
     is="behavioral-button"
     commandfor="message"
-    command="set-value-and-submit"
-  >
-    Looks good to me!
+    command="set-and-submit"
+    command-value="Looks good to me!">
+    Approve
   </button>
 </div>
 
+<!-- Option 2: Use button text content (fallback) -->
+<div>
+  <button is="behavioral-button" commandfor="email" command="set">
+    john@example.com
+  </button>
+  <button is="behavioral-button" commandfor="email" command="set">
+    jane@example.com
+  </button>
+</div>
+
+<!-- Target input has the behavior -->
 <form>
   <textarea
     is="behavioral-textarea"
@@ -654,6 +674,13 @@ Set form input values from command sources (typically buttons), useful for auto-
   ></textarea>
   <button type="submit">Send</button>
 </form>
+
+<input
+  is="behavioral-input"
+  type="email"
+  id="email"
+  behavior="set-value"
+  set-value-fallback="default@example.com">
 ```
 
 **Common Use Cases:**
@@ -930,31 +957,55 @@ Debug helper that logs interaction events to the console.
 
 ## ⚡ Command Protocol V2
 
-The **Command Protocol** is now a **platform-level capability** built into the behavioral host. Any element with `commandfor` + `command` + a behavioral host (`is="behavioral-..."`) will dispatch commands automatically — no dedicated behavior needed.
+The **Command Protocol** is now a **platform-level capability** built into the behavioral host. Any element with command attributes + a behavioral host (`is="behavioral-..."`) will dispatch commands automatically — no dedicated behavior needed.
 
-### The `commandby` Attribute
+### Command Attributes
 
-The `commandby` attribute declares _when_ a command fires. If omitted, sensible defaults apply:
+**Core Attributes:**
 
-| Element                                                                 | Default `commandby` |
-| ----------------------------------------------------------------------- | ------------------- |
-| `button`                                                                | `click`             |
-| `input[text, search, email, password, url, tel, number, range, color]`  | `input`             |
-| `input[checkbox, radio, file, date, time, datetime-local, month, week]` | `change`            |
-| `textarea`                                                              | `input`             |
-| `select`                                                                | `change`            |
-| `form`                                                                  | `submit`            |
-| Everything else (`div`, `span`, `a`, etc.)                              | `click`             |
+- **`commandfor`** or **`command-for`** — Target element ID(s) to receive the command
+  - `commandfor` is the native Invoker Commands API (browser standard)
+  - `command-for` is an alternative hyphenated form (for consistency)
+  - Both are fully supported, use whichever you prefer
+  - Supports multiple targets: `commandfor="modal panel"` (space-separated) or `commandfor="modal, panel"` (comma-separated)
+
+- **`command`** — The command name to dispatch (e.g., `show`, `hide`, `toggle`, `set-value`)
+  - Single command: broadcasts to all targets
+  - Multiple commands: must match target count exactly or use single target
+
+- **`command-by`** — When to dispatch the command (trigger events)
+  - Defaults to sensible values based on element type (see table below)
+  - Can specify multiple events: `command-by="click mouseenter"`
+  - Override defaults when needed
+
+- **`command-value`** — Optional value to pass with the command
+  - Available on `event.value` in CommandEvent
+  - Useful for buttons that set specific values
+  - Example: `<button command-value="dark" command="set-theme">`
+
+### The `command-by` Attribute
+
+Default trigger events when `command-by` is omitted:
+
+| Element                                                                 | Default `command-by` |
+| ----------------------------------------------------------------------- | -------------------- |
+| `button`                                                                | `click`              |
+| `input[text, search, email, password, url, tel, number, range, color]`  | `input`              |
+| `input[checkbox, radio, file, date, time, datetime-local, month, week]` | `change`             |
+| `textarea`                                                              | `input`              |
+| `select`                                                                | `change`             |
+| `form`                                                                  | `submit`             |
+| Everything else (`div`, `span`, `a`, etc.)                              | `click`              |
 
 ### Basic Usage
 
 ```html
-<!-- Button click → show panel (default commandby="click") -->
+<!-- Button click → show panel (default command-by="click") -->
 <button is="behavioral-button" commandfor="my-panel" command="show">
   Show Panel
 </button>
 
-<!-- Input change → set value on output (default commandby="input") -->
+<!-- Input change → set value on output (default command-by="input") -->
 <input
   is="behavioral-input"
   type="text"
@@ -965,12 +1016,44 @@ The `commandby` attribute declares _when_ a command fires. If omitted, sensible 
 <!-- Override default: button hover → show tooltip -->
 <button
   is="behavioral-button"
-  commandby="mouseenter"
+  command-by="mouseenter"
   commandfor="my-tooltip"
   command="show"
 >
   Hover Me
 </button>
+```
+
+### Using `command-value`
+
+Pass a value with the command using `command-value`:
+
+```html
+<!-- Theme switcher buttons with command-value -->
+<button 
+  is="behavioral-button" 
+  commandfor="app" 
+  command="set-theme"
+  command-value="light">
+  Light Theme
+</button>
+
+<button 
+  is="behavioral-button" 
+  commandfor="app" 
+  command="set-theme"
+  command-value="dark">
+  Dark Theme
+</button>
+
+<!-- Target element receives CommandEvent with event.value -->
+<div id="app" behavior="..." onCommand={(e) => {
+  if (e.command === 'set-theme') {
+    document.body.setAttribute('data-theme', e.value); // 'light' or 'dark'
+  }
+}}>
+  App content
+</div>
 ```
 
 ### Compound Commands

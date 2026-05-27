@@ -21,33 +21,46 @@ describe("Set-Value Behavior", () => {
     defineBehavioralHost("input", TAG, observedAttributes);
   });
 
-  it("should set input value from command source innerText", () => {
+  it("should set input value from command-value (event.value)", () => {
     const el = createBehavioralElement("input", TAG, {
       behavior: name,
     });
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.innerText = "Hello World";
 
-    dispatchCommand(el, command["set"], source);
+    dispatchCommand(el, command["set"], source, "Hello from command-value");
 
-    expect(el.value).toBe("Hello World");
+    expect(el.value).toBe("Hello from command-value");
   });
 
-  it("should set input value from set-value-value attribute if present", () => {
+  it("should fall back to set-value-fallback attribute if no command-value", () => {
     const el = createBehavioralElement("input", TAG, {
       behavior: name,
-      [attributes["set-value-value"]]: "Fixed Value",
+      [attributes["set-value-fallback"]]: "Fallback Value",
     });
     document.body.appendChild(el);
 
     const source = createCommandSource();
-    source.innerText = "Source Text";
+    source.textContent = "Source Text";
 
     dispatchCommand(el, command["set"], source);
 
-    expect(el.value).toBe("Fixed Value");
+    expect(el.value).toBe("Fallback Value");
+  });
+
+  it("should fall back to source textContent if no command-value or fallback", () => {
+    const el = createBehavioralElement("input", TAG, {
+      behavior: name,
+    });
+    document.body.appendChild(el);
+
+    const source = createCommandSource();
+    source.textContent = "Source Text Content";
+
+    dispatchCommand(el, command["set"], source);
+
+    expect(el.value).toBe("Source Text Content");
   });
 
   it("should dispatch input and change events after setting value", () => {
@@ -81,7 +94,7 @@ describe("Set-Value Behavior", () => {
     const submitSpy = vi.spyOn(form, "requestSubmit").mockImplementation(() => {});
     
     const source = createCommandSource();
-    source.innerText = "Submit Me";
+    source.textContent = "Submit Me";
 
     dispatchCommand(el, command["set-and-submit"], source);
 

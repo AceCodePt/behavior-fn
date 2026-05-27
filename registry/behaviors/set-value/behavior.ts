@@ -25,9 +25,14 @@ export const setValueBehaviorFactory = (el: HTMLElement) => {
         return;
       }
 
-      const value = el.getAttribute(attributes["set-value-value"]) ?? e.source.innerText;
-
       if (e.command === command["set"] || e.command === command["set-and-submit"]) {
+        // Priority: event.value (from command-value) > fallback attribute > source innerText
+        const value = 
+          e.value ?? 
+          el.getAttribute(attributes["set-value-fallback"]) ?? 
+          e.source.textContent?.trim() ?? 
+          "";
+
         input.value = value;
         
         // Dispatch events to trigger reactive systems (like dirty-input)

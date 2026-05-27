@@ -9,6 +9,7 @@ export function dispatchCommand<T extends string>(
   target: HTMLElement,
   command: T,
   source: HTMLElement = document.createElement("button"),
+  value?: string | null,
 ): CommandEvent<T> {
   const event = new Event("command", {
     bubbles: true,
@@ -17,8 +18,11 @@ export function dispatchCommand<T extends string>(
   }) as CommandEvent<T>;
 
   // Assign the properties that CommandEvent expects
-  Object.defineProperty(event, "command", { value: command });
-  Object.defineProperty(event, "source", { value: source });
+  Object.defineProperty(event, "command", { value: command, enumerable: true });
+  Object.defineProperty(event, "source", { value: source, enumerable: true });
+  if (value !== undefined) {
+    Object.defineProperty(event, "value", { value, enumerable: true });
+  }
 
   target.dispatchEvent(event);
   return event;
